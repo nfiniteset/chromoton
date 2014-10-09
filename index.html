@@ -1,0 +1,459 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Software for One</title>
+  <style>
+html { height: 100%; }
+body {
+  background-color: rgb(40,40,40);
+  margin: 0;
+  padding: 0;
+  font-family: Futura,Helvetica,Arial,san-serif;
+  color: #eee;
+  overflow: hidden;
+  height: 100%;
+   -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+ }
+
+.slide {
+  position: absolute;
+  top: 0;
+  color: #eee;
+  overflow: hidden;
+ }
+
+ .slide.inverse {
+  background-color: #fff;
+ }
+
+.slide.transition, .sub-slide.transition {
+  -webkit-transition: left .15s ease;
+}
+
+.slide img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  transform: translate(-50%, 0)
+}
+
+.slide img.fit-horizontal {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: auto;
+  transform: translate(0, -50%)
+}
+
+.slide .center {
+  text-align: center;
+  font-size: 4em;
+  font-weight: normal;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin-top: -30px;
+  line-height: 60px;
+  height: 60px;
+}
+
+.slide.case-study img {
+  position: absolute;
+  width: 20%;
+  height: auto;
+  top: 10%;
+  left: 20%;
+}
+
+.slide.case-study h2 {
+  position: absolute;
+  width: 65%;
+  right: 0;
+  top: 10%;
+  font-size: 9.5em;
+  text-shadow: 0px 0px 8px black;
+}
+
+.slide.case-study q {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 45%;
+  height: 55%;
+  font-size: 3em;
+  line-height: 2em;
+  text-shadow: 0px 0px 8px black;
+  text-indent: -1.7em;
+  margin-left: 1.7em;
+  quotes: "\201C""";
+}
+
+.slide.case-study q:before {
+  color: #6cf;
+  content: open-quote;
+  font-size: 3em;
+  line-height: 0.1em;
+  margin-right: 0.1em;
+  vertical-align: -0.4em;
+  font-family: serif;
+}
+
+
+
+.slide h1.center {
+  font-size: 10em;
+  line-height: 1.5em;
+  position: absolute;
+  z-index: 1;
+  top: 42%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.slide h2 {
+  font-size: 4em;
+  line-height: 1.5em;
+  position: absolute;
+  z-index: 1;
+}
+
+.slide h2.bottom-right {
+  top: 64%;
+  right: 5%;
+}
+
+.slide h2.bottom-left {
+  top: 64%;
+  left: 5%;
+}
+
+.slide h2.top-right {
+  top: 20%;
+  right: 5%;
+}
+
+.slide h2.top-left {
+  top: 20%;
+  left: 5%;
+}
+
+.slide h2.high {
+  top: 10%;
+}
+
+.slide h2.low {
+  top: 74%;
+}
+
+.slide h2.top-right.inset {
+  right: 20%;
+}
+
+.slide h2.bottom-right.inset {
+  left: 20%;
+}
+
+.slide h2.inverse {
+  color: black;
+}
+
+.outline {
+  text-shadow: 0px 0px 8px black;
+}
+
+.img img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  margin: 0 -50%;
+}
+
+.chromoton {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.chromoton canvas {
+  display: block;
+  margin: 0 auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+
+  </style>
+  <script type="text/javascript" src="chromoton.js" charset="utf-8"></script>
+</head>
+<body>
+
+  <div class="slide">
+    <img src="images/software_for_one.jpg"/>
+    <h2 class="top-right high inverse">Software for One</h2>
+  </div>
+
+  <div class="slide">
+    <img src="images/minecraft.png"/>
+  </div>
+
+  <div class="slide case-study">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <img src="images/notch.jpg"/>
+    <h2>Notch</h2>
+    <q>I don't see myself as a real game developer. I make games because it's fun, and because I love games and I love to program ... If I ever accidentally make something that seems to gain traction, I'll probably abandon it immediately.</q>
+  </div>
+
+  <div class="slide">
+    <img src="images/software_for_fun.jpg"/>
+    <h2 class="top-right high inverse">Software for Fun</h2>
+  </div>
+
+  <div class="slide case-study">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <img src="images/sean.jpg"/>
+    <h2>Sean</h2>
+    <q>I get to express myself in ways a don't always get to on client work.</q>
+  </div>
+
+  <div class="slide">
+    <img src="images/hallah1.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/hallah2.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/hallah3.png"/>
+  </div>
+
+  <div class="slide case-study">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <img src="images/clark.jpg"/>
+    <h2>Clark</h2>
+    <q>Part of the fun of being a developer is being able to put together some ad hoc tool, use it while it's useful, and move onto something new when I get bored without really worrying about it too much.</q>
+  </div>
+
+  <div class="slide inverse">
+    <img src="images/recipe.jpg" class="fit-horizontal"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/fashion.jpg" class="fit-horizontal"/>
+  </div>
+
+  <div class="slide case-study">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <img src="images/alex.jpg"/>
+    <h2>Alex</h2>
+    <q>Alright, Let's talk about me...</q>
+  </div>
+
+  <div class="slide">
+    <img src="images/software_for_one.jpg"/>
+    <h2 class="top-right high inverse">Software for Once</h2>
+  </div>
+
+  <div class="slide inverse">
+    <img src="images/excel.jpg"/>
+  </div>
+
+  <div class="slide">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <h2 class="bottom-right outline">Slide Presentations</h2>
+  </div>
+
+  <div class="slide case-study">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <img src="images/rudy.jpg"/>
+    <h2>Rudy</h2>
+    <q>This is the least of the kind of tricks the Atari coders did all the time!</q>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal1.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal2.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal3.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal4.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal5.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal6.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal7.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal8.png"/>
+  </div>
+
+  <div class="slide">
+    <img src="images/portal9.png"/>
+  </div>
+
+  <div class="slide">
+    <div class="interactive chromoton" data-runner="chromoton">
+      <canvas class="chromotons" width="640" height="640"></canvas>
+    </div>
+    <h1 class="center">Thank You</h2>
+  </div>
+
+</body>
+<foot>
+  <script>
+    var slideIndex = 0;
+    var subSlideIndex = 0;
+    var subslides;
+
+    chromoton.init()
+
+    function removeClass(el, clss) {
+      var re = new RegExp("^"+clss+"$|^"+clss+"\\s+|\\s+"+clss+"$|\\s+"+clss+"(\\s+)");
+      el.setAttribute( "class", (el.getAttribute('class')||'').replace(re,"$1") )
+    }
+    function addClass(el, clss) {
+      removeClass(el,clss)
+      el.setAttribute( 'class', (el.getAttribute('class') || '') + ' ' + clss )
+    }
+    function hasClass(el, clss) {
+      return !!(el.getAttribute('class')||'').match(new RegExp("(\\s+|^)"+clss+"(\\s+|$)"));
+    }
+
+    if ( location.hash && location.hash.match(/#\d+$/) )
+      slideIndex = +location.hash.match(/#(\d+)$/)[1]
+
+    var slides = document.getElementsByClassName('slide');
+    arrangeSlides( slides, slideIndex, true )
+    subslides = slides[slideIndex].getElementsByClassName('sub-slide');
+    if ( ! subslides.length ) {
+      subslides = null;
+    } else {
+      subSlideIndex = 0;
+      arrangeSlides( subslides, 0 );
+    }
+
+    function arrangeSlides( slides, index, autoHeight ) {
+      for (var i=0, slide; slide = slides[i]; i++) {
+        slide.style.width = document.body.offsetWidth + 'px';
+        if ( autoHeight )
+          slide.style.height = document.body.offsetHeight + 'px';
+        if ( i > index )
+          slide.style.left = document.body.offsetWidth + 'px';
+        else if ( i < index )
+          slide.style.left = -slide.offsetWidth + 'px';
+        else
+          slide.style.left = '0px';
+      }
+    }
+
+    function transition( oldSlide, newSlide, direction, adjustHeight ) {
+      var windowWidth = document.body.offsetWidth;
+      removeClass( newSlide, 'transition' );
+      newSlide.style.width = document.body.offsetWidth + 'px';
+      if (adjustHeight)
+        newSlide.style.height = document.body.offsetHeight + 'px';
+      newSlide.style.left = direction * windowWidth + 'px';
+      addClass( newSlide, 'transition' );
+      addClass( oldSlide, 'transition' );
+
+      setTimeout(function() {
+        newSlide.style.left = '0px';
+        oldSlide.style.left = -direction * oldSlide.offsetWidth + 'px'
+      }, 1);
+      return newSlide;
+    }
+
+    function transitionSlide( oldSlide, newSlide, direction ) {
+      var interactive = oldSlide.getElementsByClassName('interactive');
+      for (var i=0, el; el = interactive[i]; i++)
+        window[el.getAttribute('data-runner')].hide();
+
+      interactive = newSlide.getElementsByClassName('interactive');
+      for (var i=0, el; el = interactive[i]; i++)
+        window[el.getAttribute('data-runner')].show(el);
+
+      subslides = newSlide.getElementsByClassName('sub-slide');
+      if ( ! subslides.length ) {
+        subslides = null;
+      } else {
+        subSlideIndex = ~direction ? 0 : subslides.length - 1;
+        arrangeSlides( subslides, subSlideIndex );
+      }
+
+      return transition(oldSlide, newSlide, direction, true);
+    }
+
+    function next() {
+      if ( subslides && subSlideIndex < subslides.length - 1 )
+        return transition( subslides[subSlideIndex], subslides[++subSlideIndex], 1 );
+
+      if ( slideIndex >= slides.length - 1 )
+        return;
+
+      transitionSlide( slides[slideIndex], slides[++slideIndex], 1 );
+      location.hash = slideIndex;
+    }
+
+    function prev() {
+      if ( subslides && subSlideIndex > 0 )
+        return transition( subslides[subSlideIndex], subslides[--subSlideIndex], -1 );
+
+      if ( slideIndex < 1 )
+        return;
+      transitionSlide( slides[slideIndex], slides[--slideIndex], -1 );
+      location.hash = slideIndex;
+    }
+
+    document.body.onkeyup = function(e) {
+      if (e.keyCode == 39) {
+        next()
+        return false;
+      } else if (e.keyCode == 37) {
+        prev()
+        return false;
+      }
+    }
+
+
+  </script>
+</foot>
+</html>
