@@ -12,7 +12,7 @@ chromoton = (function() {
 
   var population = [];
   var populationNext = [];
-  var targetRed = 17, targetGreen = 179,  targetBlue = 162;
+  var targetRed = 17, targetGreen = 79,  targetBlue = 62;
   var simulationInterval;
   var changeColorTimeout;
 
@@ -206,9 +206,12 @@ chromoton = (function() {
   }
 
   function changeColor() {
-    targetRed = (Math.random() * 256)|0;
-    targetGreen = (Math.random() * 256)|0;
-    targetBlue = (Math.random() * 256)|0;
+    do {
+      targetRed = (Math.random() * 256)|0;
+      targetGreen = (Math.random() * 256)|0;
+      targetBlue = (Math.random() * 256)|0;
+    } while ( targetRed + targetGreen + targetBlue > 400 );
+    console.log(targetRed, targetGreen, targetBlue, targetRed + targetGreen + targetBlue)
     changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random()*(MAX_CHANGE_TIME - MIN_CHANGE_TIME))|0 );
   }
 
