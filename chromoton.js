@@ -1,4 +1,4 @@
-chromoton = (function() {
+chromoton = (function () {
   var el;
   var PRIME_INC = 457;
   var NEIGHBOR_SEQUENCE = [[-1, -1], [1, 1], [1, -1], [-1, 1], [0, -1], [0, 1], [1, 0], [-1, 0]];
@@ -12,32 +12,32 @@ chromoton = (function() {
 
   var population = [];
   var populationNext = [];
-  var targetRed = 17, targetGreen = 79,  targetBlue = 62;
+  var targetRed = 17, targetGreen = 79, targetBlue = 62;
   var simulationInterval;
   var changeColorTimeout;
 
   function removeClass(el, clss) {
-    var re = new RegExp("^"+clss+"$|^"+clss+"\\s+|\\s+"+clss+"$|\\s+"+clss+"(\\s+)");
-    el.setAttribute( "class", (el.getAttribute('class')||'').replace(re,"$1") )
+    var re = new RegExp("^" + clss + "$|^" + clss + "\\s+|\\s+" + clss + "$|\\s+" + clss + "(\\s+)");
+    el.setAttribute("class", (el.getAttribute('class') || '').replace(re, "$1"))
   }
   function addClass(el, clss) {
-    removeClass(el,clss)
-    el.setAttribute( 'class', (el.getAttribute('class') || '') + ' ' + clss )
+    removeClass(el, clss)
+    el.setAttribute('class', (el.getAttribute('class') || '') + ' ' + clss)
   }
   function hasClass(el, clss) {
-    return !!(el.getAttribute('class')||'').match(new RegExp("(\\s+|^)"+clss+"(\\s+|$)"));
+    return !!(el.getAttribute('class') || '').match(new RegExp("(\\s+|^)" + clss + "(\\s+|$)"));
   }
 
   function render(population) {
     var canvas = el.getElementsByClassName('chromotons')[0];
     var ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width, canvas.height)
-    for (var i=0; i<yDim; i++) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    for (var i = 0; i < yDim; i++) {
       var row = population[i];
-      for (var j=0; j<xDim; j++)  {
+      for (var j = 0; j < xDim; j++) {
         var chromoton = row[j];
-        ctx.fillStyle = 'rgb('+chromoton.red+','+chromoton.green+','+chromoton.blue+')'
-        ctx.fillRect(j*6,i*6,5.9,5.9);
+        ctx.fillStyle = 'rgb(' + chromoton.red + ',' + chromoton.green + ',' + chromoton.blue + ')'
+        ctx.fillRect(j * 6, i * 6, 5.9, 5.9);
       }
     }
   }
@@ -46,8 +46,8 @@ chromoton = (function() {
     el = element;
     clearInterval(simulationInterval);
     clearTimeout(changeColorTimeout);
-    simulationInterval = setInterval(step,100);
-    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random()*(MAX_CHANGE_TIME - MIN_CHANGE_TIME))|0 );
+    simulationInterval = setInterval(step, 100);
+    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
   }
 
   function stopSimulation() {
@@ -56,7 +56,7 @@ chromoton = (function() {
   }
 
   function Chromoton(chromosome) {
-    var pub = {chromosome:chromosome};
+    var pub = { chromosome: chromosome };
 
     // initialize parents
     pub.parentX = -1;
@@ -68,14 +68,12 @@ chromoton = (function() {
     pub.blue = 0;
 
     // set chromosome and determine color of chromoton
-    for ( var i=0; i < NUMBER_OF_GENES; i++ )
-    {
+    for (var i = 0; i < NUMBER_OF_GENES; i++) {
       // calculate ith low chromosome gene
       var gene = (chromosome[i] & 0x1F);
       var colorVal = gene >> 3;
       var multiplier = gene & 0x7;
-      switch ( colorVal )
-      {
+      switch (colorVal) {
         case 1:     // red
           pub.red += (1 << multiplier);
           break;
@@ -87,9 +85,9 @@ chromoton = (function() {
           break;
       }
     }
-    if ( pub.red > 255 ) pub.red = 255;
-    if ( pub.green > 255 ) pub.green = 255;
-    if ( pub.blue > 255 ) pub.blue = 255;
+    if (pub.red > 255) pub.red = 255;
+    if (pub.green > 255) pub.green = 255;
+    if (pub.blue > 255) pub.blue = 255;
 
     // determine deviance
     pub.deviance = Math.abs(pub.red - targetRed) + Math.abs(pub.green - targetGreen) + Math.abs(pub.blue - targetBlue);
@@ -104,7 +102,7 @@ chromoton = (function() {
     var size = xDim * yDim;             // dimensions of array
     var index = 0;                      // index of current chromoton
     var subIndex = 0;                   // index moded into range of array
-    var deviance = 1<<30;               // deviance of current mate
+    var deviance = 1 << 30;               // deviance of current mate
     var x = 0;                          // x position of current chromoton
     var y = 0;                          // y position of current chromoton
     var lowX = 0;                       // x position of best mate for chromoton
@@ -119,31 +117,30 @@ chromoton = (function() {
     var sequenceIndex = 0;              // which direction to begin mate search
 
     // perform a semi-random traversal of population
-    index = (( Math.random() * size )|0);
-    for ( var i=0; i < size; i++ ) {
+    index = ((Math.random() * size) | 0);
+    for (var i = 0; i < size; i++) {
       subIndex = index % size;
-      y = (subIndex / xDim)|0;
+      y = (subIndex / xDim) | 0;
       x = subIndex % xDim;
 
       current = population[y][x];
-      deviance = 1<<30;
+      deviance = 1 << 30;
       lowX = -1;
       lowY = -1;
 
       // loop through potential mates
-      for ( var k=0; k < 8; k++ )
-      {
-        testX = x + NEIGHBOR_SEQUENCE[ ( k + sequenceIndex ) & 0x7 ][0];
-        testY = y + NEIGHBOR_SEQUENCE[ ( k + sequenceIndex ) & 0x7 ][1];
+      for (var k = 0; k < 8; k++) {
+        testX = x + NEIGHBOR_SEQUENCE[(k + sequenceIndex) & 0x7][0];
+        testY = y + NEIGHBOR_SEQUENCE[(k + sequenceIndex) & 0x7][1];
 
-        if (( testY >= 0 ) && ( testY < yDim ) && ( testX >= 0 ) && ( testX < xDim )) {
+        if ((testY >= 0) && (testY < yDim) && (testX >= 0) && (testX < xDim)) {
           mate = population[testY][testX];
 
           // if mate's deviance is too high, don't bother
-          if (( mate.deviance < deviance ) && ( mate.breedTimes <= MAX_MATES )) {
+          if ((mate.deviance < deviance) && (mate.breedTimes <= MAX_MATES)) {
             // make sure chromotons aren't siblings
-            if ((( current.parentX != testX ) || ( current.parentY != testY ))
-                && (( current.parentX != mate.parentX ) || ( current.parentY != mate.parentY ))) {
+            if (((current.parentX != testX) || (current.parentY != testY))
+              && ((current.parentX != mate.parentX) || (current.parentY != mate.parentY))) {
               // this ones an ok mate
               lowX = testX;
               lowY = testY;
@@ -154,12 +151,12 @@ chromoton = (function() {
       }
 
       // if mate found, breed into next generation, else clone
-      if (( lowX >= 0 ) && ( lowY >= 0 )) {
+      if ((lowX >= 0) && (lowY >= 0)) {
         mate = population[lowY][lowX];
         child = breed(current, mate);
         child.parentX = lowX;
         child.parentY = lowY;
-        mate.breedTimes = (mate.breedTimes||0)+1;
+        mate.breedTimes = (mate.breedTimes || 0) + 1;
       } else {
         child = Chromoton(current.chromosome);
         child.parentX = x;
@@ -183,22 +180,22 @@ chromoton = (function() {
     render(population);
   }
 
-  function breed( mother, father ) {
+  function breed(mother, father) {
     var chromosome = [];                // new gene
     var mutationBit = 0;                // which bit should be mutated
 
     // create new chromosome
-    for ( var i = 0; i < NUMBER_OF_GENES; i++ ) {
+    for (var i = 0; i < NUMBER_OF_GENES; i++) {
       var mask = (256 * Math.random()) | 0;
-      chromosome[i] = ( mother.chromosome[i] & mask ) | ( father.chromosome[i] & ~mask );
+      chromosome[i] = (mother.chromosome[i] & mask) | (father.chromosome[i] & ~mask);
     }
 
     // determine if a mutation should occur
-    if ( Math.random() < MUTATION_RATE ) {
+    if (Math.random() < MUTATION_RATE) {
       i = (Math.random() * NUMBER_OF_GENES) | 0;
 
       // mutate a single bit
-      chromosome[i] ^= 1 << ((Math.random()*7)|0);
+      chromosome[i] ^= 1 << ((Math.random() * 7) | 0);
     }
 
     // re-initialize chomoton as offspring
@@ -207,26 +204,26 @@ chromoton = (function() {
 
   function changeColor() {
     do {
-      targetRed = (Math.random() * 256)|0;
-      targetGreen = (Math.random() * 256)|0;
-      targetBlue = (Math.random() * 256)|0;
-    } while ( targetRed + targetGreen + targetBlue > 400 );
+      targetRed = (Math.random() * 256) | 0;
+      targetGreen = (Math.random() * 256) | 0;
+      targetBlue = (Math.random() * 256) | 0;
+    } while (targetRed + targetGreen + targetBlue > 400);
     console.log(targetRed, targetGreen, targetBlue, targetRed + targetGreen + targetBlue)
-    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random()*(MAX_CHANGE_TIME - MIN_CHANGE_TIME))|0 );
+    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
   }
 
   function init() {
     // initialize defaultChromosome
-    var defaultChromosome = [13,11,21,19,29,27];
-    for ( var i=defaultChromosome.length; i < NUMBER_OF_GENES; i++ ) defaultChromosome[i] = 0;
+    var defaultChromosome = [13, 11, 21, 19, 29, 27];
+    for (var i = defaultChromosome.length; i < NUMBER_OF_GENES; i++) defaultChromosome[i] = 0;
 
     // create arrays of default chrmotons
-    for ( var i=0; i < yDim; i++ ) {
+    for (var i = 0; i < yDim; i++) {
       // allocate row
       population[i] = [];
       populationNext[i] = [];
 
-      for ( var j=0; j < xDim; j++ ) {
+      for (var j = 0; j < xDim; j++) {
         population[i][j] = Chromoton(defaultChromosome);
 
         // set parent to self (so there won't be imbreeding problems in first step)
@@ -236,5 +233,5 @@ chromoton = (function() {
     }
   }
 
-  return {init:init, show:startSimulation, hide:stopSimulation}
+  return { init: init, show: startSimulation, hide: stopSimulation }
 })()

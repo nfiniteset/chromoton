@@ -1,59 +1,62 @@
 <html>
+
 <head>
   <meta charset="utf-8">
   <title>Software for One</title>
   <style>
-html { height: 100%; }
-body {
-  background-color: rgb(40,40,40);
-  margin: 0;
-  padding: 0;
-  font-family: Futura,Helvetica,Arial,san-serif;
-  color: #eee;
-  overflow: hidden;
-  height: 100%;
-   -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
- }
+    html {
+      height: 100%;
+    }
 
-.slide {
-  position: absolute;
-  top: 0;
-  color: #eee;
-  overflow: hidden;
- }
+    body {
+      background-color: rgb(40, 40, 40);
+      margin: 0;
+      padding: 0;
+      font-family: Futura, Helvetica, Arial, san-serif;
+      color: #eee;
+      overflow: hidden;
+      height: 100%;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
 
-.chromoton {
-  position: relative;
-  margin: 0;
-  padding: 0;
-  height: 10vh;
-  border: 1px solid green;
-}
+    .slide {
+      position: absolute;
+      top: 0;
+      color: #eee;
+      overflow: hidden;
+    }
 
-.chromoton canvas {
-  display: block;
-  margin: 0 auto;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-}
+    .chromoton {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      height: 10vh;
+      border: 1px solid green;
+    }
 
-
+    .chromoton canvas {
+      display: block;
+      margin: 0 auto;
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+    }
   </style>
   <script type="text/javascript" src="chromoton.js" charset="utf-8"></script>
 </head>
+
 <body>
 
-    <div class="interactive chromoton" data-runner="chromoton">
-      <canvas class="chromotons" width="640" height="640"></canvas>
-    </div>
+  <div class="interactive chromoton" data-runner="chromoton">
+    <canvas class="chromotons" width="640" height="640"></canvas>
+  </div>
 
 </body>
 <foot>
@@ -63,4 +66,5 @@ body {
     chromoton.show(container)
   </script>
 </foot>
+
 </html>
