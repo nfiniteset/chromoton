@@ -16,18 +16,6 @@ chromoton = (function () {
   var simulationInterval;
   var changeColorTimeout;
 
-  function removeClass(el, clss) {
-    var re = new RegExp("^" + clss + "$|^" + clss + "\\s+|\\s+" + clss + "$|\\s+" + clss + "(\\s+)");
-    el.setAttribute("class", (el.getAttribute('class') || '').replace(re, "$1"))
-  }
-  function addClass(el, clss) {
-    removeClass(el, clss)
-    el.setAttribute('class', (el.getAttribute('class') || '') + ' ' + clss)
-  }
-  function hasClass(el, clss) {
-    return !!(el.getAttribute('class') || '').match(new RegExp("(\\s+|^)" + clss + "(\\s+|$)"));
-  }
-
   function render(population) {
     var canvas = el.getElementsByClassName('chromotons')[0];
     var ctx = canvas.getContext('2d');
@@ -182,7 +170,6 @@ chromoton = (function () {
 
   function breed(mother, father) {
     var chromosome = [];                // new gene
-    var mutationBit = 0;                // which bit should be mutated
 
     // create new chromosome
     for (var i = 0; i < NUMBER_OF_GENES; i++) {
