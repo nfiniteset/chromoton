@@ -1,4 +1,4 @@
 Chromoton
 ================
 
-I extracted this code from a presenation 
+A cellular automata extracted from [a presenation](acruikshank/software-for-one-presentation) by @acruikshank.
