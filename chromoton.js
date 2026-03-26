@@ -5,85 +5,134 @@ chromoton = (function () {
   var NUMBER_OF_GENES = 24;
   var MAX_MATES = 3;                        // maximum number of times a chromoton can breed
   var MUTATION_RATE = 0.002;                  // likelyhood that a mutation will occur
-  var xDim = 120;                          // dimensions of arrays in x direction
-  var yDim = 80;                           // dimensions of arrays in y direction
+  var xDim = 120*1;                          // dimensions of arrays in x direction
+  var yDim = 80*1;                           // dimensions of arrays in y direction
   var MIN_CHANGE_TIME = 8000;
   var MAX_CHANGE_TIME = 15000;
 
   var population = [];
   var populationNext = [];
   var targetRed = 17, targetGreen = 79, targetBlue = 62;
-  var simulationInterval;
+  var rafId;
+  var lastStepTime = 0;
   var changeColorTimeout;
+  var imageData;
 
-  function render(population) {
-    var canvas = el.getElementsByClassName('chromotons')[0];
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    for (var i = 0; i < yDim; i++) {
-      var row = population[i];
-      for (var j = 0; j < xDim; j++) {
-        var chromoton = row[j];
-        ctx.fillStyle = 'rgb(' + chromoton.red + ',' + chromoton.green + ',' + chromoton.blue + ')'
-        ctx.fillRect(j * 6, i * 6, 5.9, 5.9);
-      }
-    }
-  }
-
-  function startSimulation(element) {
-    el = element;
-    clearInterval(simulationInterval);
-    clearTimeout(changeColorTimeout);
-    simulationInterval = setInterval(step, 100);
-    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
-  }
-
-  function stopSimulation() {
-    clearInterval(simulationInterval);
-    clearTimeout(changeColorTimeout);
-  }
-
-  function Chromoton(chromosome) {
-    var pub = { chromosome: chromosome };
-
-    // initialize parents
-    pub.parentX = -1;
-    pub.parentY = -1;
-
-    // initialize red, green and blue
-    pub.red = 0;
-    pub.green = 0;
-    pub.blue = 0;
-
-    // set chromosome and determine color of chromoton
+  // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
+  function applyChromosome(c) {
+    c.red = 0;
+    c.green = 0;
+    c.blue = 0;
+    var chromosome = c.chromosome;
     for (var i = 0; i < NUMBER_OF_GENES; i++) {
-      // calculate ith low chromosome gene
       var gene = (chromosome[i] & 0x1F);
       var colorVal = gene >> 3;
       var multiplier = gene & 0x7;
       switch (colorVal) {
         case 1:     // red
-          pub.red += (1 << multiplier);
+          c.red += (1 << multiplier);
           break;
         case 2:     // green
-          pub.green += (1 << multiplier);
+          c.green += (1 << multiplier);
           break;
         case 3:     // blue
-          pub.blue += (1 << multiplier);
+          c.blue += (1 << multiplier);
           break;
       }
     }
-    if (pub.red > 255) pub.red = 255;
-    if (pub.green > 255) pub.green = 255;
-    if (pub.blue > 255) pub.blue = 255;
+    if (c.red > 255) c.red = 255;
+    if (c.green > 255) c.green = 255;
+    if (c.blue > 255) c.blue = 255;
+    c.deviance = Math.abs(c.red - targetRed) + Math.abs(c.green - targetGreen) + Math.abs(c.blue - targetBlue);
+    c.breedTimes = 0;
+  }
 
-    // determine deviance
-    pub.deviance = Math.abs(pub.red - targetRed) + Math.abs(pub.green - targetGreen) + Math.abs(pub.blue - targetBlue);
+  // Allocate a new chromoton object with a Uint8Array chromosome.
+  function makeChromoton(srcChromosome) {
+    var c = {
+      chromosome: new Uint8Array(NUMBER_OF_GENES),
+      red: 0, green: 0, blue: 0, deviance: 0, breedTimes: 0,
+      parentX: -1, parentY: -1
+    };
+    for (var i = 0; i < NUMBER_OF_GENES; i++) c.chromosome[i] = srcChromosome[i];
+    applyChromosome(c);
+    return c;
+  }
 
-    // reset times chromoton has bred
-    pub.breedTimes = 0;
+  // Write offspring of mother+father into an existing chromoton object (no allocation).
+  function breedInto(child, mother, father) {
+    var chromosome = child.chromosome;
+    var mc = mother.chromosome;
+    var fc = father.chromosome;
+    for (var i = 0; i < NUMBER_OF_GENES; i++) {
+      var mask = (256 * Math.random()) | 0;
+      chromosome[i] = (mc[i] & mask) | (fc[i] & ~mask);
+    }
+    // determine if a mutation should occur
+    if (Math.random() < MUTATION_RATE) {
+      i = (Math.random() * NUMBER_OF_GENES) | 0;
+      // mutate a single bit
+      chromosome[i] ^= 1 << ((Math.random() * 7) | 0);
+    }
+    applyChromosome(child);
+  }
 
-    return pub;
+  // Copy source's chromosome into child and recalculate (picks up target color changes).
+  function cloneInto(child, source) {
+    var sc = source.chromosome;
+    var cc = child.chromosome;
+    for (var i = 0; i < NUMBER_OF_GENES; i++) cc[i] = sc[i];
+    applyChromosome(child);
+  }
+
+  // Render one pixel per cell into a reused ImageData buffer. CSS width:100% scales
+  // the canvas to fit the container, so the cell count drives resolution, not pixel size.
+  function render(population) {
+    var canvas = el.getElementsByClassName('chromotons')[0];
+    var ctx = canvas.getContext('2d');
+    if (!imageData) {
+      canvas.width = xDim;
+      canvas.height = yDim;
+      imageData = ctx.createImageData(xDim, yDim);
+    }
+    var data = imageData.data;
+    for (var i = 0; i < yDim; i++) {
+      var row = population[i];
+      var rowBase = i * xDim * 4;
+      for (var j = 0; j < xDim; j++) {
+        var c = row[j];
+        var base = rowBase + j * 4;
+        data[base]   = c.red;
+        data[base+1] = c.green;
+        data[base+2] = c.blue;
+        data[base+3] = 255;
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // Use requestAnimationFrame with a timestamp gate to maintain ~10fps cadence.
+  // rAF automatically pauses when the tab is hidden, saving CPU.
+  function loop(timestamp) {
+    if (timestamp - lastStepTime >= 100) {
+      step();
+      lastStepTime = timestamp;
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function startSimulation(element) {
+    el = element;
+    cancelAnimationFrame(rafId);
+    clearTimeout(changeColorTimeout);
+    lastStepTime = 0;
+    rafId = requestAnimationFrame(loop);
+    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
+  }
+
+  function stopSimulation() {
+    cancelAnimationFrame(rafId);
+    clearTimeout(changeColorTimeout);
   }
 
   function step() {
@@ -97,10 +146,9 @@ chromoton = (function () {
     var lowY = 0;                       // y position of best mate for chromoton
     var testX = 0;                      // index of potential mate
     var testY = 0;                      // index of potential mate
-    var current;                        // current chrmoton
+    var current;                        // current chromoton
     var mate;                           // mate chromoton
-    var child;                          // child of current and mate or clone of current
-    var child;                          // child in next generation
+    var next;                           // target cell in next generation
     var tmpPopulation;                  // temporary population used to swap populations
     var sequenceIndex = 0;              // which direction to begin mate search
 
@@ -138,19 +186,19 @@ chromoton = (function () {
         }
       }
 
-      // if mate found, breed into next generation, else clone
+      // if mate found, breed into next generation, else clone — no allocation in either path
+      next = populationNext[y][x];
       if ((lowX >= 0) && (lowY >= 0)) {
         mate = population[lowY][lowX];
-        child = breed(current, mate);
-        child.parentX = lowX;
-        child.parentY = lowY;
+        breedInto(next, current, mate);
+        next.parentX = lowX;
+        next.parentY = lowY;
         mate.breedTimes = (mate.breedTimes || 0) + 1;
       } else {
-        child = Chromoton(current.chromosome);
-        child.parentX = x;
-        child.parentY = y;
+        cloneInto(next, current);
+        next.parentX = x;
+        next.parentY = y;
       }
-      populationNext[y][x] = child;
 
       // increment index
       index += PRIME_INC;
@@ -160,33 +208,12 @@ chromoton = (function () {
 
     }
 
-    // population mate complate swap populations
+    // population mate complete — swap populations
     tmpPopulation = population;
     population = populationNext;
     populationNext = tmpPopulation;
 
     render(population);
-  }
-
-  function breed(mother, father) {
-    var chromosome = [];                // new gene
-
-    // create new chromosome
-    for (var i = 0; i < NUMBER_OF_GENES; i++) {
-      var mask = (256 * Math.random()) | 0;
-      chromosome[i] = (mother.chromosome[i] & mask) | (father.chromosome[i] & ~mask);
-    }
-
-    // determine if a mutation should occur
-    if (Math.random() < MUTATION_RATE) {
-      i = (Math.random() * NUMBER_OF_GENES) | 0;
-
-      // mutate a single bit
-      chromosome[i] ^= 1 << ((Math.random() * 7) | 0);
-    }
-
-    // re-initialize chomoton as offspring
-    return Chromoton(chromosome)
   }
 
   function changeColor() {
@@ -204,18 +231,20 @@ chromoton = (function () {
     var defaultChromosome = [13, 11, 21, 19, 29, 27];
     for (var i = defaultChromosome.length; i < NUMBER_OF_GENES; i++) defaultChromosome[i] = 0;
 
-    // create arrays of default chrmotons
+    // create arrays of default chromotons — both buffers pre-allocated to avoid per-step allocation
     for (var i = 0; i < yDim; i++) {
-      // allocate row
       population[i] = [];
       populationNext[i] = [];
 
       for (var j = 0; j < xDim; j++) {
-        population[i][j] = Chromoton(defaultChromosome);
-
-        // set parent to self (so there won't be imbreeding problems in first step)
+        population[i][j] = makeChromoton(defaultChromosome);
+        // set parent to self (so there won't be inbreeding problems in first step)
         population[i][j].parentX = j;
         population[i][j].parentY = i;
+
+        populationNext[i][j] = makeChromoton(defaultChromosome);
+        populationNext[i][j].parentX = j;
+        populationNext[i][j].parentY = i;
       }
     }
   }
