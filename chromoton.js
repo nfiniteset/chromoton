@@ -9,6 +9,8 @@ chromoton = (function () {
   var yDim = 80*1;                           // dimensions of arrays in y direction
   var MIN_CHANGE_TIME = 8000;
   var MAX_CHANGE_TIME = 15000;
+  var randomizeColor = true;
+  var onColorChange = null;
 
   var population = [];
   var populationNext = [];
@@ -127,7 +129,9 @@ chromoton = (function () {
     clearTimeout(changeColorTimeout);
     lastStepTime = 0;
     rafId = requestAnimationFrame(loop);
-    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
+    if (randomizeColor) {
+      changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
+    }
   }
 
   function stopSimulation() {
@@ -222,7 +226,7 @@ chromoton = (function () {
       targetGreen = (Math.random() * 256) | 0;
       targetBlue = (Math.random() * 256) | 0;
     } while (targetRed + targetGreen + targetBlue > 400);
-    console.log(targetRed, targetGreen, targetBlue, targetRed + targetGreen + targetBlue)
+    if (onColorChange) onColorChange(targetRed, targetGreen, targetBlue);
     changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
   }
 
@@ -249,5 +253,53 @@ chromoton = (function () {
     }
   }
 
-  return { init: init, show: startSimulation, hide: stopSimulation }
+  // Resize grid — resets population and restarts simulation.
+  function configure(params) {
+    if (params.width !== undefined) xDim = Math.max(1, params.width | 0);
+    if (params.height !== undefined) yDim = Math.max(1, params.height | 0);
+    population = [];
+    populationNext = [];
+    imageData = null;
+    init();
+    if (el) startSimulation(el);
+  }
+
+  // Live setters — no reinit needed.
+  function setMutationRate(rate) {
+    MUTATION_RATE = rate;
+  }
+
+  function setColor(r, g, b) {
+    targetRed = r;
+    targetGreen = g;
+    targetBlue = b;
+  }
+
+  function setRandomizeColor(enabled) {
+    randomizeColor = enabled;
+    clearTimeout(changeColorTimeout);
+    if (enabled) {
+      changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
+    }
+  }
+
+  function getColor() {
+    return { r: targetRed, g: targetGreen, b: targetBlue };
+  }
+
+  function setColorChangeCallback(fn) {
+    onColorChange = fn;
+  }
+
+  return {
+    init: init,
+    show: startSimulation,
+    hide: stopSimulation,
+    configure: configure,
+    setMutationRate: setMutationRate,
+    setColor: setColor,
+    setRandomizeColor: setRandomizeColor,
+    getColor: getColor,
+    setColorChangeCallback: setColorChangeCallback
+  };
 })()
