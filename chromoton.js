@@ -19,6 +19,8 @@ chromoton = (function () {
     {red: 120, green: 45, blue: 180},
     {red: 200, green: 100, blue: 50}
   ];  // array of target colors
+  var colorSuccessRates = [];  // success rate (0.0-1.0) for each target color
+  var DOMINANCE_THRESHOLD = 0.70;  // penalty kicks in above this success rate
   var rafId;
   var lastStepTime = 0;
   var changeColorTimeout;
@@ -51,10 +53,18 @@ chromoton = (function () {
     if (c.blue > 255) c.blue = 255;
 
     // Calculate deviance against all target colors and use the minimum
+    // Apply penalty to dominant colors to maintain diversity
     c.deviance = Infinity;
     for (var i = 0; i < targetColors.length; i++) {
       var target = targetColors[i];
       var deviation = Math.abs(c.red - target.red) + Math.abs(c.green - target.green) + Math.abs(c.blue - target.blue);
+
+      // Apply proportional penalty if this color is too dominant
+      if (colorSuccessRates.length > 0 && colorSuccessRates[i] > DOMINANCE_THRESHOLD) {
+        var excessDominance = (colorSuccessRates[i] - DOMINANCE_THRESHOLD) / (1.0 - DOMINANCE_THRESHOLD);
+        deviation *= (1.0 + 2.0 * excessDominance);  // 1x to 3x penalty
+      }
+
       if (deviation < c.deviance) {
         c.deviance = deviation;
       }
@@ -169,6 +179,13 @@ chromoton = (function () {
     var tmpPopulation;                  // temporary population used to swap populations
     var sequenceIndex = 0;              // which direction to begin mate search
 
+    // Calculate success rates for each target color to apply penalties to dominant colors
+    var counts = getColorSuccessCounts();
+    colorSuccessRates = [];
+    for (var i = 0; i < counts.length; i++) {
+      colorSuccessRates[i] = counts[i] / size;
+    }
+
     // perform a semi-random traversal of population
     index = ((Math.random() * size) | 0);
     for (var i = 0; i < size; i++) {
@@ -233,9 +250,46 @@ chromoton = (function () {
     render(population);
   }
 
+  // Count how many cells are closest to each target color
+  function getColorSuccessCounts() {
+    var counts = new Array(targetColors.length);
+    for (var i = 0; i < counts.length; i++) counts[i] = 0;
+
+    for (var y = 0; y < yDim; y++) {
+      for (var x = 0; x < xDim; x++) {
+        var cell = population[y][x];
+        var minDeviance = Infinity;
+        var closestColorIndex = 0;
+
+        // Find which target color this cell is closest to
+        for (var i = 0; i < targetColors.length; i++) {
+          var target = targetColors[i];
+          var deviation = Math.abs(cell.red - target.red) + Math.abs(cell.green - target.green) + Math.abs(cell.blue - target.blue);
+          if (deviation < minDeviance) {
+            minDeviance = deviation;
+            closestColorIndex = i;
+          }
+        }
+        counts[closestColorIndex]++;
+      }
+    }
+    return counts;
+  }
+
   function changeColor() {
-    // Pick a random color in the array to change
-    var index = (Math.random() * targetColors.length) | 0;
+    // Find the most successful color (the one with the most cells closest to it)
+    var counts = getColorSuccessCounts();
+    var maxCount = -1;
+    var mostSuccessfulIndex = 0;
+
+    for (var i = 0; i < counts.length; i++) {
+      if (counts[i] > maxCount) {
+        maxCount = counts[i];
+        mostSuccessfulIndex = i;
+      }
+    }
+
+    // Replace the most successful color with a new random color
     var newColor;
     do {
       newColor = {
@@ -244,7 +298,7 @@ chromoton = (function () {
         blue: (Math.random() * 256) | 0
       };
     } while (newColor.red + newColor.green + newColor.blue > 400);
-    targetColors[index] = newColor;
+    targetColors[mostSuccessfulIndex] = newColor;
     if (onColorChange) onColorChange(targetColors);
     changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
   }
