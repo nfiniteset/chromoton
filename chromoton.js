@@ -89,12 +89,12 @@ chromoton = (function () {
       {red: 186, green: 85, blue: 211}   // medium orchid
     ],
     queenOfHearts: [
-      {red: 255, green: 0, blue: 110},   // hot pink
-      {red: 255, green: 0, blue: 0},     // red
-      {red: 255, green: 195, blue: 195},     // pink
+      {red: 201, green: 0, blue: 0},   // Brick ember
+      {red: 255, green: 71, blue: 71},     // Strawberry red
+      {red: 82, green: 0, blue: 0},     // Black cherry
+      {red: 255, green: 194, blue: 194},     // Cotton rose
       {red: 255, green: 255, blue: 255},     // white
-      {red: 255, green: 95, blue: 95},     // white
-      {red: 0, green: 0, blue: 0},     // black
+      {red: 255, green: 0, blue: 110},   // hot pink
     ]
   };
 
@@ -468,54 +468,93 @@ chromoton = (function () {
       }
     }
 
-    // Replace the most successful color with a new unique random color from the palette
-    var palette = PALETTES[currentPalette];
-    var newColor;
+    // Determine available actions based on current color count (min 2, max 5)
+    var currentCount = targetColors.length;
+    var availableActions = [];
 
-    if (palette === null) {
-      // Custom mode - just get a random color
-      newColor = getRandomColor();
-    } else {
-      // Palette mode - ensure we pick a color not already in use
-      var availableColors = [];
-      for (var i = 0; i < palette.length; i++) {
-        var paletteColor = palette[i];
-        var isInUse = false;
+    if (currentCount > 2) {
+      availableActions.push('remove');  // Can remove if we have more than 2
+    }
+    if (currentCount < 5) {
+      availableActions.push('add');     // Can add if we have fewer than 5
+    }
+    availableActions.push('change');    // Can always change
 
-        // Check if this color is already a target (excluding the one we're replacing)
-        for (var j = 0; j < targetColors.length; j++) {
-          if (j !== mostSuccessfulIndex) {
-            var target = targetColors[j];
-            if (target.red === paletteColor.red &&
-                target.green === paletteColor.green &&
-                target.blue === paletteColor.blue) {
-              isInUse = true;
-              break;
+    // Randomly pick an action
+    var actionIndex = (Math.random() * availableActions.length) | 0;
+    var action = availableActions[actionIndex];
+
+    if (action === 'remove') {
+      // Remove the dominant color
+      targetColors.splice(mostSuccessfulIndex, 1);
+
+    } else if (action === 'add') {
+      // Add a new unique color from the palette
+      var newColor = getUniqueRandomColor();
+      targetColors.push({
+        red: newColor.red,
+        green: newColor.green,
+        blue: newColor.blue
+      });
+
+    } else if (action === 'change') {
+      // Replace the most successful color with a new unique random color from the palette
+      var palette = PALETTES[currentPalette];
+      var newColor;
+
+      if (palette === null) {
+        // Custom mode - just get a random color
+        newColor = getRandomColor();
+      } else {
+        // Palette mode - ensure we pick a color not already in use
+        var availableColors = [];
+        for (var i = 0; i < palette.length; i++) {
+          var paletteColor = palette[i];
+          var isInUse = false;
+
+          // Check if this color is already a target (excluding the one we're replacing)
+          for (var j = 0; j < targetColors.length; j++) {
+            if (j !== mostSuccessfulIndex) {
+              var target = targetColors[j];
+              if (target.red === paletteColor.red &&
+                  target.green === paletteColor.green &&
+                  target.blue === paletteColor.blue) {
+                isInUse = true;
+                break;
+              }
             }
+          }
+
+          if (!isInUse) {
+            availableColors.push(paletteColor);
           }
         }
 
-        if (!isInUse) {
-          availableColors.push(paletteColor);
+        // Pick a random color from available colors, or fallback to any palette color
+        if (availableColors.length > 0) {
+          var index = (Math.random() * availableColors.length) | 0;
+          var selectedColor = availableColors[index];
+          newColor = {
+            red: selectedColor.red,
+            green: selectedColor.green,
+            blue: selectedColor.blue
+          };
+        } else {
+          // All palette colors are in use, just pick any
+          newColor = getRandomColor();
         }
       }
 
-      // Pick a random color from available colors, or fallback to any palette color
-      if (availableColors.length > 0) {
-        var index = (Math.random() * availableColors.length) | 0;
-        var selectedColor = availableColors[index];
-        newColor = {
-          red: selectedColor.red,
-          green: selectedColor.green,
-          blue: selectedColor.blue
-        };
-      } else {
-        // All palette colors are in use, just pick any
-        newColor = getRandomColor();
+      targetColors[mostSuccessfulIndex] = newColor;
+    }
+
+    // Recalculate deviances for the entire population since target colors changed
+    for (var y = 0; y < yDim; y++) {
+      for (var x = 0; x < xDim; x++) {
+        applyChromosome(population[y][x]);
       }
     }
 
-    targetColors[mostSuccessfulIndex] = newColor;
     if (onColorChange) onColorChange(targetColors);
     changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
   }
@@ -596,11 +635,15 @@ chromoton = (function () {
   }
 
   function addTargetColor(r, g, b) {
-    targetColors.push({ red: r, green: g, blue: b });
+    if (targetColors.length < 5) {
+      targetColors.push({ red: r, green: g, blue: b });
+      return true;
+    }
+    return false;
   }
 
   function removeTargetColor(index) {
-    if (targetColors.length > 1 && index >= 0 && index < targetColors.length) {
+    if (targetColors.length > 2 && index >= 0 && index < targetColors.length) {
       targetColors.splice(index, 1);
       return true;
     }

@@ -349,7 +349,7 @@
         swatchWrap.appendChild(swatch);
         swatchWrap.appendChild(picker);
 
-        if (colors.length > 1) {
+        if (colors.length > 2) {
           var removeBtn = document.createElement('button');
           removeBtn.textContent = '×';
           removeBtn.style.cssText = 'width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 18px; line-height: 1; padding: 0;';
@@ -366,6 +366,11 @@
 
         colorsList.appendChild(colorItem);
       });
+
+      // Update add button state based on color count (max 5)
+      addColorBtn.disabled = colors.length >= 5;
+      addColorBtn.style.opacity = colors.length >= 5 ? '0.5' : '1';
+      addColorBtn.style.cursor = colors.length >= 5 ? 'not-allowed' : 'pointer';
     }
 
     // Sync swatches when simulation randomizes colors.
