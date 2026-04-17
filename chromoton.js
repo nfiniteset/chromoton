@@ -16,7 +16,7 @@ chromoton = (function () {
   var populationNext = [];
   var targetColors = [];  // array of target colors (initialized later)
   var colorSuccessRates = [];  // success rate (0.0-1.0) for each target color
-  var DOMINANCE_THRESHOLD = 0.70;  // penalty kicks in above this success rate (dynamically calculated)
+  var dominanceThreshold = 0.70;  // penalty kicks in above this success rate (dynamically calculated)
   var currentPalette = '';  // will be set after PALETTES is defined
   var rafId;
   var lastStepTime = 0;
@@ -89,6 +89,14 @@ chromoton = (function () {
       {red: 255, green: 20, blue: 147},  // deep pink
       {red: 0, green: 191, blue: 255},   // deep sky blue
       {red: 186, green: 85, blue: 211}   // medium orchid
+    ],
+    queenOfHearts: [
+      {red: 255, green: 0, blue: 110},   // hot pink
+      {red: 255, green: 0, blue: 0},     // red
+      {red: 255, green: 0, blue: 0},     // red
+      {red: 255, green: 255, blue: 255},     // white
+      {red: 255, green: 255, blue: 255},     // white
+      {red: 0, green: 0, blue: 0},     // black
     ]
   };
 
@@ -137,8 +145,8 @@ chromoton = (function () {
       var deviation = Math.abs(c.red - target.red) + Math.abs(c.green - target.green) + Math.abs(c.blue - target.blue);
 
       // Apply proportional penalty if this color is too dominant
-      if (colorSuccessRates.length > 0 && colorSuccessRates[i] > DOMINANCE_THRESHOLD) {
-        var excessDominance = (colorSuccessRates[i] - DOMINANCE_THRESHOLD) / (1.0 - DOMINANCE_THRESHOLD);
+      if (colorSuccessRates.length > 0 && colorSuccessRates[i] > dominanceThreshold) {
+        var excessDominance = (colorSuccessRates[i] - dominanceThreshold) / (1.0 - dominanceThreshold);
         deviation *= (1.0 + 2.0 * excessDominance);  // 1x to 3x penalty
       }
 
@@ -259,7 +267,7 @@ chromoton = (function () {
     // Calculate dynamic dominance threshold based on number of target colors
     // Each color gets fair share (1/n) plus margin (10%) to allow natural variation
     var fairShare = 1.0 / targetColors.length;
-    DOMINANCE_THRESHOLD = Math.min(1.0, fairShare + 0.10);
+    dominanceThreshold = Math.min(1.0, fairShare + 0.10);
 
     // Calculate success rates for each target color to apply penalties to dominant colors
     var counts = getColorSuccessCounts();
