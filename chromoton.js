@@ -14,7 +14,11 @@ chromoton = (function () {
 
   var population = [];
   var populationNext = [];
-  var targetRed = 17, targetGreen = 79, targetBlue = 62;
+  var targetColors = [
+    {red: 17, green: 79, blue: 62},
+    {red: 120, green: 45, blue: 180},
+    {red: 200, green: 100, blue: 50}
+  ];  // array of target colors
   var rafId;
   var lastStepTime = 0;
   var changeColorTimeout;
@@ -45,7 +49,16 @@ chromoton = (function () {
     if (c.red > 255) c.red = 255;
     if (c.green > 255) c.green = 255;
     if (c.blue > 255) c.blue = 255;
-    c.deviance = Math.abs(c.red - targetRed) + Math.abs(c.green - targetGreen) + Math.abs(c.blue - targetBlue);
+
+    // Calculate deviance against all target colors and use the minimum
+    c.deviance = Infinity;
+    for (var i = 0; i < targetColors.length; i++) {
+      var target = targetColors[i];
+      var deviation = Math.abs(c.red - target.red) + Math.abs(c.green - target.green) + Math.abs(c.blue - target.blue);
+      if (deviation < c.deviance) {
+        c.deviance = deviation;
+      }
+    }
     c.breedTimes = 0;
   }
 
@@ -221,12 +234,18 @@ chromoton = (function () {
   }
 
   function changeColor() {
+    // Pick a random color in the array to change
+    var index = (Math.random() * targetColors.length) | 0;
+    var newColor;
     do {
-      targetRed = (Math.random() * 256) | 0;
-      targetGreen = (Math.random() * 256) | 0;
-      targetBlue = (Math.random() * 256) | 0;
-    } while (targetRed + targetGreen + targetBlue > 400);
-    if (onColorChange) onColorChange(targetRed, targetGreen, targetBlue);
+      newColor = {
+        red: (Math.random() * 256) | 0,
+        green: (Math.random() * 256) | 0,
+        blue: (Math.random() * 256) | 0
+      };
+    } while (newColor.red + newColor.green + newColor.blue > 400);
+    targetColors[index] = newColor;
+    if (onColorChange) onColorChange(targetColors);
     changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
   }
 
@@ -269,10 +288,12 @@ chromoton = (function () {
     MUTATION_RATE = rate;
   }
 
-  function setColor(r, g, b) {
-    targetRed = r;
-    targetGreen = g;
-    targetBlue = b;
+  function setColor(r, g, b, index) {
+    // If index not provided, set the first color
+    if (index === undefined) index = 0;
+    if (index >= 0 && index < targetColors.length) {
+      targetColors[index] = { red: r, green: g, blue: b };
+    }
   }
 
   function setRandomizeColor(enabled) {
@@ -283,12 +304,44 @@ chromoton = (function () {
     }
   }
 
-  function getColor() {
-    return { r: targetRed, g: targetGreen, b: targetBlue };
+  function getColor(index) {
+    // If index not provided, return the first color for backwards compatibility
+    if (index === undefined) index = 0;
+    if (index >= 0 && index < targetColors.length) {
+      var target = targetColors[index];
+      return { r: target.red, g: target.green, b: target.blue };
+    }
+    return null;
+  }
+
+  function getColors() {
+    return targetColors.map(function(t) {
+      return { r: t.red, g: t.green, b: t.blue };
+    });
   }
 
   function setColorChangeCallback(fn) {
     onColorChange = fn;
+  }
+
+  function addTargetColor(r, g, b) {
+    targetColors.push({ red: r, green: g, blue: b });
+  }
+
+  function removeTargetColor(index) {
+    if (targetColors.length > 1 && index >= 0 && index < targetColors.length) {
+      targetColors.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  function setTargetColors(colors) {
+    if (colors && colors.length > 0) {
+      targetColors = colors.map(function(c) {
+        return { red: c.r || c.red, green: c.g || c.green, blue: c.b || c.blue };
+      });
+    }
   }
 
   return {
@@ -300,6 +353,10 @@ chromoton = (function () {
     setColor: setColor,
     setRandomizeColor: setRandomizeColor,
     getColor: getColor,
+    getColors: getColors,
+    addTargetColor: addTargetColor,
+    removeTargetColor: removeTargetColor,
+    setTargetColors: setTargetColors,
     setColorChangeCallback: setColorChangeCallback
   };
 })()
