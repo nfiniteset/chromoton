@@ -15,8 +15,6 @@ chromoton = (function () {
   var population = [];
   var populationNext = [];
   var targetColors = [];  // array of target colors (initialized later)
-  var colorSuccessRates = [];  // success rate (0.0-1.0) for each target color
-  var dominanceThreshold = 0.70;  // penalty kicks in above this success rate (dynamically calculated)
   var currentPalette = '';  // will be set after PALETTES is defined
   var rafId;
   var lastStepTime = 0;
@@ -93,9 +91,9 @@ chromoton = (function () {
     queenOfHearts: [
       {red: 255, green: 0, blue: 110},   // hot pink
       {red: 255, green: 0, blue: 0},     // red
-      {red: 255, green: 0, blue: 0},     // red
+      {red: 255, green: 195, blue: 195},     // pink
       {red: 255, green: 255, blue: 255},     // white
-      {red: 255, green: 255, blue: 255},     // white
+      {red: 255, green: 95, blue: 95},     // white
       {red: 0, green: 0, blue: 0},     // black
     ]
   };
@@ -138,17 +136,10 @@ chromoton = (function () {
     if (c.blue > 255) c.blue = 255;
 
     // Calculate deviance against all target colors and use the minimum
-    // Apply penalty to dominant colors to maintain diversity
     c.deviance = Infinity;
     for (var i = 0; i < targetColors.length; i++) {
       var target = targetColors[i];
       var deviation = Math.abs(c.red - target.red) + Math.abs(c.green - target.green) + Math.abs(c.blue - target.blue);
-
-      // Apply proportional penalty if this color is too dominant
-      if (colorSuccessRates.length > 0 && colorSuccessRates[i] > dominanceThreshold) {
-        var excessDominance = (colorSuccessRates[i] - dominanceThreshold) / (1.0 - dominanceThreshold);
-        deviation *= (1.0 + 2.0 * excessDominance);  // 1x to 3x penalty
-      }
 
       if (deviation < c.deviance) {
         c.deviance = deviation;
@@ -263,18 +254,6 @@ chromoton = (function () {
     var next;                           // target cell in next generation
     var tmpPopulation;                  // temporary population used to swap populations
     var sequenceIndex = 0;              // which direction to begin mate search
-
-    // Calculate dynamic dominance threshold based on number of target colors
-    // Each color gets fair share (1/n) plus margin (10%) to allow natural variation
-    var fairShare = 1.0 / targetColors.length;
-    dominanceThreshold = Math.min(1.0, fairShare + 0.10);
-
-    // Calculate success rates for each target color to apply penalties to dominant colors
-    var counts = getColorSuccessCounts();
-    colorSuccessRates = [];
-    for (var i = 0; i < counts.length; i++) {
-      colorSuccessRates[i] = counts[i] / size;
-    }
 
     // perform a semi-random traversal of population
     index = ((Math.random() * size) | 0);
