@@ -20,7 +20,7 @@ chromoton = (function () {
     {red: 200, green: 100, blue: 50}
   ];  // array of target colors
   var colorSuccessRates = [];  // success rate (0.0-1.0) for each target color
-  var DOMINANCE_THRESHOLD = 0.70;  // penalty kicks in above this success rate
+  var DOMINANCE_THRESHOLD = 0.70;  // penalty kicks in above this success rate (dynamically calculated)
   var rafId;
   var lastStepTime = 0;
   var changeColorTimeout;
@@ -178,6 +178,11 @@ chromoton = (function () {
     var next;                           // target cell in next generation
     var tmpPopulation;                  // temporary population used to swap populations
     var sequenceIndex = 0;              // which direction to begin mate search
+
+    // Calculate dynamic dominance threshold based on number of target colors
+    // Each color gets fair share (1/n) plus margin (10%) to allow natural variation
+    var fairShare = 1.0 / targetColors.length;
+    DOMINANCE_THRESHOLD = Math.min(1.0, fairShare + 0.10);
 
     // Calculate success rates for each target color to apply penalties to dominant colors
     var counts = getColorSuccessCounts();
