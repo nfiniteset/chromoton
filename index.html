@@ -32,20 +32,22 @@
     }
 
     .chromoton {
-      position: relative;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       margin: 0;
       padding: 0;
-      height: 10vh;
     }
 
     .chromoton canvas {
       display: block;
-      margin: 0 auto;
       position: absolute;
       top: 0;
       left: 0;
-      bottom: 0;
       width: 100%;
+      height: 100%;
       image-rendering: pixelated;
     }
 
@@ -67,6 +69,12 @@
       font-size: 12px;
       letter-spacing: 0.05em;
       text-transform: uppercase;
+      transition: transform 0.3s ease-out;
+      transform: translateX(0);
+    }
+
+    #controls-panel.hidden {
+      transform: translateX(100%);
     }
 
     #controls-panel h2 {
@@ -186,18 +194,10 @@
 
     <div class="control-group">
       <div class="control-label">
-        <span>Grid Width</span>
-        <span class="value" id="width-val">120</span>
+        <span>Clarity</span>
+        <span class="value" id="clarity-val">120</span>
       </div>
-      <input type="range" id="width-slider" min="20" max="300" step="1" value="120">
-    </div>
-
-    <div class="control-group">
-      <div class="control-label">
-        <span>Grid Height</span>
-        <span class="value" id="height-val">80</span>
-      </div>
-      <input type="range" id="height-slider" min="20" max="200" step="1" value="80">
+      <input type="range" id="clarity-slider" min="20" max="300" step="1" value="120">
     </div>
 
     <div class="control-group">
@@ -206,6 +206,17 @@
         <span class="value" id="mutation-val">0.002</span>
       </div>
       <input type="range" id="mutation-slider" min="0" max="0.05" step="0.0005" value="0.002">
+    </div>
+
+    <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 12px 0;">
+
+    <div class="control-group">
+      <div class="control-label">
+        <span>Color Palette</span>
+      </div>
+      <select id="palette-select" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;">
+        <option value="custom">Custom</option>
+      </select>
     </div>
 
     <div class="control-group">
@@ -227,32 +238,61 @@
     chromoton.init();
     chromoton.show(container);
 
-    // --- Grid dimension sliders (debounced — requires reinit) ---
-    var widthSlider  = document.getElementById('width-slider');
-    var heightSlider = document.getElementById('height-slider');
-    var widthVal     = document.getElementById('width-val');
-    var heightVal    = document.getElementById('height-val');
+    // --- Palette picker ---
+    var paletteSelect = document.getElementById('palette-select');
+
+    // Populate palette options
+    var palettes = chromoton.getPalettes();
+    palettes.forEach(function (paletteName) {
+      if (paletteName !== 'custom') {  // Skip custom, it's already in HTML
+        var option = document.createElement('option');
+        option.value = paletteName;
+        option.textContent = paletteName.charAt(0).toUpperCase() + paletteName.slice(1);
+        paletteSelect.appendChild(option);
+      }
+    });
+
+    // Set initial palette selector value to match randomly selected palette
+    paletteSelect.value = chromoton.getCurrentPalette();
+
+    // Handle palette changes
+    paletteSelect.addEventListener('change', function () {
+      chromoton.setPalette(paletteSelect.value);
+    });
+
+    // --- Clarity slider (debounced — requires reinit) ---
+    var claritySlider = document.getElementById('clarity-slider');
+    var clarityVal    = document.getElementById('clarity-val');
     var dimDebounce;
 
-    function applyDimensions() {
+    function applyClarity() {
       clearTimeout(dimDebounce);
       dimDebounce = setTimeout(function () {
+        var width = parseInt(claritySlider.value);
+
+        // Calculate height to maintain square cells based on viewport aspect ratio
+        var containerWidth = container.clientWidth;
+        var containerHeight = container.clientHeight;
+        var aspectRatio = containerHeight / containerWidth;
+        var height = Math.round(width * aspectRatio);
+
         chromoton.configure({
-          width: parseInt(widthSlider.value),
-          height: parseInt(heightSlider.value)
+          width: width,
+          height: height
         });
       }, 400);
     }
 
-    widthSlider.addEventListener('input', function () {
-      widthVal.textContent = widthSlider.value;
-      applyDimensions();
+    claritySlider.addEventListener('input', function () {
+      clarityVal.textContent = claritySlider.value;
+      applyClarity();
     });
 
-    heightSlider.addEventListener('input', function () {
-      heightVal.textContent = heightSlider.value;
-      applyDimensions();
-    });
+    // Initialize with responsive dimensions
+    applyClarity();
+
+    // Recalculate on window resize
+    window.addEventListener('resize', applyClarity);
 
     // --- Mutation rate slider (live) ---
     var mutationSlider = document.getElementById('mutation-slider');
@@ -338,13 +378,8 @@
 
     // Add new color
     addColorBtn.addEventListener('click', function () {
-      var r, g, b;
-      do {
-        r = (Math.random() * 256) | 0;
-        g = (Math.random() * 256) | 0;
-        b = (Math.random() * 256) | 0;
-      } while (r + g + b > 400);
-      chromoton.addTargetColor(r, g, b);
+      var color = chromoton.getUniqueRandomColor();
+      chromoton.addTargetColor(color.red, color.green, color.blue);
       renderColorsList();
     });
 
@@ -352,6 +387,45 @@
     randomizeCb.addEventListener('change', function () {
       chromoton.setRandomizeColor(randomizeCb.checked);
     });
+
+    // --- Auto-hide/show sidebar ---
+    var controlsPanel = document.getElementById('controls-panel');
+    var hideTimer;
+    var HIDE_DELAY = 3000; // 3 seconds
+    var EDGE_THRESHOLD = 220; // pixels from right edge to trigger show
+
+    function showSidebar() {
+      controlsPanel.classList.remove('hidden');
+      clearTimeout(hideTimer);
+    }
+
+    function scheduleSidebarHide() {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () {
+        controlsPanel.classList.add('hidden');
+      }, HIDE_DELAY);
+    }
+
+    // Show sidebar when mouse enters it
+    controlsPanel.addEventListener('mouseenter', function () {
+      showSidebar();
+    });
+
+    // Schedule hide when mouse leaves sidebar
+    controlsPanel.addEventListener('mouseleave', function () {
+      scheduleSidebarHide();
+    });
+
+    // Show sidebar when mouse approaches right edge
+    document.addEventListener('mousemove', function (e) {
+      var distanceFromRight = window.innerWidth - e.clientX;
+      if (distanceFromRight <= EDGE_THRESHOLD) {
+        showSidebar();
+      }
+    });
+
+    // Start with sidebar visible, then schedule initial hide
+    scheduleSidebarHide();
   </script>
 </foot>
 
