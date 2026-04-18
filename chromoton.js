@@ -468,12 +468,12 @@ chromoton = (function () {
       }
     }
 
-    // Determine available actions based on current color count (min 2, max 5)
+    // Determine available actions based on current color count (min 1, max 5)
     var currentCount = targetColors.length;
     var availableActions = [];
 
-    if (currentCount > 2) {
-      availableActions.push('remove');  // Can remove if we have more than 2
+    if (currentCount > 1) {
+      availableActions.push('remove');  // Can remove if we have more than 1
     }
     if (currentCount < 5) {
       availableActions.push('add');     // Can add if we have fewer than 5
@@ -643,7 +643,7 @@ chromoton = (function () {
   }
 
   function removeTargetColor(index) {
-    if (targetColors.length > 2 && index >= 0 && index < targetColors.length) {
+    if (targetColors.length > 1 && index >= 0 && index < targetColors.length) {
       targetColors.splice(index, 1);
       return true;
     }

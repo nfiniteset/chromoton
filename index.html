@@ -53,13 +53,15 @@
 
     #controls-panel {
       position: fixed;
-      top: 0;
-      right: 0;
-      height: 100%;
+      top: 20px;
+      right: 20px;
+      max-height: calc(100vh - 40px);
       width: 220px;
-      background: rgba(20, 20, 20, 0.85);
-      backdrop-filter: blur(6px);
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
       padding: 24px 20px;
       box-sizing: border-box;
       display: flex;
@@ -71,10 +73,46 @@
       text-transform: uppercase;
       transition: transform 0.3s ease-out;
       transform: translateX(0);
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    #controls-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 16px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
     }
 
     #controls-panel.hidden {
-      transform: translateX(100%);
+      transform: translateX(calc(100% + 20px));
+    }
+
+    #controls-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #controls-panel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #controls-panel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    #controls-panel::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     #controls-panel h2 {
@@ -83,12 +121,16 @@
       font-weight: 600;
       color: rgba(255, 255, 255, 0.35);
       letter-spacing: 0.12em;
+      position: relative;
+      z-index: 1;
     }
 
     .control-group {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      position: relative;
+      z-index: 1;
     }
 
     .control-label {
@@ -208,7 +250,7 @@
       <input type="range" id="mutation-slider" min="0" max="0.05" step="0.0005" value="0.002">
     </div>
 
-    <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 12px 0;">
+    <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 12px 0; position: relative; z-index: 1;">
 
     <div class="control-group">
       <div class="control-label">
@@ -349,7 +391,7 @@
         swatchWrap.appendChild(swatch);
         swatchWrap.appendChild(picker);
 
-        if (colors.length > 2) {
+        if (colors.length > 1) {
           var removeBtn = document.createElement('button');
           removeBtn.textContent = '×';
           removeBtn.style.cssText = 'width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 18px; line-height: 1; padding: 0;';
@@ -396,7 +438,7 @@
     // --- Auto-hide/show sidebar ---
     var controlsPanel = document.getElementById('controls-panel');
     var hideTimer;
-    var HIDE_DELAY = 3000; // 3 seconds
+    var HIDE_DELAY = 500; // half second
     var EDGE_THRESHOLD = 220; // pixels from right edge to trigger show
 
     function showSidebar() {
@@ -429,8 +471,10 @@
       }
     });
 
-    // Start with sidebar visible, then schedule initial hide
-    scheduleSidebarHide();
+    // Start with sidebar visible for 3 seconds on page load
+    hideTimer = setTimeout(function () {
+      controlsPanel.classList.add('hidden');
+    }, 3000);
   </script>
 </foot>
 
