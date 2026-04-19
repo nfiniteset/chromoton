@@ -1,4 +1,4 @@
-chromoton = (function () {
+window.chromoton = (function () {
   var el;
   var PRIME_INC = 457;
   var NEIGHBOR_SEQUENCE = [[-1, -1], [1, 1], [1, -1], [-1, 1], [0, -1], [0, 1], [1, 0], [-1, 0]];
