@@ -71,7 +71,7 @@
       font-size: 12px;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      transition: transform 0.3s ease-out;
+      transition: transform 0.3s ease-out, color 0.4s ease;
       transform: translateX(0);
       overflow-y: auto;
       overflow-x: hidden;
@@ -123,6 +123,7 @@
       letter-spacing: 0.12em;
       position: relative;
       z-index: 1;
+      transition: color 0.4s ease;
     }
 
     .control-group {
@@ -138,12 +139,14 @@
       justify-content: space-between;
       align-items: baseline;
       color: rgba(255, 255, 255, 0.75);
+      transition: color 0.4s ease;
     }
 
     .control-label span.value {
       font-size: 11px;
       color: rgba(255, 255, 255, 0.45);
       font-variant-numeric: tabular-nums;
+      transition: color 0.4s ease;
     }
 
     input[type="range"] {
@@ -154,6 +157,7 @@
       border-radius: 1px;
       outline: none;
       cursor: pointer;
+      transition: background 0.4s ease;
     }
 
     input[type="range"]::-webkit-slider-thumb {
@@ -163,6 +167,7 @@
       border-radius: 50%;
       background: #eee;
       cursor: pointer;
+      transition: background 0.4s ease;
     }
 
     .color-row {
@@ -170,6 +175,7 @@
       justify-content: space-between;
       align-items: center;
       color: rgba(255, 255, 255, 0.75);
+      transition: color 0.4s ease;
     }
 
     .randomize-label {
@@ -181,11 +187,30 @@
       cursor: pointer;
       -webkit-user-select: none;
       user-select: none;
+      transition: color 0.4s ease;
     }
 
     .randomize-label input[type="checkbox"] {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       cursor: pointer;
-      accent-color: #eee;
+      position: relative;
+      transition: background 0.4s ease, border-color 0.4s ease;
+    }
+
+    .randomize-label input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: inherit;
+      font-size: 12px;
+      font-weight: bold;
     }
 
     #color-swatch-wrap {
@@ -223,6 +248,7 @@
     }
   </style>
   <script type="text/javascript" src="chromoton.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
 </head>
 
 <body>
@@ -232,31 +258,13 @@
   </div>
 
   <div id="controls-panel">
-    <h2>Simulation</h2>
-
-    <div class="control-group">
-      <div class="control-label">
-        <span>Clarity</span>
-        <span class="value" id="clarity-val">240</span>
-      </div>
-      <input type="range" id="clarity-slider" min="20" max="300" step="1" value="240">
-    </div>
-
-    <div class="control-group">
-      <div class="control-label">
-        <span>Mutation Rate</span>
-        <span class="value" id="mutation-val">0.002</span>
-      </div>
-      <input type="range" id="mutation-slider" min="0" max="0.05" step="0.0005" value="0.002">
-    </div>
-
-    <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 12px 0; position: relative; z-index: 1;">
+    <h2>Chromoton</h2>
 
     <div class="control-group">
       <div class="control-label">
         <span>Color Palette</span>
       </div>
-      <select id="palette-select" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;">
+      <select id="palette-select" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.4s ease, border-color 0.4s ease;">
         <option value="custom">Custom</option>
       </select>
     </div>
@@ -269,7 +277,33 @@
         </label>
       </div>
       <div id="colors-list"></div>
-      <button id="add-color-btn" style="width: 100%; padding: 6px; margin-top: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;">+ Add Color</button>
+      <button id="add-color-btn" style="width: 100%; padding: 6px; margin-top: 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.4s ease, border-color 0.4s ease;">+ Add Color</button>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 12px 0; position: relative; z-index: 1; transition: border-top-color 0.4s ease;">
+
+    <div class="control-group">
+      <label class="randomize-label" style="justify-content: flex-start;">
+        <input type="checkbox" id="more-settings-cb"> More Settings
+      </label>
+    </div>
+
+    <div id="advanced-controls" style="display: none;">
+      <div class="control-group">
+        <div class="control-label">
+          <span>Clarity</span>
+          <span class="value" id="clarity-val">240</span>
+        </div>
+        <input type="range" id="clarity-slider" min="20" max="300" step="1" value="240">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Mutation Rate</span>
+          <span class="value" id="mutation-val">0.002</span>
+        </div>
+        <input type="range" id="mutation-slider" min="0" max="0.05" step="0.0005" value="0.002">
+      </div>
     </div>
   </div>
 
@@ -369,7 +403,8 @@
         swatchWrap.style.cssText = 'position: relative; flex: 1; height: 32px; border-radius: 2px; overflow: hidden; cursor: pointer;';
 
         var swatch = document.createElement('div');
-        swatch.style.cssText = 'width: 100%; height: 100%; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.15); box-sizing: border-box; transition: border-color 0.15s; background: rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
+        swatch.className = 'color-swatch-border';
+        swatch.style.cssText = 'width: 100%; height: 100%; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.2); box-sizing: border-box; transition: border-color 0.4s ease; background: rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
 
         var picker = document.createElement('input');
         picker.type = 'color';
@@ -394,7 +429,7 @@
         if (colors.length > 1) {
           var removeBtn = document.createElement('button');
           removeBtn.textContent = '×';
-          removeBtn.style.cssText = 'width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 18px; line-height: 1; padding: 0;';
+          removeBtn.style.cssText = 'width: 32px; height: 32px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #eee; cursor: pointer; border-radius: 2px; font-size: 18px; line-height: 1; padding: 0; transition: color 0.4s ease, border-color 0.4s ease;';
           removeBtn.dataset.index = index;
           removeBtn.addEventListener('click', function () {
             chromoton.removeTargetColor(parseInt(removeBtn.dataset.index));
@@ -433,6 +468,18 @@
     // Toggling randomize starts or stops auto-color changes.
     randomizeCb.addEventListener('change', function () {
       chromoton.setRandomizeColor(randomizeCb.checked);
+    });
+
+    // --- More Settings toggle ---
+    var moreSettingsCb = document.getElementById('more-settings-cb');
+    var advancedControls = document.getElementById('advanced-controls');
+
+    moreSettingsCb.addEventListener('change', function () {
+      if (moreSettingsCb.checked) {
+        advancedControls.style.display = 'block';
+      } else {
+        advancedControls.style.display = 'none';
+      }
     });
 
     // --- Auto-hide/show sidebar ---
@@ -475,6 +522,218 @@
     hideTimer = setTimeout(function () {
       controlsPanel.classList.add('hidden');
     }, 3000);
+
+    // --- Dynamic Contrast for Sidebar ---
+    console.log('Contrast code loaded');
+
+    function sampleCanvasColorBehindSidebar() {
+      var canvas = document.querySelector('.chromotons');
+      if (!canvas) return null;
+
+      var ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return null;
+
+      // Get sidebar position and dimensions
+      var sidebarRect = controlsPanel.getBoundingClientRect();
+      var canvasRect = canvas.getBoundingClientRect();
+
+      // Calculate sampling area in canvas coordinates
+      var scaleX = canvas.width / canvasRect.width;
+      var scaleY = canvas.height / canvasRect.height;
+
+      var sampleX = (sidebarRect.left - canvasRect.left) * scaleX;
+      var sampleY = (sidebarRect.top - canvasRect.top) * scaleY;
+      var sampleWidth = sidebarRect.width * scaleX;
+      var sampleHeight = sidebarRect.height * scaleY;
+
+      // Ensure coordinates are within canvas bounds
+      sampleX = Math.max(0, Math.min(sampleX, canvas.width - 1));
+      sampleY = Math.max(0, Math.min(sampleY, canvas.height - 1));
+      sampleWidth = Math.min(sampleWidth, canvas.width - sampleX);
+      sampleHeight = Math.min(sampleHeight, canvas.height - sampleY);
+
+      // Sample multiple points across the sidebar area
+      var samplePoints = 30;
+      var totalR = 0, totalG = 0, totalB = 0;
+      var validSamples = 0;
+
+      for (var i = 0; i < samplePoints; i++) {
+        var x = Math.floor(sampleX + (sampleWidth / samplePoints) * i + sampleWidth / (samplePoints * 2));
+        var y = Math.floor(sampleY + sampleHeight / 2);
+
+        try {
+          var imageData = ctx.getImageData(x, y, 1, 1);
+          totalR += imageData.data[0];
+          totalG += imageData.data[1];
+          totalB += imageData.data[2];
+          validSamples++;
+        } catch (e) {
+          // Skip if sampling fails
+        }
+      }
+
+      if (validSamples === 0) return null;
+
+      return {
+        r: Math.round(totalR / validSamples),
+        g: Math.round(totalG / validSamples),
+        b: Math.round(totalB / validSamples)
+      };
+    }
+
+    function updateSidebarContrast() {
+      // Check if chroma is loaded
+      if (typeof chroma === 'undefined') {
+        console.log('Chroma not loaded yet');
+        return;
+      }
+
+      var rawColor = sampleCanvasColorBehindSidebar();
+      if (!rawColor) {
+        console.log('Could not sample canvas');
+        return;
+      }
+
+      // Simulate the backdrop-filter: saturate(180%)
+      // Convert to HSL, increase saturation, convert back
+      var color = chroma(rawColor.r, rawColor.g, rawColor.b);
+      var hsl = color.hsl();
+      if (!isNaN(hsl[1])) {
+        hsl[1] = Math.min(1, hsl[1] * 1.8); // saturate(180%)
+        color = chroma.hsl(hsl[0], hsl[1], hsl[2]);
+      }
+
+      var rgb = color.rgb();
+
+      // Blend with the white overlay: rgba(255, 255, 255, 0.08)
+      var overlayAlpha = 0.08;
+      var bgColor = {
+        r: Math.round(rgb[0] * (1 - overlayAlpha) + 255 * overlayAlpha),
+        g: Math.round(rgb[1] * (1 - overlayAlpha) + 255 * overlayAlpha),
+        b: Math.round(rgb[2] * (1 - overlayAlpha) + 255 * overlayAlpha)
+      };
+
+      // Use chroma.js to calculate contrast
+      var bgChroma = chroma(bgColor.r, bgColor.g, bgColor.b);
+      var contrastWithWhite = chroma.contrast(bgChroma, 'white');
+      var contrastWithBlack = chroma.contrast(bgChroma, 'black');
+
+      // Debug logging (enable with: window.contrastDebug = true)
+      if (window.contrastDebug) {
+        console.log('BG Color:', bgColor, 'White contrast:', contrastWithWhite.toFixed(2), 'Black contrast:', contrastWithBlack.toFixed(2));
+      }
+
+      // Choose the color with better contrast
+      var textColor = contrastWithWhite > contrastWithBlack ? '#ffffff' : '#000000';
+      var textColorAlpha = contrastWithWhite > contrastWithBlack ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.75)';
+      var textColorFaded = contrastWithWhite > contrastWithBlack ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)';
+      var textColorHeader = contrastWithWhite > contrastWithBlack ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)';
+      var borderColor = contrastWithWhite > contrastWithBlack ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)';
+      var borderColorHover = contrastWithWhite > contrastWithBlack ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)';
+      var sliderThumb = contrastWithWhite > contrastWithBlack ? '#eee' : '#222';
+
+      // Apply colors to sidebar elements
+      controlsPanel.style.color = textColor;
+
+      // Update all text elements
+      var h2Elements = controlsPanel.querySelectorAll('h2');
+      h2Elements.forEach(function (h2) {
+        h2.style.color = textColorHeader;
+      });
+
+      var labels = controlsPanel.querySelectorAll('.control-label');
+      labels.forEach(function (label) {
+        label.style.color = textColorAlpha;
+      });
+
+      var valueSpans = controlsPanel.querySelectorAll('.control-label span.value');
+      valueSpans.forEach(function (span) {
+        span.style.color = textColorFaded;
+      });
+
+      var colorRowSpans = controlsPanel.querySelectorAll('.color-row span');
+      colorRowSpans.forEach(function (span) {
+        span.style.color = textColorAlpha;
+      });
+
+      var randomizeLabels = controlsPanel.querySelectorAll('.randomize-label');
+      randomizeLabels.forEach(function (label) {
+        label.style.color = textColorFaded;
+      });
+
+      // Update input elements
+      var rangeInputs = controlsPanel.querySelectorAll('input[type="range"]');
+      rangeInputs.forEach(function (input) {
+        input.style.background = borderColor;
+      });
+
+      var checkboxes = controlsPanel.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(function (checkbox) {
+        checkbox.style.borderColor = borderColorHover;
+        checkbox.style.color = textColor;
+      });
+
+      // Update select and buttons
+      var select = controlsPanel.querySelector('#palette-select');
+      if (select) {
+        select.style.color = textColor;
+        select.style.borderColor = borderColorHover;
+      }
+
+      var buttons = controlsPanel.querySelectorAll('button');
+      buttons.forEach(function (button) {
+        button.style.color = textColor;
+        button.style.borderColor = borderColorHover;
+      });
+
+      // Update dynamically created color swatches
+      var swatches = colorsList.querySelectorAll('.color-swatch-border');
+      swatches.forEach(function (swatch) {
+        swatch.style.borderColor = borderColorHover;
+      });
+
+      // Update HR
+      var hr = controlsPanel.querySelector('hr');
+      if (hr) {
+        hr.style.borderTopColor = borderColor;
+      }
+
+      // Update slider thumb color dynamically
+      var styleId = 'dynamic-slider-styles';
+      var existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+
+      var style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        #controls-panel input[type="range"]::-webkit-slider-thumb {
+          background: ${sliderThumb} !important;
+        }
+        #controls-panel input[type="range"]::-moz-range-thumb {
+          background: ${sliderThumb} !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Update contrast periodically as the animation changes
+    // Wait for chroma to load before starting
+    function startContrastUpdates() {
+      console.log('startContrastUpdates called, chroma is:', typeof chroma);
+      if (typeof chroma !== 'undefined') {
+        console.log('Starting contrast updates!');
+        setInterval(updateSidebarContrast, 100);
+        updateSidebarContrast(); // Initial update
+      } else {
+        console.log('Chroma not ready, retrying...');
+        // Retry after a short delay
+        setTimeout(startContrastUpdates, 50);
+      }
+    }
+    console.log('About to call startContrastUpdates');
+    startContrastUpdates();
   </script>
 </foot>
 

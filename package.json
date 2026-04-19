@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "chroma-js": "^3.2.0",
     "http-server": "^14.1.1"
   },
   "scripts": {
