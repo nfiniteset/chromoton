@@ -20,6 +20,7 @@ export default function Chromoton({
 }) {
   const containerRef = useRef(null);
   const isInitialized = useRef(false);
+  const resizeTimeoutRef = useRef(null);
 
   useEffect(() => {
     // Initialize chromoton if not already done
@@ -33,18 +34,23 @@ export default function Chromoton({
     const container = containerRef.current;
     if (!container || !window.chromoton) return;
 
-    // Configure dimensions
-    const calculatedHeight = height || (() => {
-      const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
-      const aspectRatio = containerHeight / containerWidth;
-      return Math.round(width * aspectRatio);
-    })();
+    // Function to calculate and update dimensions
+    const updateDimensions = () => {
+      const calculatedHeight = height || (() => {
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        const aspectRatio = containerHeight / containerWidth;
+        return Math.round(width * aspectRatio);
+      })();
 
-    window.chromoton.configure({
-      width: width,
-      height: calculatedHeight
-    });
+      window.chromoton.configure({
+        width: width,
+        height: calculatedHeight
+      });
+    };
+
+    // Initial configuration
+    updateDimensions();
 
     // Set mutation rate
     window.chromoton.setMutationRate(mutationRate);
@@ -54,8 +60,28 @@ export default function Chromoton({
       window.chromoton.show(container);
     }
 
-    // Cleanup: stop simulation when component unmounts
+    // Handle window resize with debouncing
+    const handleResize = () => {
+      // Clear existing timeout
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+
+      // Debounce resize events (wait 150ms after last resize)
+      resizeTimeoutRef.current = setTimeout(() => {
+        updateDimensions();
+      }, 150);
+    };
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup: stop simulation and remove resize listener when component unmounts
     return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
       if (window.chromoton) {
         window.chromoton.hide();
       }
