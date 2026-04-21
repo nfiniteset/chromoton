@@ -95,6 +95,14 @@ window.chromoton = (function () {
       {red: 255, green: 194, blue: 194},     // Cotton rose
       {red: 255, green: 255, blue: 255},     // white
       {red: 255, green: 0, blue: 110},   // hot pink
+    ],
+    verdant: [
+      {red: 34, green: 139, blue: 34},   // forest green
+      {red: 50, green: 205, blue: 50},   // lime green
+      {red: 124, green: 252, blue: 0},   // lawn green
+      {red: 144, green: 238, blue: 144}, // light green
+      {red: 60, green: 179, blue: 113},  // medium sea green
+      {red: 46, green: 125, blue: 50}    // leafy green
     ]
   };
 
