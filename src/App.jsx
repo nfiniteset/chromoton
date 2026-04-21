@@ -5,6 +5,28 @@ import { PALETTES, getRandomPaletteName } from './palettes';
 import { getUniqueRandomColorsFromPalette, getUniqueRandomColor } from './utils/colorUtils';
 import { useColorRandomizer } from './hooks/useColorRandomizer';
 
+function applyColorAction(prevColors, action) {
+  const newColors = [...prevColors];
+
+  if (action.action === 'remove' && action.targetIndex !== undefined) {
+    newColors.splice(action.targetIndex, 1);
+  } else if (action.action === 'add' && action.newColor) {
+    newColors.push({
+      r: action.newColor.red,
+      g: action.newColor.green,
+      b: action.newColor.blue
+    });
+  } else if (action.action === 'change' && action.targetIndex !== undefined && action.newColor) {
+    newColors[action.targetIndex] = {
+      r: action.newColor.red,
+      g: action.newColor.green,
+      b: action.newColor.blue
+    };
+  }
+
+  return newColors;
+}
+
 function App() {
   const [clarity, setClarity] = useState(240);
   const [mutationRate, setMutationRate] = useState(0.002);
@@ -24,24 +46,11 @@ function App() {
   // Handle color change actions from the randomizer
   const handleColorRandomizerChange = useCallback((action) => {
     setColors(prevColors => {
-      let newColors = [...prevColors];
-
-      if (action.action === 'remove' && action.targetIndex !== undefined) {
-        newColors.splice(action.targetIndex, 1);
-      } else if (action.action === 'add' && action.newColor) {
-        newColors.push({
-          r: action.newColor.red,
-          g: action.newColor.green,
-          b: action.newColor.blue
-        });
-      } else if (action.action === 'change' && action.targetIndex !== undefined && action.newColor) {
-        newColors[action.targetIndex] = {
-          r: action.newColor.red,
-          g: action.newColor.green,
-          b: action.newColor.blue
-        };
+      if (!action || !action.action) {
+        return prevColors;
       }
 
+      const newColors = applyColorAction(prevColors, action);
       return newColors;
     });
   }, []);
@@ -61,41 +70,58 @@ function App() {
   );
 
   const handlePaletteChange = (palette) => {
+    if (!palette) return;
+
     setCurrentPalette(palette);
 
-    // When changing palette, reassign all colors from the new palette
-    if (palette !== 'custom') {
+    const shouldReassignColors = palette !== 'custom';
+    if (shouldReassignColors) {
       const newColors = getUniqueRandomColorsFromPalette(palette, colors.length);
-      setColors(newColors.map(c => ({ r: c.red, g: c.green, b: c.blue })));
+      const formattedColors = newColors.map(c => ({ r: c.red, g: c.green, b: c.blue }));
+      setColors(formattedColors);
     }
   };
 
   const handleColorChange = (index, r, g, b) => {
+    if (index === undefined || r === undefined || g === undefined || b === undefined) {
+      return;
+    }
+
     setColors(prevColors => {
       const newColors = [...prevColors];
       newColors[index] = { r, g, b };
       return newColors;
     });
 
-    // When user manually changes a color, disable randomization
     setRandomizeColor(false);
   };
 
   const handleAddColor = () => {
-    if (colors.length < 5) {
-      const existingColors = colors.map(c => ({ red: c.r, green: c.g, blue: c.b }));
-      const newColor = getUniqueRandomColor(currentPalette, existingColors);
-      setColors([...colors, { r: newColor.red, g: newColor.green, b: newColor.blue }]);
+    if (colors.length >= 5) {
+      return;
     }
+
+    const existingColors = colors.map(c => ({ red: c.r, green: c.g, blue: c.b }));
+    const newColor = getUniqueRandomColor(currentPalette, existingColors);
+    const formattedNewColor = { r: newColor.red, g: newColor.green, b: newColor.blue };
+    const updatedColors = [...colors, formattedNewColor];
+
+    setColors(updatedColors);
   };
 
   const handleRemoveColor = (index) => {
-    if (colors.length > 1) {
-      setColors(prevColors => prevColors.filter((_, i) => i !== index));
+    if (colors.length <= 1) {
+      return;
     }
+
+    setColors(prevColors => prevColors.filter((_, i) => i !== index));
   };
 
   const handleRandomizeToggle = (checked) => {
+    if (typeof checked !== 'boolean') {
+      return;
+    }
+
     setRandomizeColor(checked);
   };
 

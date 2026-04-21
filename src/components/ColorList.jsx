@@ -2,9 +2,12 @@ import ColorSwatch from './ColorSwatch';
 
 export default function ColorList({ colors, onColorChange, onRemoveColor, onAddColor }) {
   const handleColorChange = (index, hex) => {
+    if (!hex || hex.length !== 7) return;
+
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
+
     onColorChange(index, r, g, b);
   };
 

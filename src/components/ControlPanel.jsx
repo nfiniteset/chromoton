@@ -26,16 +26,18 @@ export default function ControlPanel({
   const EDGE_THRESHOLD = 220; // pixels from right edge to trigger show
 
   const showSidebar = () => {
-    setIsHidden(false);
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
     }
+
+    setIsHidden(false);
   };
 
   const scheduleSidebarHide = () => {
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
     }
+
     hideTimerRef.current = setTimeout(() => {
       setIsHidden(true);
     }, HIDE_DELAY);
@@ -53,9 +55,13 @@ export default function ControlPanel({
     // Handle mouse movement to show sidebar when approaching right edge
     const handleMouseMove = (e) => {
       const distanceFromRight = window.innerWidth - e.clientX;
-      if (distanceFromRight <= EDGE_THRESHOLD) {
-        showSidebar();
+      const isNearRightEdge = distanceFromRight <= EDGE_THRESHOLD;
+
+      if (!isNearRightEdge) {
+        return;
       }
+
+      showSidebar();
     };
 
     document.addEventListener('mousemove', handleMouseMove);

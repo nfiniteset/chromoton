@@ -5,27 +5,34 @@ import { PALETTES } from '../palettes';
  */
 export function getRandomColor(paletteName) {
   const palette = PALETTES[paletteName];
+  const isCustomMode = palette === null;
 
-  if (palette === null) {
-    // Custom mode - generate random color with brightness constraint
-    let newColor;
-    do {
-      newColor = {
-        red: Math.floor(Math.random() * 256),
-        green: Math.floor(Math.random() * 256),
-        blue: Math.floor(Math.random() * 256)
-      };
-    } while (newColor.red + newColor.green + newColor.blue > 400);
-    return newColor;
-  } else {
-    // Palette mode - pick a random color from the palette
-    const index = Math.floor(Math.random() * palette.length);
-    return {
-      red: palette[index].red,
-      green: palette[index].green,
-      blue: palette[index].blue
+  const color = isCustomMode
+    ? generateRandomCustomColor()
+    : selectRandomPaletteColor(palette);
+
+  return color;
+}
+
+function generateRandomCustomColor() {
+  let newColor;
+  do {
+    newColor = {
+      red: Math.floor(Math.random() * 256),
+      green: Math.floor(Math.random() * 256),
+      blue: Math.floor(Math.random() * 256)
     };
-  }
+  } while (newColor.red + newColor.green + newColor.blue > 400);
+  return newColor;
+}
+
+function selectRandomPaletteColor(palette) {
+  const index = Math.floor(Math.random() * palette.length);
+  return {
+    red: palette[index].red,
+    green: palette[index].green,
+    blue: palette[index].blue
+  };
 }
 
 /**
@@ -34,32 +41,40 @@ export function getRandomColor(paletteName) {
  */
 export function getUniqueRandomColorsFromPalette(paletteName, count) {
   const palette = PALETTES[paletteName];
+  const isCustomMode = palette === null;
 
-  if (palette === null) {
-    // Custom mode - generate unique random colors
-    const colors = [];
-    for (let i = 0; i < count; i++) {
-      colors.push(getRandomColor(paletteName));
-    }
-    return colors;
-  } else {
-    // Palette mode - shuffle and take first N colors
-    const shuffled = [...palette]; // Copy array
+  const colors = isCustomMode
+    ? generateCustomColors(paletteName, count)
+    : selectShuffledPaletteColors(palette, count);
 
-    // Fisher-Yates shuffle
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
+  return colors;
+}
 
-    // Take first 'count' colors (capped at palette length)
-    const numColors = Math.min(count, shuffled.length);
-    return shuffled.slice(0, numColors).map(color => ({
-      red: color.red,
-      green: color.green,
-      blue: color.blue
-    }));
+function generateCustomColors(paletteName, count) {
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    colors.push(getRandomColor(paletteName));
   }
+  return colors;
+}
+
+function selectShuffledPaletteColors(palette, count) {
+  const shuffled = shuffleArray([...palette]);
+  const numColors = Math.min(count, shuffled.length);
+  return shuffled.slice(0, numColors).map(color => ({
+    red: color.red,
+    green: color.green,
+    blue: color.blue
+  }));
+}
+
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 /**
@@ -67,47 +82,54 @@ export function getUniqueRandomColorsFromPalette(paletteName, count) {
  */
 export function getUniqueRandomColor(paletteName, targetColors) {
   const palette = PALETTES[paletteName];
+  const isCustomMode = palette === null;
 
-  if (palette === null) {
-    // Custom mode - just get a random color
+  if (isCustomMode) {
     return getRandomColor(paletteName);
-  } else {
-    // Palette mode - find colors not in use
-    const availableColors = [];
-    for (let i = 0; i < palette.length; i++) {
-      const paletteColor = palette[i];
-      let isInUse = false;
+  }
 
-      // Check if this color is already a target
-      for (let j = 0; j < targetColors.length; j++) {
-        const target = targetColors[j];
-        if (target.red === paletteColor.red &&
-            target.green === paletteColor.green &&
-            target.blue === paletteColor.blue) {
-          isInUse = true;
-          break;
-        }
-      }
+  const availableColors = findAvailableColors(palette, targetColors);
+  const hasAvailableColors = availableColors.length > 0;
+  const selectedColor = hasAvailableColors
+    ? selectRandomFromArray(availableColors)
+    : getRandomColor(paletteName);
 
-      if (!isInUse) {
-        availableColors.push(paletteColor);
-      }
-    }
+  return selectedColor;
+}
 
-    // Pick a random color from available colors, or fallback to any palette color
-    if (availableColors.length > 0) {
-      const index = Math.floor(Math.random() * availableColors.length);
-      const selectedColor = availableColors[index];
-      return {
-        red: selectedColor.red,
-        green: selectedColor.green,
-        blue: selectedColor.blue
-      };
-    } else {
-      // All palette colors are in use, just pick any
-      return getRandomColor(paletteName);
+function findAvailableColors(palette, targetColors) {
+  const availableColors = [];
+  for (let i = 0; i < palette.length; i++) {
+    const paletteColor = palette[i];
+    const isInUse = isColorInTargets(paletteColor, targetColors);
+
+    if (!isInUse) {
+      availableColors.push(paletteColor);
     }
   }
+  return availableColors;
+}
+
+function isColorInTargets(paletteColor, targetColors) {
+  for (let j = 0; j < targetColors.length; j++) {
+    const target = targetColors[j];
+    if (target.red === paletteColor.red &&
+        target.green === paletteColor.green &&
+        target.blue === paletteColor.blue) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function selectRandomFromArray(colors) {
+  const index = Math.floor(Math.random() * colors.length);
+  const selectedColor = colors[index];
+  return {
+    red: selectedColor.red,
+    green: selectedColor.green,
+    blue: selectedColor.blue
+  };
 }
 
 /**
@@ -119,24 +141,34 @@ export function getColorSuccessCounts(population, targetColors, xDim, yDim) {
   for (let y = 0; y < yDim; y++) {
     for (let x = 0; x < xDim; x++) {
       const cell = population[y][x];
-      let minDeviance = Infinity;
-      let closestColorIndex = 0;
-
-      // Find which target color this cell is closest to
-      for (let i = 0; i < targetColors.length; i++) {
-        const target = targetColors[i];
-        const deviation = Math.abs(cell.red - target.red) +
-                         Math.abs(cell.green - target.green) +
-                         Math.abs(cell.blue - target.blue);
-        if (deviation < minDeviance) {
-          minDeviance = deviation;
-          closestColorIndex = i;
-        }
-      }
+      const closestColorIndex = findClosestColorIndex(cell, targetColors);
       counts[closestColorIndex]++;
     }
   }
+
   return counts;
+}
+
+function findClosestColorIndex(cell, targetColors) {
+  let minDeviance = Infinity;
+  let closestColorIndex = 0;
+
+  for (let i = 0; i < targetColors.length; i++) {
+    const target = targetColors[i];
+    const deviation = calculateColorDeviation(cell, target);
+    if (deviation < minDeviance) {
+      minDeviance = deviation;
+      closestColorIndex = i;
+    }
+  }
+
+  return closestColorIndex;
+}
+
+function calculateColorDeviation(color1, color2) {
+  return Math.abs(color1.red - color2.red) +
+         Math.abs(color1.green - color2.green) +
+         Math.abs(color1.blue - color2.blue);
 }
 
 /**
@@ -144,86 +176,123 @@ export function getColorSuccessCounts(population, targetColors, xDim, yDim) {
  * Returns: { action: 'add'|'remove'|'change', targetIndex?: number, newColor?: {red, green, blue} }
  */
 export function determineColorChangeAction(paletteName, targetColors, population, xDim, yDim) {
-  // Find the most successful color (the one with the most cells closest to it)
   const counts = getColorSuccessCounts(population, targetColors, xDim, yDim);
+  const mostSuccessfulIndex = findMaxIndex(counts);
+
+  const availableActions = getAvailableActions(targetColors.length);
+  const action = pickRandomAction(availableActions);
+
+  const actionResult = createActionResult(
+    action,
+    paletteName,
+    targetColors,
+    mostSuccessfulIndex
+  );
+
+  return actionResult;
+}
+
+function findMaxIndex(counts) {
   let maxCount = -1;
-  let mostSuccessfulIndex = 0;
+  let maxIndex = 0;
 
   for (let i = 0; i < counts.length; i++) {
     if (counts[i] > maxCount) {
       maxCount = counts[i];
-      mostSuccessfulIndex = i;
+      maxIndex = i;
     }
   }
 
-  // Determine available actions based on current color count (min 1, max 5)
-  const currentCount = targetColors.length;
+  return maxIndex;
+}
+
+function getAvailableActions(currentCount) {
   const availableActions = [];
 
   if (currentCount > 1) {
-    availableActions.push('remove');  // Can remove if we have more than 1
+    availableActions.push('remove');
   }
   if (currentCount < 5) {
-    availableActions.push('add');     // Can add if we have fewer than 5
+    availableActions.push('add');
   }
-  availableActions.push('change');    // Can always change
+  availableActions.push('change');
 
-  // Randomly pick an action
+  return availableActions;
+}
+
+function pickRandomAction(availableActions) {
   const actionIndex = Math.floor(Math.random() * availableActions.length);
-  const action = availableActions[actionIndex];
+  return availableActions[actionIndex];
+}
 
+function createActionResult(action, paletteName, targetColors, mostSuccessfulIndex) {
   if (action === 'remove') {
     return { action: 'remove', targetIndex: mostSuccessfulIndex };
-  } else if (action === 'add') {
+  }
+
+  if (action === 'add') {
     const newColor = getUniqueRandomColor(paletteName, targetColors);
     return { action: 'add', newColor };
-  } else if (action === 'change') {
-    const palette = PALETTES[paletteName];
-    let newColor;
+  }
 
-    if (palette === null) {
-      // Custom mode - just get a random color
-      newColor = getRandomColor(paletteName);
-    } else {
-      // Palette mode - ensure we pick a color not already in use
-      const availableColors = [];
-      for (let i = 0; i < palette.length; i++) {
-        const paletteColor = palette[i];
-        let isInUse = false;
-
-        // Check if this color is already a target (excluding the one we're replacing)
-        for (let j = 0; j < targetColors.length; j++) {
-          if (j !== mostSuccessfulIndex) {
-            const target = targetColors[j];
-            if (target.red === paletteColor.red &&
-                target.green === paletteColor.green &&
-                target.blue === paletteColor.blue) {
-              isInUse = true;
-              break;
-            }
-          }
-        }
-
-        if (!isInUse) {
-          availableColors.push(paletteColor);
-        }
-      }
-
-      // Pick a random color from available colors, or fallback to any palette color
-      if (availableColors.length > 0) {
-        const index = Math.floor(Math.random() * availableColors.length);
-        const selectedColor = availableColors[index];
-        newColor = {
-          red: selectedColor.red,
-          green: selectedColor.green,
-          blue: selectedColor.blue
-        };
-      } else {
-        // All palette colors are in use, just pick any
-        newColor = getRandomColor(paletteName);
-      }
-    }
-
+  if (action === 'change') {
+    const newColor = getColorForChange(paletteName, targetColors, mostSuccessfulIndex);
     return { action: 'change', targetIndex: mostSuccessfulIndex, newColor };
   }
+}
+
+function getColorForChange(paletteName, targetColors, excludeIndex) {
+  const palette = PALETTES[paletteName];
+  const isCustomMode = palette === null;
+
+  if (isCustomMode) {
+    return getRandomColor(paletteName);
+  }
+
+  const availableColors = findAvailableColorsExcluding(
+    palette,
+    targetColors,
+    excludeIndex
+  );
+  const hasAvailableColors = availableColors.length > 0;
+
+  return hasAvailableColors
+    ? selectRandomFromArray(availableColors)
+    : getRandomColor(paletteName);
+}
+
+function findAvailableColorsExcluding(palette, targetColors, excludeIndex) {
+  const availableColors = [];
+
+  for (let i = 0; i < palette.length; i++) {
+    const paletteColor = palette[i];
+    const isInUse = isColorInTargetsExcluding(
+      paletteColor,
+      targetColors,
+      excludeIndex
+    );
+
+    if (!isInUse) {
+      availableColors.push(paletteColor);
+    }
+  }
+
+  return availableColors;
+}
+
+function isColorInTargetsExcluding(paletteColor, targetColors, excludeIndex) {
+  for (let j = 0; j < targetColors.length; j++) {
+    if (j === excludeIndex) {
+      continue;
+    }
+
+    const target = targetColors[j];
+    if (target.red === paletteColor.red &&
+        target.green === paletteColor.green &&
+        target.blue === paletteColor.blue) {
+      return true;
+    }
+  }
+
+  return false;
 }
