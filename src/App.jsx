@@ -13,7 +13,7 @@ function App() {
   // Initialize palette and colors once
   const initialPaletteName = useMemo(() => getRandomPaletteName(), []);
   const initialColors = useMemo(
-    () => getUniqueRandomColorsFromPalette(initialPaletteName, 3).map(c => ({ r: c.red, g: c.green, b: c.blue })),
+    () => getUniqueRandomColorsFromPalette(initialPaletteName, 3),
     [initialPaletteName]
   );
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import * as ColorModel from '../models/colorModel';
+import * as ColorModel from '../models/colorModel.ts';
 
 /**
  * React hook for managing color and palette state

@@ -18,20 +18,20 @@ function generateRandomCustomColor() {
   let newColor;
   do {
     newColor = {
-      red: Math.floor(Math.random() * 256),
-      green: Math.floor(Math.random() * 256),
-      blue: Math.floor(Math.random() * 256)
+      r: Math.floor(Math.random() * 256),
+      g: Math.floor(Math.random() * 256),
+      b: Math.floor(Math.random() * 256)
     };
-  } while (newColor.red + newColor.green + newColor.blue > 400);
+  } while (newColor.r + newColor.g + newColor.b > 400);
   return newColor;
 }
 
 function selectRandomPaletteColor(palette) {
   const index = Math.floor(Math.random() * palette.length);
   return {
-    red: palette[index].red,
-    green: palette[index].green,
-    blue: palette[index].blue
+    r: palette[index].r,
+    g: palette[index].g,
+    b: palette[index].b
   };
 }
 
@@ -62,9 +62,9 @@ function selectShuffledPaletteColors(palette, count) {
   const shuffled = shuffleArray([...palette]);
   const numColors = Math.min(count, shuffled.length);
   return shuffled.slice(0, numColors).map(color => ({
-    red: color.red,
-    green: color.green,
-    blue: color.blue
+    r: color.r,
+    g: color.g,
+    b: color.b
   }));
 }
 
@@ -113,9 +113,9 @@ function findAvailableColors(palette, targetColors) {
 function isColorInTargets(paletteColor, targetColors) {
   for (let j = 0; j < targetColors.length; j++) {
     const target = targetColors[j];
-    if (target.red === paletteColor.red &&
-        target.green === paletteColor.green &&
-        target.blue === paletteColor.blue) {
+    if (target.r === paletteColor.r &&
+        target.g === paletteColor.g &&
+        target.b === paletteColor.b) {
       return true;
     }
   }
@@ -126,9 +126,9 @@ function selectRandomFromArray(colors) {
   const index = Math.floor(Math.random() * colors.length);
   const selectedColor = colors[index];
   return {
-    red: selectedColor.red,
-    green: selectedColor.green,
-    blue: selectedColor.blue
+    r: selectedColor.r,
+    g: selectedColor.g,
+    b: selectedColor.b
   };
 }
 
@@ -166,7 +166,7 @@ function findClosestColorIndex(cell, targetColors) {
 }
 
 function calculateColorDeviation(color1, color2) {
-  return Math.abs(color1.red - color2.red) +
-         Math.abs(color1.green - color2.green) +
-         Math.abs(color1.blue - color2.blue);
+  return Math.abs(color1.r - color2.r) +
+         Math.abs(color1.g - color2.g) +
+         Math.abs(color1.b - color2.b);
 }

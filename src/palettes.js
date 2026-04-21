@@ -1,85 +1,85 @@
-// Color palettes - each palette is an array of {red, green, blue} objects
+// Color palettes - each palette is an array of {r, g, b} objects
 export const PALETTES = {
   custom: null,  // null means use manual color selection
   forest: [
-    {red: 34, green: 139, blue: 34},   // forest green
-    {red: 85, green: 107, blue: 47},   // dark olive
-    {red: 107, green: 142, blue: 35},  // olive drab
-    {red: 46, green: 125, blue: 50},   // medium forest
-    {red: 139, green: 69, blue: 19},   // saddle brown
-    {red: 160, green: 82, blue: 45}    // sienna
+    {r: 34, g: 139, b: 34},   // forest green
+    {r: 85, g: 107, b: 47},   // dark olive
+    {r: 107, g: 142, b: 35},  // olive drab
+    {r: 46, g: 125, b: 50},   // medium forest
+    {r: 139, g: 69, b: 19},   // saddle brown
+    {r: 160, g: 82, b: 45}    // sienna
   ],
   ocean: [
-    {red: 0, green: 105, blue: 148},   // deep ocean
-    {red: 64, green: 224, blue: 208},  // turquoise
-    {red: 0, green: 139, blue: 139},   // dark cyan
-    {red: 72, green: 209, blue: 204},  // medium turquoise
-    {red: 32, green: 178, blue: 170},  // light sea green
-    {red: 70, green: 130, blue: 180}   // steel blue
+    {r: 0, g: 105, b: 148},   // deep ocean
+    {r: 64, g: 224, b: 208},  // turquoise
+    {r: 0, g: 139, b: 139},   // dark cyan
+    {r: 72, g: 209, b: 204},  // medium turquoise
+    {r: 32, g: 178, b: 170},  // light sea green
+    {r: 70, g: 130, b: 180}   // steel blue
   ],
   sunset: [
-    {red: 255, green: 99, blue: 71},   // tomato
-    {red: 255, green: 140, blue: 0},   // dark orange
-    {red: 255, green: 69, blue: 0},    // orange red
-    {red: 220, green: 20, blue: 60},   // crimson
-    {red: 186, green: 85, blue: 211},  // medium orchid
-    {red: 147, green: 112, blue: 219}  // medium purple
+    {r: 255, g: 99, b: 71},   // tomato
+    {r: 255, g: 140, b: 0},   // dark orange
+    {r: 255, g: 69, b: 0},    // orange red
+    {r: 220, g: 20, b: 60},   // crimson
+    {r: 186, g: 85, b: 211},  // medium orchid
+    {r: 147, g: 112, b: 219}  // medium purple
   ],
   neon: [
-    {red: 255, green: 0, blue: 255},   // magenta
-    {red: 0, green: 255, blue: 255},   // cyan
-    {red: 255, green: 255, blue: 0},   // yellow
-    {red: 57, green: 255, blue: 20},   // neon green
-    {red: 255, green: 20, blue: 147},  // deep pink
-    {red: 138, green: 43, blue: 226}   // blue violet
+    {r: 255, g: 0, b: 255},   // magenta
+    {r: 0, g: 255, b: 255},   // cyan
+    {r: 255, g: 255, b: 0},   // yellow
+    {r: 57, g: 255, b: 20},   // neon green
+    {r: 255, g: 20, b: 147},  // deep pink
+    {r: 138, g: 43, b: 226}   // blue violet
   ],
   pastel: [
-    {red: 255, green: 182, blue: 193}, // light pink
-    {red: 176, green: 224, blue: 230}, // powder blue
-    {red: 221, green: 160, blue: 221}, // plum
-    {red: 255, green: 218, blue: 185}, // peach puff
-    {red: 152, green: 251, blue: 152}, // pale green
-    {red: 216, green: 191, blue: 216}  // thistle
+    {r: 255, g: 182, b: 193}, // light pink
+    {r: 176, g: 224, b: 230}, // powder blue
+    {r: 221, g: 160, b: 221}, // plum
+    {r: 255, g: 218, b: 185}, // peach puff
+    {r: 152, g: 251, b: 152}, // pale green
+    {r: 216, g: 191, b: 216}  // thistle
   ],
   monochrome: [
-    {red: 50, green: 50, blue: 50},    // dark gray
-    {red: 100, green: 100, blue: 100}, // gray
-    {red: 150, green: 150, blue: 150}, // light gray
-    {red: 75, green: 75, blue: 75},    // medium dark
-    {red: 125, green: 125, blue: 125}, // medium light
-    {red: 175, green: 175, blue: 175}  // very light
+    {r: 50, g: 50, b: 50},    // dark gray
+    {r: 100, g: 100, b: 100}, // gray
+    {r: 150, g: 150, b: 150}, // light gray
+    {r: 75, g: 75, b: 75},    // medium dark
+    {r: 125, g: 125, b: 125}, // medium light
+    {r: 175, g: 175, b: 175}  // very light
   ],
   fire: [
-    {red: 255, green: 0, blue: 0},     // red
-    {red: 255, green: 69, blue: 0},    // orange red
-    {red: 255, green: 140, blue: 0},   // dark orange
-    {red: 255, green: 165, blue: 0},   // orange
-    {red: 255, green: 215, blue: 0},   // gold
-    {red: 184, green: 134, blue: 11}   // dark goldenrod
+    {r: 255, g: 0, b: 0},     // red
+    {r: 255, g: 69, b: 0},    // orange red
+    {r: 255, g: 140, b: 0},   // dark orange
+    {r: 255, g: 165, b: 0},   // orange
+    {r: 255, g: 215, b: 0},   // gold
+    {r: 184, g: 134, b: 11}   // dark goldenrod
   ],
   cyberpunk: [
-    {red: 255, green: 0, blue: 110},   // hot pink
-    {red: 0, green: 255, blue: 255},   // cyan
-    {red: 138, green: 43, blue: 226},  // blue violet
-    {red: 255, green: 20, blue: 147},  // deep pink
-    {red: 0, green: 191, blue: 255},   // deep sky blue
-    {red: 186, green: 85, blue: 211}   // medium orchid
+    {r: 255, g: 0, b: 110},   // hot pink
+    {r: 0, g: 255, b: 255},   // cyan
+    {r: 138, g: 43, b: 226},  // blue violet
+    {r: 255, g: 20, b: 147},  // deep pink
+    {r: 0, g: 191, b: 255},   // deep sky blue
+    {r: 186, g: 85, b: 211}   // medium orchid
   ],
   queenOfHearts: [
-    {red: 201, green: 0, blue: 0},     // Brick ember
-    {red: 255, green: 71, blue: 71},   // Strawberry red
-    {red: 82, green: 0, blue: 0},      // Black cherry
-    {red: 255, green: 194, blue: 194}, // Cotton rose
-    {red: 255, green: 255, blue: 255}, // white
-    {red: 255, green: 0, blue: 110},   // hot pink
+    {r: 201, g: 0, b: 0},     // Brick ember
+    {r: 255, g: 71, b: 71},   // Strawberry red
+    {r: 82, g: 0, b: 0},      // Black cherry
+    {r: 255, g: 194, b: 194}, // Cotton rose
+    {r: 255, g: 255, b: 255}, // white
+    {r: 255, g: 0, b: 110},   // hot pink
   ],
   verdant: [
-    {red: 34, green: 139, blue: 34},   // forest green
-    {red: 50, green: 205, blue: 50},   // lime green
-    {red: 124, green: 252, blue: 0},   // lawn green
-    {red: 144, green: 238, blue: 144}, // light green
-    {red: 60, green: 179, blue: 113},  // medium sea green
-    {red: 46, green: 125, blue: 50}    // leafy green
+    {r: 34, g: 139, b: 34},   // forest green
+    {r: 50, g: 205, b: 50},   // lime green
+    {r: 124, g: 252, b: 0},   // lawn green
+    {r: 144, g: 238, b: 144}, // light green
+    {r: 60, g: 179, b: 113},  // medium sea green
+    {r: 46, g: 125, b: 50}    // leafy green
   ]
 };
 
