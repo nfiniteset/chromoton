@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Chromoton from './Chromoton';
 import ControlPanel from './components/ControlPanel';
 import { PALETTES, getRandomPaletteName } from './palettes';
@@ -31,9 +31,12 @@ function App() {
   const [clarity, setClarity] = useState(240);
   const [mutationRate, setMutationRate] = useState(0.002);
   const [randomizeColor, setRandomizeColor] = useState(true);
-  const [currentPalette, setCurrentPalette] = useState(() => getRandomPaletteName());
+
+  // Initialize palette name once to ensure sync between currentPalette and colors
+  const initialPaletteName = useMemo(() => getRandomPaletteName(), []);
+  const [currentPalette, setCurrentPalette] = useState(initialPaletteName);
   const [colors, setColors] = useState(() =>
-    getUniqueRandomColorsFromPalette(getRandomPaletteName(), 3).map(c => ({ r: c.red, g: c.green, b: c.blue }))
+    getUniqueRandomColorsFromPalette(initialPaletteName, 3).map(c => ({ r: c.red, g: c.green, b: c.blue }))
   );
 
   // Sync colors to chromoton engine whenever they change

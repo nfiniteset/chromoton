@@ -5,11 +5,16 @@ export default function ColorSwatch({ color, onColorChange, onRemove, canRemove,
     return hexString;
   };
 
+  const handleColorChange = (e) => {
+    console.log('Color picker changed:', e.target.value);
+    onColorChange(e.target.value);
+  };
+
   return (
     <div className="flex gap-2 items-center">
-      <div className="relative flex-1 h-8 rounded-sm overflow-hidden cursor-pointer">
+      <div className="relative flex-1 h-8 rounded-sm overflow-hidden">
         <div
-          className="w-full h-full rounded-sm box-border transition-colors"
+          className="w-full h-full rounded-sm box-border transition-colors pointer-events-none"
           style={{
             background: `rgb(${color.r}, ${color.g}, ${color.b})`,
             borderColor: contrastColors?.borderColorHover,
@@ -20,8 +25,9 @@ export default function ColorSwatch({ color, onColorChange, onRemove, canRemove,
         <input
           type="color"
           value={rgbToHex(color.r, color.g, color.b)}
-          onChange={(e) => onColorChange(e.target.value)}
-          className="absolute inset-0 opacity-0 cursor-pointer border-none p-0"
+          onChange={handleColorChange}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer border-none p-0 m-0 z-10"
+          style={{ minWidth: '100%', minHeight: '100%' }}
         />
       </div>
       {canRemove && (
