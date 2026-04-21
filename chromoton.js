@@ -7,115 +7,13 @@ window.chromoton = (function () {
   var MUTATION_RATE = 0.002;                  // likelyhood that a mutation will occur
   var xDim = 240;                          // dimensions of arrays in x direction
   var yDim = 1;                           // dimensions of arrays in y direction
-  var MIN_CHANGE_TIME = 8000;
-  var MAX_CHANGE_TIME = 15000;
-  var randomizeColor = true;
-  var onColorChange = null;
 
   var population = [];
   var populationNext = [];
-  var targetColors = [];  // array of target colors (initialized later)
-  var currentPalette = '';  // will be set after PALETTES is defined
+  var targetColors = [];  // array of target colors
   var rafId;
   var lastStepTime = 0;
-  var changeColorTimeout;
   var imageData;
-
-  // Color palettes - each palette is an array of {red, green, blue} objects
-  var PALETTES = {
-    custom: null,  // null means use manual color selection
-    forest: [
-      {red: 34, green: 139, blue: 34},   // forest green
-      {red: 85, green: 107, blue: 47},   // dark olive
-      {red: 107, green: 142, blue: 35},  // olive drab
-      {red: 46, green: 125, blue: 50},   // medium forest
-      {red: 139, green: 69, blue: 19},   // saddle brown
-      {red: 160, green: 82, blue: 45}    // sienna
-    ],
-    ocean: [
-      {red: 0, green: 105, blue: 148},   // deep ocean
-      {red: 64, green: 224, blue: 208},  // turquoise
-      {red: 0, green: 139, blue: 139},   // dark cyan
-      {red: 72, green: 209, blue: 204},  // medium turquoise
-      {red: 32, green: 178, blue: 170},  // light sea green
-      {red: 70, green: 130, blue: 180}   // steel blue
-    ],
-    sunset: [
-      {red: 255, green: 99, blue: 71},   // tomato
-      {red: 255, green: 140, blue: 0},   // dark orange
-      {red: 255, green: 69, blue: 0},    // orange red
-      {red: 220, green: 20, blue: 60},   // crimson
-      {red: 186, green: 85, blue: 211},  // medium orchid
-      {red: 147, green: 112, blue: 219}  // medium purple
-    ],
-    neon: [
-      {red: 255, green: 0, blue: 255},   // magenta
-      {red: 0, green: 255, blue: 255},   // cyan
-      {red: 255, green: 255, blue: 0},   // yellow
-      {red: 57, green: 255, blue: 20},   // neon green
-      {red: 255, green: 20, blue: 147},  // deep pink
-      {red: 138, green: 43, blue: 226}   // blue violet
-    ],
-    pastel: [
-      {red: 255, green: 182, blue: 193}, // light pink
-      {red: 176, green: 224, blue: 230}, // powder blue
-      {red: 221, green: 160, blue: 221}, // plum
-      {red: 255, green: 218, blue: 185}, // peach puff
-      {red: 152, green: 251, blue: 152}, // pale green
-      {red: 216, green: 191, blue: 216}  // thistle
-    ],
-    monochrome: [
-      {red: 50, green: 50, blue: 50},    // dark gray
-      {red: 100, green: 100, blue: 100}, // gray
-      {red: 150, green: 150, blue: 150}, // light gray
-      {red: 75, green: 75, blue: 75},    // medium dark
-      {red: 125, green: 125, blue: 125}, // medium light
-      {red: 175, green: 175, blue: 175}  // very light
-    ],
-    fire: [
-      {red: 255, green: 0, blue: 0},     // red
-      {red: 255, green: 69, blue: 0},    // orange red
-      {red: 255, green: 140, blue: 0},   // dark orange
-      {red: 255, green: 165, blue: 0},   // orange
-      {red: 255, green: 215, blue: 0},   // gold
-      {red: 184, green: 134, blue: 11}   // dark goldenrod
-    ],
-    cyberpunk: [
-      {red: 255, green: 0, blue: 110},   // hot pink
-      {red: 0, green: 255, blue: 255},   // cyan
-      {red: 138, green: 43, blue: 226},  // blue violet
-      {red: 255, green: 20, blue: 147},  // deep pink
-      {red: 0, green: 191, blue: 255},   // deep sky blue
-      {red: 186, green: 85, blue: 211}   // medium orchid
-    ],
-    queenOfHearts: [
-      {red: 201, green: 0, blue: 0},   // Brick ember
-      {red: 255, green: 71, blue: 71},     // Strawberry red
-      {red: 82, green: 0, blue: 0},     // Black cherry
-      {red: 255, green: 194, blue: 194},     // Cotton rose
-      {red: 255, green: 255, blue: 255},     // white
-      {red: 255, green: 0, blue: 110},   // hot pink
-    ],
-    verdant: [
-      {red: 34, green: 139, blue: 34},   // forest green
-      {red: 50, green: 205, blue: 50},   // lime green
-      {red: 124, green: 252, blue: 0},   // lawn green
-      {red: 144, green: 238, blue: 144}, // light green
-      {red: 60, green: 179, blue: 113},  // medium sea green
-      {red: 46, green: 125, blue: 50}    // leafy green
-    ]
-  };
-
-  // Initialize with a random palette
-  if (!currentPalette) {
-    var paletteNames = Object.keys(PALETTES);
-    var nonCustomPalettes = paletteNames.filter(function(name) { return name !== 'custom'; });
-    var randomIndex = (Math.random() * nonCustomPalettes.length) | 0;
-    currentPalette = nonCustomPalettes[randomIndex];
-  }
-
-  // Initialize 3 unique target colors from the palette
-  targetColors = getUniqueRandomColorsFromPalette(3);
 
   // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
   function applyChromosome(c) {
@@ -233,17 +131,12 @@ window.chromoton = (function () {
   function startSimulation(element) {
     el = element;
     cancelAnimationFrame(rafId);
-    clearTimeout(changeColorTimeout);
     lastStepTime = 0;
     rafId = requestAnimationFrame(loop);
-    if (randomizeColor) {
-      changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
-    }
   }
 
   function stopSimulation() {
     cancelAnimationFrame(rafId);
-    clearTimeout(changeColorTimeout);
   }
 
   function step() {
@@ -327,246 +220,6 @@ window.chromoton = (function () {
     render(population);
   }
 
-  // Generate a random color from the current palette (or random if custom)
-  function getRandomColor() {
-    var palette = PALETTES[currentPalette];
-
-    if (palette === null) {
-      // Custom mode - generate random color with brightness constraint
-      var newColor;
-      do {
-        newColor = {
-          red: (Math.random() * 256) | 0,
-          green: (Math.random() * 256) | 0,
-          blue: (Math.random() * 256) | 0
-        };
-      } while (newColor.red + newColor.green + newColor.blue > 400);
-      return newColor;
-    } else {
-      // Palette mode - pick a random color from the palette
-      var index = (Math.random() * palette.length) | 0;
-      return {
-        red: palette[index].red,
-        green: palette[index].green,
-        blue: palette[index].blue
-      };
-    }
-  }
-
-  // Get unique random colors from the current palette
-  // Returns an array of unique colors (no duplicates)
-  function getUniqueRandomColorsFromPalette(count) {
-    var palette = PALETTES[currentPalette];
-
-    if (palette === null) {
-      // Custom mode - generate unique random colors
-      var colors = [];
-      for (var i = 0; i < count; i++) {
-        colors.push(getRandomColor());
-      }
-      return colors;
-    } else {
-      // Palette mode - shuffle and take first N colors
-      var shuffled = palette.slice(); // Copy array
-
-      // Fisher-Yates shuffle
-      for (var i = shuffled.length - 1; i > 0; i--) {
-        var j = (Math.random() * (i + 1)) | 0;
-        var temp = shuffled[i];
-        shuffled[i] = shuffled[j];
-        shuffled[j] = temp;
-      }
-
-      // Take first 'count' colors (capped at palette length)
-      var numColors = Math.min(count, shuffled.length);
-      var colors = [];
-      for (var i = 0; i < numColors; i++) {
-        colors.push({
-          red: shuffled[i].red,
-          green: shuffled[i].green,
-          blue: shuffled[i].blue
-        });
-      }
-      return colors;
-    }
-  }
-
-  // Get a single unique random color not already in target colors
-  function getUniqueRandomColor() {
-    var palette = PALETTES[currentPalette];
-
-    if (palette === null) {
-      // Custom mode - just get a random color
-      return getRandomColor();
-    } else {
-      // Palette mode - find colors not in use
-      var availableColors = [];
-      for (var i = 0; i < palette.length; i++) {
-        var paletteColor = palette[i];
-        var isInUse = false;
-
-        // Check if this color is already a target
-        for (var j = 0; j < targetColors.length; j++) {
-          var target = targetColors[j];
-          if (target.red === paletteColor.red &&
-              target.green === paletteColor.green &&
-              target.blue === paletteColor.blue) {
-            isInUse = true;
-            break;
-          }
-        }
-
-        if (!isInUse) {
-          availableColors.push(paletteColor);
-        }
-      }
-
-      // Pick a random color from available colors, or fallback to any palette color
-      if (availableColors.length > 0) {
-        var index = (Math.random() * availableColors.length) | 0;
-        var selectedColor = availableColors[index];
-        return {
-          red: selectedColor.red,
-          green: selectedColor.green,
-          blue: selectedColor.blue
-        };
-      } else {
-        // All palette colors are in use, just pick any
-        return getRandomColor();
-      }
-    }
-  }
-
-  // Count how many cells are closest to each target color
-  function getColorSuccessCounts() {
-    var counts = new Array(targetColors.length);
-    for (var i = 0; i < counts.length; i++) counts[i] = 0;
-
-    for (var y = 0; y < yDim; y++) {
-      for (var x = 0; x < xDim; x++) {
-        var cell = population[y][x];
-        var minDeviance = Infinity;
-        var closestColorIndex = 0;
-
-        // Find which target color this cell is closest to
-        for (var i = 0; i < targetColors.length; i++) {
-          var target = targetColors[i];
-          var deviation = Math.abs(cell.red - target.red) + Math.abs(cell.green - target.green) + Math.abs(cell.blue - target.blue);
-          if (deviation < minDeviance) {
-            minDeviance = deviation;
-            closestColorIndex = i;
-          }
-        }
-        counts[closestColorIndex]++;
-      }
-    }
-    return counts;
-  }
-
-  function changeColor() {
-    // Find the most successful color (the one with the most cells closest to it)
-    var counts = getColorSuccessCounts();
-    var maxCount = -1;
-    var mostSuccessfulIndex = 0;
-
-    for (var i = 0; i < counts.length; i++) {
-      if (counts[i] > maxCount) {
-        maxCount = counts[i];
-        mostSuccessfulIndex = i;
-      }
-    }
-
-    // Determine available actions based on current color count (min 1, max 5)
-    var currentCount = targetColors.length;
-    var availableActions = [];
-
-    if (currentCount > 1) {
-      availableActions.push('remove');  // Can remove if we have more than 1
-    }
-    if (currentCount < 5) {
-      availableActions.push('add');     // Can add if we have fewer than 5
-    }
-    availableActions.push('change');    // Can always change
-
-    // Randomly pick an action
-    var actionIndex = (Math.random() * availableActions.length) | 0;
-    var action = availableActions[actionIndex];
-
-    if (action === 'remove') {
-      // Remove the dominant color
-      targetColors.splice(mostSuccessfulIndex, 1);
-
-    } else if (action === 'add') {
-      // Add a new unique color from the palette
-      var newColor = getUniqueRandomColor();
-      targetColors.push({
-        red: newColor.red,
-        green: newColor.green,
-        blue: newColor.blue
-      });
-
-    } else if (action === 'change') {
-      // Replace the most successful color with a new unique random color from the palette
-      var palette = PALETTES[currentPalette];
-      var newColor;
-
-      if (palette === null) {
-        // Custom mode - just get a random color
-        newColor = getRandomColor();
-      } else {
-        // Palette mode - ensure we pick a color not already in use
-        var availableColors = [];
-        for (var i = 0; i < palette.length; i++) {
-          var paletteColor = palette[i];
-          var isInUse = false;
-
-          // Check if this color is already a target (excluding the one we're replacing)
-          for (var j = 0; j < targetColors.length; j++) {
-            if (j !== mostSuccessfulIndex) {
-              var target = targetColors[j];
-              if (target.red === paletteColor.red &&
-                  target.green === paletteColor.green &&
-                  target.blue === paletteColor.blue) {
-                isInUse = true;
-                break;
-              }
-            }
-          }
-
-          if (!isInUse) {
-            availableColors.push(paletteColor);
-          }
-        }
-
-        // Pick a random color from available colors, or fallback to any palette color
-        if (availableColors.length > 0) {
-          var index = (Math.random() * availableColors.length) | 0;
-          var selectedColor = availableColors[index];
-          newColor = {
-            red: selectedColor.red,
-            green: selectedColor.green,
-            blue: selectedColor.blue
-          };
-        } else {
-          // All palette colors are in use, just pick any
-          newColor = getRandomColor();
-        }
-      }
-
-      targetColors[mostSuccessfulIndex] = newColor;
-    }
-
-    // Recalculate deviances for the entire population since target colors changed
-    for (var y = 0; y < yDim; y++) {
-      for (var x = 0; x < xDim; x++) {
-        applyChromosome(population[y][x]);
-      }
-    }
-
-    if (onColorChange) onColorChange(targetColors);
-    changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
-  }
-
   function init() {
     // initialize defaultChromosome
     var defaultChromosome = [13, 11, 21, 19, 29, 27];
@@ -606,93 +259,37 @@ window.chromoton = (function () {
     MUTATION_RATE = rate;
   }
 
-  function setColor(r, g, b, index) {
-    // If index not provided, set the first color
-    if (index === undefined) index = 0;
-    if (index >= 0 && index < targetColors.length) {
-      targetColors[index] = { red: r, green: g, blue: b };
+  function setTargetColors(colors) {
+    if (colors && colors.length > 0) {
+      targetColors = colors.map(function(c) {
+        return {
+          red: c.r !== undefined ? c.r : c.red,
+          green: c.g !== undefined ? c.g : c.green,
+          blue: c.b !== undefined ? c.b : c.blue
+        };
+      });
+
+      // Recalculate deviances for the entire population since target colors changed
+      for (var y = 0; y < yDim; y++) {
+        for (var x = 0; x < xDim; x++) {
+          applyChromosome(population[y][x]);
+        }
+      }
     }
   }
 
-  function setRandomizeColor(enabled) {
-    randomizeColor = enabled;
-    clearTimeout(changeColorTimeout);
-    if (enabled) {
-      changeColorTimeout = setTimeout(changeColor, MIN_CHANGE_TIME + (Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME)) | 0);
-    }
-  }
-
-  function getColor(index) {
-    // If index not provided, return the first color for backwards compatibility
-    if (index === undefined) index = 0;
-    if (index >= 0 && index < targetColors.length) {
-      var target = targetColors[index];
-      return { r: target.red, g: target.green, b: target.blue };
-    }
-    return null;
-  }
-
-  function getColors() {
+  function getTargetColors() {
     return targetColors.map(function(t) {
       return { r: t.red, g: t.green, b: t.blue };
     });
   }
 
-  function setColorChangeCallback(fn) {
-    onColorChange = fn;
-  }
-
-  function addTargetColor(r, g, b) {
-    if (targetColors.length < 5) {
-      targetColors.push({ red: r, green: g, blue: b });
-      return true;
-    }
-    return false;
-  }
-
-  function removeTargetColor(index) {
-    if (targetColors.length > 1 && index >= 0 && index < targetColors.length) {
-      targetColors.splice(index, 1);
-      return true;
-    }
-    return false;
-  }
-
-  function setTargetColors(colors) {
-    if (colors && colors.length > 0) {
-      targetColors = colors.map(function(c) {
-        return { red: c.r || c.red, green: c.g || c.green, blue: c.b || c.blue };
-      });
-    }
-  }
-
-  function reassignAllColorsFromPalette() {
-    var currentCount = targetColors.length;
-    var uniqueColors = getUniqueRandomColorsFromPalette(currentCount);
-    for (var i = 0; i < uniqueColors.length; i++) {
-      targetColors[i] = uniqueColors[i];
-    }
-    // Notify UI if callback is set
-    if (onColorChange) onColorChange(targetColors);
-  }
-
-  function setPalette(paletteName) {
-    if (PALETTES[paletteName] !== undefined) {
-      currentPalette = paletteName;
-      if (paletteName !== 'custom') {
-        reassignAllColorsFromPalette();
-      }
-      return true;
-    }
-    return false;
-  }
-
-  function getPalettes() {
-    return Object.keys(PALETTES);
-  }
-
-  function getCurrentPalette() {
-    return currentPalette;
+  function getPopulation() {
+    return {
+      population: population,
+      xDim: xDim,
+      yDim: yDim
+    };
   }
 
   return {
@@ -701,18 +298,8 @@ window.chromoton = (function () {
     hide: stopSimulation,
     configure: configure,
     setMutationRate: setMutationRate,
-    setColor: setColor,
-    setRandomizeColor: setRandomizeColor,
-    getColor: getColor,
-    getColors: getColors,
-    addTargetColor: addTargetColor,
-    removeTargetColor: removeTargetColor,
     setTargetColors: setTargetColors,
-    setColorChangeCallback: setColorChangeCallback,
-    setPalette: setPalette,
-    getPalettes: getPalettes,
-    getCurrentPalette: getCurrentPalette,
-    getRandomColor: getRandomColor,
-    getUniqueRandomColor: getUniqueRandomColor
+    getTargetColors: getTargetColors,
+    getPopulation: getPopulation
   };
 })()
