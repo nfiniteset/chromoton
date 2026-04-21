@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import PaletteSelector from './PaletteSelector';
 import ColorList from './ColorList';
 import AdvancedControls from './AdvancedControls';
+import Checkbox from './Checkbox';
 import { useCanvasContrast } from '../hooks/useCanvasContrast';
 
 export default function ControlPanel({
@@ -23,6 +24,7 @@ export default function ControlPanel({
   const [isHidden, setIsHidden] = useState(false);
   const hideTimerRef = useRef(null);
   const panelRef = useRef(null);
+  const isHoveringRef = useRef(false);
   const contrastColors = useCanvasContrast(panelRef);
 
   const HIDE_DELAY = 500; // half second
@@ -47,10 +49,19 @@ export default function ControlPanel({
   };
 
   const handleMouseEnter = () => {
+    isHoveringRef.current = true;
     showSidebar();
   };
 
   const handleMouseLeave = () => {
+    isHoveringRef.current = false;
+
+    // Don't hide if a color picker is currently open (focused)
+    const hasOpenColorPicker = panelRef.current?.querySelector('input[type="color"]:focus');
+    if (hasOpenColorPicker) {
+      return;
+    }
+
     scheduleSidebarHide();
   };
 
@@ -67,7 +78,20 @@ export default function ControlPanel({
       showSidebar();
     };
 
+    // Handle color picker closing - schedule hide if mouse not over panel
+    const handleColorPickerBlur = (e) => {
+      if (e.target.type === 'color') {
+        // Small delay to allow cleanup, then check if we should hide
+        setTimeout(() => {
+          if (!isHoveringRef.current) {
+            scheduleSidebarHide();
+          }
+        }, 100);
+      }
+    };
+
     document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('blur', handleColorPickerBlur, true);
 
     // Start with sidebar visible for 3 seconds on page load
     hideTimerRef.current = setTimeout(() => {
@@ -76,6 +100,7 @@ export default function ControlPanel({
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('blur', handleColorPickerBlur, true);
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
       }
@@ -113,17 +138,20 @@ export default function ControlPanel({
 
   return (
     <div
-      ref={panelRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`fixed top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-7 z-[100] text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none transition-transform duration-300 ease-out ${
-        isHidden ? 'translate-x-[calc(100%+20px)]' : 'translate-x-0'
-      }`}
-      style={{
-        color: contrastColors.textColor,
-        borderColor: contrastColors.borderColor,
-      }}
+      className="fixed top-0 right-0 w-[400px] h-screen z-[100] pointer-events-none"
     >
+      <div
+        ref={panelRef}
+        className={`absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-7 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none transition-transform duration-300 ease-out pointer-events-auto ${
+          isHidden ? 'translate-x-[calc(100%+20px)]' : 'translate-x-0'
+        }`}
+        style={{
+          color: contrastColors.textColor,
+          borderColor: contrastColors.borderColor,
+        }}
+      >
       <h2
         className="m-0 mb-1 text-[10px] font-semibold tracking-[0.12em] relative z-[1]"
         style={{ color: contrastColors.textColorHeader }}
@@ -143,16 +171,12 @@ export default function ControlPanel({
       <div className="flex flex-col gap-2 relative z-[1]">
         <div className="flex justify-between items-center" style={{ color: contrastColors.textColorAlpha }}>
           <span>Target Colors</span>
-          <label className="flex items-center gap-1.5 text-[11px] cursor-pointer select-none" style={{ color: contrastColors.textColorFaded }}>
-            <input
-              type="checkbox"
-              checked={randomizeColor}
-              onChange={(e) => onRandomizeToggle(e.target.checked)}
-              className="appearance-none w-4 h-4 rounded bg-white/10 cursor-pointer relative transition-all checked:after:content-['✓'] checked:after:absolute checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-[12px] checked:after:font-bold"
-              style={{ borderColor: contrastColors.borderColorHover, color: contrastColors.textColor }}
-            />
-            Randomize
-          </label>
+          <Checkbox
+            checked={randomizeColor}
+            onChange={onRandomizeToggle}
+            label="Randomize"
+            contrastColors={contrastColors}
+          />
         </div>
         <ColorList
           colors={colors}
@@ -166,16 +190,12 @@ export default function ControlPanel({
       <hr className="border-none border-t my-3 relative z-[1]" style={{ borderTopColor: contrastColors.borderColor }} />
 
       <div className="flex flex-col gap-2 relative z-[1]">
-        <label className="flex items-center gap-1.5 text-[11px] cursor-pointer select-none justify-start" style={{ color: contrastColors.textColorFaded }}>
-          <input
-            type="checkbox"
-            checked={showAdvanced}
-            onChange={(e) => setShowAdvanced(e.target.checked)}
-            className="appearance-none w-4 h-4 rounded bg-white/10 cursor-pointer relative transition-all checked:after:content-['✓'] checked:after:absolute checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-[12px] checked:after:font-bold"
-            style={{ borderColor: contrastColors.borderColorHover, color: contrastColors.textColor }}
-          />
-          More Settings
-        </label>
+        <Checkbox
+          checked={showAdvanced}
+          onChange={setShowAdvanced}
+          label="More Settings"
+          contrastColors={contrastColors}
+        />
       </div>
 
       {showAdvanced && (
@@ -189,6 +209,7 @@ export default function ControlPanel({
           />
         </div>
       )}
+      </div>
     </div>
   );
 }

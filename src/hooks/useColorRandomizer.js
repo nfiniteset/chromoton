@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { determineColorChangeAction } from '../utils/colorUtils';
 
 const MIN_CHANGE_TIME = 8000;
 const MAX_CHANGE_TIME = 15000;
@@ -7,11 +6,10 @@ const MAX_CHANGE_TIME = 15000;
 /**
  * Hook to automatically randomize colors at intervals
  * @param {boolean} enabled - Whether randomization is enabled
- * @param {string} paletteName - Current palette name
- * @param {Array} targetColors - Current target colors
- * @param {Function} onColorChange - Callback when colors should change
+ * @param {Function} determineRandomAction - Callback to determine what action to take
+ * @param {Function} onApplyAction - Callback to apply the action
  */
-export function useColorRandomizer(enabled, paletteName, targetColors, onColorChange) {
+export function useColorRandomizer(enabled, determineRandomAction, onApplyAction) {
   const timeoutRef = useRef(null);
 
   useEffect(() => {
@@ -30,10 +28,10 @@ export function useColorRandomizer(enabled, paletteName, targetColors, onColorCh
         // Get current population state from chromoton
         if (window.chromoton && window.chromoton.getPopulation) {
           const { population, xDim, yDim } = window.chromoton.getPopulation();
-          const action = determineColorChangeAction(paletteName, targetColors, population, xDim, yDim);
+          const action = determineRandomAction(population, xDim, yDim);
 
-          if (onColorChange) {
-            onColorChange(action);
+          if (action && onApplyAction) {
+            onApplyAction(action);
           }
         }
 
@@ -49,5 +47,5 @@ export function useColorRandomizer(enabled, paletteName, targetColors, onColorCh
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [enabled, paletteName, targetColors, onColorChange]);
+  }, [enabled, determineRandomAction, onApplyAction]);
 }
