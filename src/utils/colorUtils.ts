@@ -1,21 +1,20 @@
-import { PALETTES } from '../palettes';
+import { PALETTES, type PaletteName } from '../palettes';
+import type { Color } from '../models/colorModel';
 
 /**
  * Generate a random color from a palette (or random if custom/null palette)
  */
-export function getRandomColor(paletteName) {
+export function getRandomColor(paletteName: PaletteName): Color {
   const palette = PALETTES[paletteName];
   const isCustomMode = palette === null;
 
-  const color = isCustomMode
+  return isCustomMode
     ? generateRandomCustomColor()
     : selectRandomPaletteColor(palette);
-
-  return color;
 }
 
-function generateRandomCustomColor() {
-  let newColor;
+function generateRandomCustomColor(): Color {
+  let newColor: Color;
   do {
     newColor = {
       r: Math.floor(Math.random() * 256),
@@ -26,7 +25,7 @@ function generateRandomCustomColor() {
   return newColor;
 }
 
-function selectRandomPaletteColor(palette) {
+function selectRandomPaletteColor(palette: Color[]): Color {
   const index = Math.floor(Math.random() * palette.length);
   return {
     r: palette[index].r,
@@ -39,26 +38,24 @@ function selectRandomPaletteColor(palette) {
  * Get unique random colors from a palette
  * Returns an array of unique colors (no duplicates)
  */
-export function getUniqueRandomColorsFromPalette(paletteName, count) {
+export function getUniqueRandomColorsFromPalette(paletteName: PaletteName, count: number): Color[] {
   const palette = PALETTES[paletteName];
   const isCustomMode = palette === null;
 
-  const colors = isCustomMode
+  return isCustomMode
     ? generateCustomColors(paletteName, count)
     : selectShuffledPaletteColors(palette, count);
-
-  return colors;
 }
 
-function generateCustomColors(paletteName, count) {
-  const colors = [];
+function generateCustomColors(paletteName: PaletteName, count: number): Color[] {
+  const colors: Color[] = [];
   for (let i = 0; i < count; i++) {
     colors.push(getRandomColor(paletteName));
   }
   return colors;
 }
 
-function selectShuffledPaletteColors(palette, count) {
+function selectShuffledPaletteColors(palette: Color[], count: number): Color[] {
   const shuffled = shuffleArray([...palette]);
   const numColors = Math.min(count, shuffled.length);
   return shuffled.slice(0, numColors).map(color => ({
@@ -68,7 +65,7 @@ function selectShuffledPaletteColors(palette, count) {
   }));
 }
 
-function shuffleArray(array) {
+function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -80,7 +77,7 @@ function shuffleArray(array) {
 /**
  * Get a single unique random color not already in target colors
  */
-export function getUniqueRandomColor(paletteName, targetColors) {
+export function getUniqueRandomColor(paletteName: PaletteName, targetColors: Color[]): Color {
   const palette = PALETTES[paletteName];
   const isCustomMode = palette === null;
 
@@ -90,15 +87,14 @@ export function getUniqueRandomColor(paletteName, targetColors) {
 
   const availableColors = findAvailableColors(palette, targetColors);
   const hasAvailableColors = availableColors.length > 0;
-  const selectedColor = hasAvailableColors
+
+  return hasAvailableColors
     ? selectRandomFromArray(availableColors)
     : getRandomColor(paletteName);
-
-  return selectedColor;
 }
 
-function findAvailableColors(palette, targetColors) {
-  const availableColors = [];
+function findAvailableColors(palette: Color[], targetColors: Color[]): Color[] {
+  const availableColors: Color[] = [];
   for (let i = 0; i < palette.length; i++) {
     const paletteColor = palette[i];
     const isInUse = isColorInTargets(paletteColor, targetColors);
@@ -110,7 +106,7 @@ function findAvailableColors(palette, targetColors) {
   return availableColors;
 }
 
-function isColorInTargets(paletteColor, targetColors) {
+function isColorInTargets(paletteColor: Color, targetColors: Color[]): boolean {
   for (let j = 0; j < targetColors.length; j++) {
     const target = targetColors[j];
     if (target.r === paletteColor.r &&
@@ -122,7 +118,7 @@ function isColorInTargets(paletteColor, targetColors) {
   return false;
 }
 
-function selectRandomFromArray(colors) {
+function selectRandomFromArray(colors: Color[]): Color {
   const index = Math.floor(Math.random() * colors.length);
   const selectedColor = colors[index];
   return {
@@ -135,7 +131,12 @@ function selectRandomFromArray(colors) {
 /**
  * Count how many cells are closest to each target color
  */
-export function getColorSuccessCounts(population, targetColors, xDim, yDim) {
+export function getColorSuccessCounts(
+  population: Uint8ClampedArray[][],
+  targetColors: Color[],
+  xDim: number,
+  yDim: number
+): number[] {
   const counts = new Array(targetColors.length).fill(0);
 
   for (let y = 0; y < yDim; y++) {
@@ -149,7 +150,7 @@ export function getColorSuccessCounts(population, targetColors, xDim, yDim) {
   return counts;
 }
 
-function findClosestColorIndex(cell, targetColors) {
+function findClosestColorIndex(cell: Uint8ClampedArray, targetColors: Color[]): number {
   let minDeviance = Infinity;
   let closestColorIndex = 0;
 
@@ -165,8 +166,8 @@ function findClosestColorIndex(cell, targetColors) {
   return closestColorIndex;
 }
 
-function calculateColorDeviation(color1, color2) {
-  return Math.abs(color1.r - color2.r) +
-         Math.abs(color1.g - color2.g) +
-         Math.abs(color1.b - color2.b);
+function calculateColorDeviation(cell: Uint8ClampedArray, target: Color): number {
+  return Math.abs(cell[0] - target.r) +
+         Math.abs(cell[1] - target.g) +
+         Math.abs(cell[2] - target.b);
 }

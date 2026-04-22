@@ -1,12 +1,39 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type RefObject } from 'react';
+import type { Color } from '../models/colorModel';
+
+// Declare chroma.js types for the global window object
+declare global {
+  interface Window {
+    chroma: {
+      (r: number, g: number, b: number): ChromaInstance;
+      hsl(h: number, s: number, l: number): ChromaInstance;
+      contrast(color1: ChromaInstance | string, color2: ChromaInstance | string): number;
+    };
+  }
+}
+
+interface ChromaInstance {
+  hsl(): [number, number, number];
+  rgb(): [number, number, number];
+}
+
+interface ContrastColors {
+  textColor: string;
+  textColorAlpha: string;
+  textColorFaded: string;
+  textColorHeader: string;
+  borderColor: string;
+  borderColorHover: string;
+  sliderThumb: string;
+}
 
 /**
  * Hook to sample the canvas behind the control panel and calculate
  * appropriate UI colors for sufficient contrast
  */
-export function useCanvasContrast(panelRef) {
-  const [colors, setColors] = useState(getDefaultColors());
-  const intervalRef = useRef(null);
+export function useCanvasContrast(panelRef: RefObject<HTMLElement>): ContrastColors {
+  const [colors, setColors] = useState<ContrastColors>(getDefaultColors());
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!panelRef?.current) {
@@ -41,7 +68,7 @@ export function useCanvasContrast(panelRef) {
   return colors;
 }
 
-function getDefaultColors() {
+function getDefaultColors(): ContrastColors {
   return {
     textColor: '#ffffff',
     textColorAlpha: 'rgba(255, 255, 255, 0.75)',
@@ -53,7 +80,10 @@ function getDefaultColors() {
   };
 }
 
-function updateContrast(panel, setColors) {
+function updateContrast(
+  panel: HTMLElement,
+  setColors: (colors: ContrastColors) => void
+): void {
   if (!panel || typeof window.chroma === 'undefined') {
     return;
   }
@@ -67,13 +97,16 @@ function updateContrast(panel, setColors) {
   setColors(calculatedColors);
 }
 
-function sampleCanvasColorBehindPanel(panel) {
-  const canvas = document.querySelector('.chromotons');
+function sampleCanvasColorBehindPanel(panel: HTMLElement): Color | null {
+  const canvas = document.querySelector<HTMLCanvasElement>('.chromotons');
   if (!canvas) {
     return null;
   }
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return null;
+  }
   const canvasRect = canvas.getBoundingClientRect();
   const panelRect = panel.getBoundingClientRect();
 
@@ -128,7 +161,7 @@ function sampleCanvasColorBehindPanel(panel) {
   };
 }
 
-function calculateContrastColors(rawColor) {
+function calculateContrastColors(rawColor: Color): ContrastColors {
   // Apply blur effect (simulated by slight desaturation)
   let color = window.chroma(rawColor.r, rawColor.g, rawColor.b);
 

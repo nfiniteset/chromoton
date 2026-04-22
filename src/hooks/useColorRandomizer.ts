@@ -1,16 +1,35 @@
 import { useEffect, useRef } from 'react';
+import type { RandomAction } from '../models/colorModel';
+
+// Declare chromoton global
+declare global {
+  interface Window {
+    chromoton?: {
+      getPopulation: () => {
+        population: Uint8ClampedArray[][];
+        xDim: number;
+        yDim: number;
+      };
+    };
+  }
+}
 
 const MIN_CHANGE_TIME = 8000;
 const MAX_CHANGE_TIME = 15000;
 
 /**
  * Hook to automatically randomize colors at intervals
- * @param {boolean} enabled - Whether randomization is enabled
- * @param {Function} determineRandomAction - Callback to determine what action to take
- * @param {Function} onApplyAction - Callback to apply the action
  */
-export function useColorRandomizer(enabled, determineRandomAction, onApplyAction) {
-  const timeoutRef = useRef(null);
+export function useColorRandomizer(
+  enabled: boolean,
+  determineRandomAction: (
+    population: Uint8ClampedArray[][],
+    xDim: number,
+    yDim: number
+  ) => RandomAction | null,
+  onApplyAction: (action: RandomAction) => void
+): void {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!enabled) {

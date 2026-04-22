@@ -1,4 +1,4 @@
-import { PALETTES } from '../palettes';
+import { PALETTES, type PaletteName } from '../palettes';
 import {
   getRandomColor,
   getUniqueRandomColorsFromPalette,
@@ -18,7 +18,7 @@ export interface Color {
 }
 
 export interface ColorState {
-  currentPalette: string;
+  currentPalette: PaletteName;
   colors: Color[];
   randomizeEnabled: boolean;
 }
@@ -36,13 +36,10 @@ const MAX_COLORS = 5;
  * Create initial color state
  */
 export function createColorState(
-  paletteName: string,
+  paletteName: PaletteName,
   colors: Color[],
   randomizeEnabled: boolean = true
 ): ColorState {
-  if (!paletteName || !PALETTES[paletteName]) {
-    throw new Error('Invalid palette name');
-  }
   if (colors.length < MIN_COLORS) {
     throw new Error('Invalid colors array');
   }
@@ -57,10 +54,7 @@ export function createColorState(
 /**
  * Change the current palette, optionally reassigning colors from new palette
  */
-export function setPalette(state: ColorState, paletteName: string): ColorState {
-  if (!PALETTES[paletteName]) {
-    return state;
-  }
+export function setPalette(state: ColorState, paletteName: PaletteName): ColorState {
   if (state.currentPalette === paletteName) {
     return state;
   }
@@ -196,7 +190,7 @@ export function canRemoveColor(state: ColorState): boolean {
  */
 export function determineRandomAction(
   state: ColorState,
-  population: Uint8ClampedArray,
+  population: Uint8ClampedArray[][],
   xDim: number,
   yDim: number
 ): RandomAction | null {

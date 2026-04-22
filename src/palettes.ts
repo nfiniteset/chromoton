@@ -1,5 +1,21 @@
-// Color palettes - each palette is an array of {r, g, b} objects
-export const PALETTES = {
+import type { Color } from './models/colorModel';
+
+// Define palette names as a union type
+export type PaletteName =
+  | 'custom'
+  | 'forest'
+  | 'ocean'
+  | 'sunset'
+  | 'neon'
+  | 'pastel'
+  | 'monochrome'
+  | 'fire'
+  | 'cyberpunk'
+  | 'queenOfHearts'
+  | 'verdant';
+
+// Color palettes - each palette is an array of Color objects, except 'custom' which is null
+export const PALETTES: Record<PaletteName, Color[] | null> = {
   custom: null,  // null means use manual color selection
   forest: [
     {r: 34, g: 139, b: 34},   // forest green
@@ -81,11 +97,23 @@ export const PALETTES = {
     {r: 60, g: 179, b: 113},  // medium sea green
     {r: 46, g: 125, b: 50}    // leafy green
   ]
-};
+} as const;
 
-export function getRandomPaletteName() {
-  const paletteNames = Object.keys(PALETTES);
-  const nonCustomPalettes = paletteNames.filter(name => name !== 'custom');
-  const randomIndex = Math.floor(Math.random() * nonCustomPalettes.length);
-  return nonCustomPalettes[randomIndex];
+// Non-custom palette names for random selection
+const NON_CUSTOM_PALETTES: Exclude<PaletteName, 'custom'>[] = [
+  'forest',
+  'ocean',
+  'sunset',
+  'neon',
+  'pastel',
+  'monochrome',
+  'fire',
+  'cyberpunk',
+  'queenOfHearts',
+  'verdant'
+];
+
+export function getRandomPaletteName(): Exclude<PaletteName, 'custom'> {
+  const randomIndex = Math.floor(Math.random() * NON_CUSTOM_PALETTES.length);
+  return NON_CUSTOM_PALETTES[randomIndex];
 }
