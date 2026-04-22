@@ -1,21 +1,6 @@
 import { useState, useEffect, useRef, type RefObject } from 'react';
+import chroma from 'chroma-js';
 import type { Color } from '../models/colorModel';
-
-// Declare chroma.js types for the global window object
-declare global {
-  interface Window {
-    chroma: {
-      (r: number, g: number, b: number): ChromaInstance;
-      hsl(h: number, s: number, l: number): ChromaInstance;
-      contrast(color1: ChromaInstance | string, color2: ChromaInstance | string): number;
-    };
-  }
-}
-
-interface ChromaInstance {
-  hsl(): [number, number, number];
-  rgb(): [number, number, number];
-}
 
 interface ContrastColors {
   textColor: string;
@@ -40,23 +25,13 @@ export function useCanvasContrast(panelRef: RefObject<HTMLElement>): ContrastCol
       return;
     }
 
-    // Wait for chroma.js to be available
-    const checkChromaAndStart = () => {
-      if (typeof window.chroma === 'undefined') {
-        setTimeout(checkChromaAndStart, 50);
-        return;
-      }
-
-      // Update contrast every 100ms
-      intervalRef.current = setInterval(() => {
-        updateContrast(panelRef.current, setColors);
-      }, 100);
-
-      // Initial update
+    // Update contrast every 100ms
+    intervalRef.current = setInterval(() => {
       updateContrast(panelRef.current, setColors);
-    };
+    }, 100);
 
-    checkChromaAndStart();
+    // Initial update
+    updateContrast(panelRef.current, setColors);
 
     return () => {
       if (intervalRef.current) {
@@ -84,7 +59,7 @@ function updateContrast(
   panel: HTMLElement,
   setColors: (colors: ContrastColors) => void
 ): void {
-  if (!panel || typeof window.chroma === 'undefined') {
+  if (!panel) {
     return;
   }
 
@@ -163,13 +138,13 @@ function sampleCanvasColorBehindPanel(panel: HTMLElement): Color | null {
 
 function calculateContrastColors(rawColor: Color): ContrastColors {
   // Apply blur effect (simulated by slight desaturation)
-  let color = window.chroma(rawColor.r, rawColor.g, rawColor.b);
+  let color = chroma(rawColor.r, rawColor.g, rawColor.b);
 
   // Saturate the color (180%)
   const hsl = color.hsl();
   if (!isNaN(hsl[1])) {
     const newSaturation = Math.min(1, hsl[1] * 1.8);
-    color = window.chroma.hsl(hsl[0], newSaturation, hsl[2]);
+    color = chroma.hsl(hsl[0], newSaturation, hsl[2]);
   }
 
   const rgb = color.rgb();
@@ -183,9 +158,9 @@ function calculateContrastColors(rawColor: Color): ContrastColors {
   };
 
   // Calculate contrast with white vs black
-  const bgChroma = window.chroma(bgColor.r, bgColor.g, bgColor.b);
-  const contrastWithWhite = window.chroma.contrast(bgChroma, 'white');
-  const contrastWithBlack = window.chroma.contrast(bgChroma, 'black');
+  const bgChroma = chroma(bgColor.r, bgColor.g, bgColor.b);
+  const contrastWithWhite = chroma.contrast(bgChroma, 'white');
+  const contrastWithBlack = chroma.contrast(bgChroma, 'black');
 
   // Choose the color scheme with better contrast
   const useWhite = contrastWithWhite > contrastWithBlack;
