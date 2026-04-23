@@ -18,7 +18,6 @@ export interface Color {
 export interface ColorState {
   currentPalette: PaletteName;
   colors: Color[];
-  randomizeEnabled: boolean;
 }
 
 export interface RandomAction {
@@ -35,8 +34,7 @@ const MAX_COLORS = 5;
  */
 export function createColorState(
   paletteName: PaletteName,
-  colors: Color[],
-  randomizeEnabled: boolean = true
+  colors: Color[]
 ): ColorState {
   if (colors.length < MIN_COLORS) {
     throw new Error('Invalid colors array');
@@ -44,8 +42,7 @@ export function createColorState(
 
   return {
     currentPalette: paletteName,
-    colors: colors.map(c => ({ r: c.r, g: c.g, b: c.b })),
-    randomizeEnabled
+    colors: colors.map(c => ({ r: c.r, g: c.g, b: c.b }))
   };
 }
 
@@ -115,18 +112,7 @@ export function changeColor(state: ColorState, index: number, color: Color): Col
 
   return {
     ...state,
-    colors: newColors,
-    randomizeEnabled: false
-  };
-}
-
-/**
- * Toggle randomization
- */
-export function setRandomize(state: ColorState, enabled: boolean): ColorState {
-  return {
-    ...state,
-    randomizeEnabled: enabled
+    colors: newColors
   };
 }
 

@@ -1,6 +1,11 @@
 export default function StrategySelector({ currentStrategy, onStrategyChange, contrastColors }) {
   const strategies = [
     {
+      value: 'none',
+      label: 'None',
+      description: 'Manual control only, no auto-randomization'
+    },
+    {
       value: 'population',
       label: 'Population-Based',
       description: 'Analyzes simulation to make smart decisions'

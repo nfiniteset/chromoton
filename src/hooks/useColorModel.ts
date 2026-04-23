@@ -8,21 +8,18 @@ export type ColorAction =
   | { type: 'ADD_COLOR' }
   | { type: 'REMOVE_COLOR'; index: number }
   | { type: 'CHANGE_COLOR'; index: number; color: Color }
-  | { type: 'SET_RANDOMIZE'; enabled: boolean }
   | { type: 'APPLY_RANDOM_ACTION'; action: RandomAction };
 
 interface ColorModelHook {
   // State
   currentPalette: PaletteName;
   colors: Color[];
-  randomizeEnabled: boolean;
 
   // Actions
   setPalette: (paletteName: PaletteName) => void;
   addColor: () => void;
   removeColor: (index: number) => void;
   changeColor: (index: number, color: Color) => void;
-  setRandomize: (enabled: boolean) => void;
   applyRandomAction: (action: RandomAction) => void;
 
   // Queries
@@ -43,8 +40,6 @@ function colorReducer(state: ColorState, action: ColorAction): ColorState {
       return ColorModel.removeColor(state, action.index);
     case 'CHANGE_COLOR':
       return ColorModel.changeColor(state, action.index, action.color);
-    case 'SET_RANDOMIZE':
-      return ColorModel.setRandomize(state, action.enabled);
     case 'APPLY_RANDOM_ACTION':
       return ColorModel.applyRandomAction(state, action.action);
     default:
@@ -57,13 +52,12 @@ function colorReducer(state: ColorState, action: ColorAction): ColorState {
  */
 export function useColorModel(
   initialPalette: PaletteName,
-  initialColors: Color[],
-  initialRandomize: boolean = true
+  initialColors: Color[]
 ): ColorModelHook {
   const [state, dispatch] = useReducer(
     colorReducer,
     undefined,
-    () => ColorModel.createColorState(initialPalette, initialColors, initialRandomize)
+    () => ColorModel.createColorState(initialPalette, initialColors)
   );
 
   // Action callbacks - stable references that only dispatch
@@ -81,10 +75,6 @@ export function useColorModel(
 
   const changeColor = useCallback((index: number, color: Color) => {
     dispatch({ type: 'CHANGE_COLOR', index, color });
-  }, []);
-
-  const setRandomize = useCallback((enabled: boolean) => {
-    dispatch({ type: 'SET_RANDOMIZE', enabled });
   }, []);
 
   const applyRandomAction = useCallback((action: RandomAction) => {
@@ -119,14 +109,12 @@ export function useColorModel(
     // State
     currentPalette: state.currentPalette,
     colors: state.colors,
-    randomizeEnabled: state.randomizeEnabled,
 
     // Actions
     setPalette,
     addColor,
     removeColor,
     changeColor,
-    setRandomize,
     applyRandomAction,
 
     // Queries

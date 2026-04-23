@@ -10,7 +10,6 @@ export default function ControlPanel({
   palettes,
   currentPalette,
   colors,
-  randomizeColor,
   strategyType,
   clarity,
   mutationRate,
@@ -19,7 +18,6 @@ export default function ControlPanel({
   onColorChange,
   onRemoveColor,
   onAddColor,
-  onRandomizeToggle,
   onClarityChange,
   onMutationRateChange,
 }) {
@@ -182,12 +180,6 @@ export default function ControlPanel({
       <div className="flex flex-col gap-2 relative z-[1]">
         <div className="flex justify-between items-center" style={{ color: contrastColors.textColorAlpha }}>
           <span>Target Colors</span>
-          <Checkbox
-            checked={randomizeColor}
-            onChange={onRandomizeToggle}
-            label="Randomize"
-            contrastColors={contrastColors}
-          />
         </div>
         <ColorList
           colors={colors}

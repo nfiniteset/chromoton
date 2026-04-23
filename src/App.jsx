@@ -5,12 +5,12 @@ import { PALETTES, getRandomPaletteName } from './palettes';
 import { getUniqueRandomColorsFromPalette } from './utils/colorUtils';
 import { useColorModel } from './hooks/useColorModel';
 import { useColorRandomizer } from './hooks/useColorRandomizer';
-import { PopulationBasedStrategy, SimpleRandomStrategy } from './strategies';
+import { PopulationBasedStrategy, SimpleRandomStrategy, NoOpStrategy } from './strategies';
 
 function App() {
   const [clarity, setClarity] = useState(240);
   const [mutationRate, setMutationRate] = useState(0.002);
-  const [strategyType, setStrategyType] = useState('population');
+  const [strategyType, setStrategyType] = useState('none');
 
   // Initialize palette and colors once
   const initialPaletteName = useMemo(() => getRandomPaletteName(), []);
@@ -20,11 +20,13 @@ function App() {
   );
 
   // Use the color model for all color/palette state management
-  const colorModel = useColorModel(initialPaletteName, initialColors, true);
+  const colorModel = useColorModel(initialPaletteName, initialColors);
 
   // Create randomization strategy based on selected type
   const randomizationStrategy = useMemo(() => {
     switch (strategyType) {
+      case 'none':
+        return new NoOpStrategy();
       case 'simple':
         return new SimpleRandomStrategy();
       case 'population':
@@ -43,12 +45,11 @@ function App() {
 
   // Use the color randomizer hook with strategy
   useColorRandomizer(
-    colorModel.randomizeEnabled,
+    true, // Always enabled - NoOpStrategy handles "off" state
     randomizationStrategy,
     {
       currentPalette: colorModel.currentPalette,
-      colors: colorModel.colors,
-      randomizeEnabled: colorModel.randomizeEnabled
+      colors: colorModel.colors
     },
     colorModel.applyRandomAction
   );
@@ -73,7 +74,6 @@ function App() {
         palettes={Object.keys(PALETTES)}
         currentPalette={colorModel.currentPalette}
         colors={colorModel.colors}
-        randomizeColor={colorModel.randomizeEnabled}
         strategyType={strategyType}
         clarity={clarity}
         mutationRate={mutationRate}
@@ -82,7 +82,6 @@ function App() {
         onColorChange={handleColorChange}
         onRemoveColor={colorModel.removeColor}
         onAddColor={colorModel.addColor}
-        onRandomizeToggle={colorModel.setRandomize}
         onClarityChange={setClarity}
         onMutationRateChange={setMutationRate}
       />
