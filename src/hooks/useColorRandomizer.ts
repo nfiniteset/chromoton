@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import type { RandomAction } from '../models/colorModel';
+import type { RandomAction, ColorState } from '../models/colorModel';
+import type { RandomizationStrategy } from '../strategies';
 
 // Declare chromoton global
 declare global {
@@ -18,15 +19,17 @@ const MIN_CHANGE_TIME = 8000;
 const MAX_CHANGE_TIME = 15000;
 
 /**
- * Hook to automatically randomize colors at intervals
+ * Hook to automatically randomize colors at intervals using a pluggable strategy
+ *
+ * @param enabled - Whether randomization is enabled
+ * @param strategy - The randomization strategy to use for determining actions
+ * @param colorState - Current color state (needed by strategy)
+ * @param onApplyAction - Callback to apply the determined action
  */
 export function useColorRandomizer(
   enabled: boolean,
-  determineRandomAction: (
-    population: Uint8ClampedArray[][],
-    xDim: number,
-    yDim: number
-  ) => RandomAction | null,
+  strategy: RandomizationStrategy,
+  colorState: ColorState,
   onApplyAction: (action: RandomAction) => void
 ): void {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -47,7 +50,7 @@ export function useColorRandomizer(
         // Get current population state from chromoton
         if (window.chromoton && window.chromoton.getPopulation) {
           const { population, xDim, yDim } = window.chromoton.getPopulation();
-          const action = determineRandomAction(population, xDim, yDim);
+          const action = strategy.determineAction(colorState, population, xDim, yDim);
 
           if (action && onApplyAction) {
             onApplyAction(action);
@@ -66,5 +69,5 @@ export function useColorRandomizer(
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [enabled, determineRandomAction, onApplyAction]);
+  }, [enabled, strategy, colorState, onApplyAction]);
 }

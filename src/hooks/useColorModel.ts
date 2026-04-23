@@ -26,7 +26,6 @@ interface ColorModelHook {
   applyRandomAction: (action: RandomAction) => void;
 
   // Queries
-  determineRandomAction: (population: Uint8ClampedArray[][], xDim: number, yDim: number) => RandomAction | null;
   getColorsForSimulation: () => Color[];
   getAvailableColors: () => Color[];
   isColorInUse: (color: Color) => boolean;
@@ -93,13 +92,6 @@ export function useColorModel(
   }, []);
 
   // Query functions - properly depend on state for correct React behavior
-  const determineRandomAction = useCallback(
-    (population: Uint8ClampedArray[][], xDim: number, yDim: number) => {
-      return ColorModel.determineRandomAction(state, population, xDim, yDim);
-    },
-    [state]
-  );
-
   const getColorsForSimulation = useCallback(() => {
     return ColorModel.getColorsForSimulation(state);
   }, [state]);
@@ -138,7 +130,6 @@ export function useColorModel(
     applyRandomAction,
 
     // Queries
-    determineRandomAction,
     getColorsForSimulation,
     getAvailableColors,
     isColorInUse,

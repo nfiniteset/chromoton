@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import PaletteSelector from './PaletteSelector';
+import StrategySelector from './StrategySelector';
 import ColorList from './ColorList';
 import AdvancedControls from './AdvancedControls';
 import Checkbox from './Checkbox';
@@ -10,9 +11,11 @@ export default function ControlPanel({
   currentPalette,
   colors,
   randomizeColor,
+  strategyType,
   clarity,
   mutationRate,
   onPaletteChange,
+  onStrategyChange,
   onColorChange,
   onRemoveColor,
   onAddColor,
@@ -164,6 +167,14 @@ export default function ControlPanel({
           palettes={palettes}
           currentPalette={currentPalette}
           onPaletteChange={onPaletteChange}
+          contrastColors={contrastColors}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 relative z-[1]">
+        <StrategySelector
+          currentStrategy={strategyType}
+          onStrategyChange={onStrategyChange}
           contrastColors={contrastColors}
         />
       </div>
