@@ -1,6 +1,17 @@
-export default function AdvancedControls({ clarity, mutationRate, onClarityChange, onMutationRateChange, contrastColors }) {
+import Checkbox from './Checkbox';
+
+export default function AdvancedControls({ clarity, mutationRate, showPopulation, onClarityChange, onMutationRateChange, onShowPopulationChange, contrastColors }) {
   return (
     <div className="flex flex-col gap-7">
+      <div className="flex flex-col gap-2">
+        <Checkbox
+          checked={showPopulation}
+          onChange={onShowPopulationChange}
+          label="Show Population"
+          contrastColors={contrastColors}
+        />
+      </div>
+
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-baseline" style={{ color: contrastColors?.textColorAlpha }}>
           <span>Clarity</span>

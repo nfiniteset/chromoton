@@ -1,4 +1,4 @@
-export default function ColorSwatch({ color, onColorChange, onRemove, canRemove, contrastColors }) {
+export default function ColorSwatch({ color, onColorChange, onRemove, canRemove, percentage, contrastColors }) {
   const rgbToHex = (r, g, b) => {
     const hexValues = [r, g, b].map(v => v.toString(16).padStart(2, '0'));
     const hexString = '#' + hexValues.join('');
@@ -9,6 +9,18 @@ export default function ColorSwatch({ color, onColorChange, onRemove, canRemove,
     console.log('Color picker changed:', e.target.value);
     onColorChange(e.target.value);
   };
+
+  // Calculate luminance to determine text color
+  const getLuminance = (r, g, b) => {
+    const [rs, gs, bs] = [r, g, b].map(val => {
+      const v = val / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+  };
+
+  const luminance = getLuminance(color.r, color.g, color.b);
+  const textColor = luminance > 0.5 ? '#000000' : '#ffffff';
 
   return (
     <div className="flex gap-2 items-center">
@@ -22,6 +34,14 @@ export default function ColorSwatch({ color, onColorChange, onRemove, canRemove,
             borderStyle: 'solid'
           }}
         />
+        {percentage !== null && (
+          <div
+            className="absolute inset-0 flex items-center justify-center text-xs font-semibold tracking-wide pointer-events-none z-[5]"
+            style={{ color: textColor }}
+          >
+            {percentage.toFixed(1)}%
+          </div>
+        )}
         <input
           type="color"
           value={rgbToHex(color.r, color.g, color.b)}

@@ -14,6 +14,11 @@ export default function StrategySelector({ currentStrategy, onStrategyChange, co
       value: 'simple',
       label: 'Simple Random',
       description: 'Purely random, chaotic changes'
+    },
+    {
+      value: 'three-target',
+      label: 'Three-Target',
+      description: 'Maintains 3 colors, replaces any reaching 50%+'
     }
   ];
 

@@ -129,10 +129,51 @@ function selectRandomFromArray(colors: Color[]): Color {
 }
 
 /**
- * Count how many cells are closest to each target color
+ * Count cells that have actually MATCHED each target color (low deviance)
+ * This shows which colors have successfully dominated
  */
 export function getColorSuccessCounts(
-  population: Uint8ClampedArray[][],
+  population: any[][],
+  targetColors: Color[],
+  xDim: number,
+  yDim: number,
+  devianceThreshold: number = 20
+): number[] {
+  const counts = new Array(targetColors.length).fill(0);
+
+  for (let y = 0; y < yDim; y++) {
+    for (let x = 0; x < xDim; x++) {
+      const cell = population[y][x];
+      const cellR = cell.red !== undefined ? cell.red : cell[0];
+      const cellG = cell.green !== undefined ? cell.green : cell[1];
+      const cellB = cell.blue !== undefined ? cell.blue : cell[2];
+
+      // Check each target to see if this cell has successfully matched it
+      for (let i = 0; i < targetColors.length; i++) {
+        const target = targetColors[i];
+        const deviation = Math.abs(cellR - target.r) +
+                         Math.abs(cellG - target.g) +
+                         Math.abs(cellB - target.b);
+
+        // If cell is close enough to this target, count it as a match
+        if (deviation <= devianceThreshold) {
+          counts[i]++;
+          break; // Only count each cell once (for its best match)
+        }
+      }
+    }
+  }
+
+  return counts;
+}
+
+/**
+ * Count which cells are closest to each target color
+ * Every cell is assigned to exactly one target (its nearest)
+ * Returns array where counts[i] = number of cells closest to targetColors[i]
+ */
+export function getClosestColorCounts(
+  population: any[][],
   targetColors: Color[],
   xDim: number,
   yDim: number
@@ -142,32 +183,29 @@ export function getColorSuccessCounts(
   for (let y = 0; y < yDim; y++) {
     for (let x = 0; x < xDim; x++) {
       const cell = population[y][x];
-      const closestColorIndex = findClosestColorIndex(cell, targetColors);
-      counts[closestColorIndex]++;
+      const cellR = cell.red !== undefined ? cell.red : cell[0];
+      const cellG = cell.green !== undefined ? cell.green : cell[1];
+      const cellB = cell.blue !== undefined ? cell.blue : cell[2];
+
+      let minDeviation = Infinity;
+      let closestIndex = 0;
+
+      // Find which target this cell is closest to
+      for (let i = 0; i < targetColors.length; i++) {
+        const target = targetColors[i];
+        const deviation = Math.abs(cellR - target.r) +
+                         Math.abs(cellG - target.g) +
+                         Math.abs(cellB - target.b);
+
+        if (deviation < minDeviation) {
+          minDeviation = deviation;
+          closestIndex = i;
+        }
+      }
+
+      counts[closestIndex]++;
     }
   }
 
   return counts;
-}
-
-function findClosestColorIndex(cell: Uint8ClampedArray, targetColors: Color[]): number {
-  let minDeviance = Infinity;
-  let closestColorIndex = 0;
-
-  for (let i = 0; i < targetColors.length; i++) {
-    const target = targetColors[i];
-    const deviation = calculateColorDeviation(cell, target);
-    if (deviation < minDeviance) {
-      minDeviance = deviation;
-      closestColorIndex = i;
-    }
-  }
-
-  return closestColorIndex;
-}
-
-function calculateColorDeviation(cell: Uint8ClampedArray, target: Color): number {
-  return Math.abs(cell[0] - target.r) +
-         Math.abs(cell[1] - target.g) +
-         Math.abs(cell[2] - target.b);
 }

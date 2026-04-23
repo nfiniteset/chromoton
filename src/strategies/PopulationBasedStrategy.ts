@@ -5,23 +5,62 @@ import { getRandomColor, getUniqueRandomColor, getColorSuccessCounts } from '../
 
 const MIN_COLORS = 1;
 const MAX_COLORS = 5;
+const MIN_CHANGE_TIME_MS = 8000; // 8 seconds
+const MAX_CHANGE_TIME_MS = 15000; // 15 seconds
 
 /**
  * Population-Based Randomization Strategy
  *
- * This strategy analyzes the simulation population to determine which colors
- * are most successful, then makes intelligent decisions about adding, removing,
- * or changing colors based on that analysis.
+ * Analyzes the simulation population at random intervals (8-15 seconds)
+ * to make intelligent decisions about which colors to add, remove, or change.
  *
  * Algorithm:
- * 1. Count how many cells are closest to each target color
+ * 1. Count how many cells have successfully matched each target color
  * 2. Identify the most successful color
  * 3. Pick a random action (add/remove/change) based on constraints
  * 4. For remove: target the most successful color
  * 5. For add/change: pick colors not currently in use
  */
 export class PopulationBasedStrategy implements RandomizationStrategy {
-  determineAction(
+  private timeoutId: NodeJS.Timeout | null = null;
+
+  start(
+    getState: () => ColorState,
+    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    applyAction: (action: RandomAction) => void
+  ): void {
+    this.scheduleNextChange(getState, getPopulation, applyAction);
+  }
+
+  stop(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  }
+
+  private scheduleNextChange(
+    getState: () => ColorState,
+    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    applyAction: (action: RandomAction) => void
+  ): void {
+    const delay = MIN_CHANGE_TIME_MS + Math.random() * (MAX_CHANGE_TIME_MS - MIN_CHANGE_TIME_MS);
+
+    this.timeoutId = setTimeout(() => {
+      const state = getState();
+      const { population, xDim, yDim } = getPopulation();
+      const action = this.determineAction(state, population, xDim, yDim);
+
+      if (action) {
+        applyAction(action);
+      }
+
+      // Schedule next change
+      this.scheduleNextChange(getState, getPopulation, applyAction);
+    }, delay);
+  }
+
+  private determineAction(
     state: ColorState,
     population: Uint8ClampedArray[][],
     xDim: number,

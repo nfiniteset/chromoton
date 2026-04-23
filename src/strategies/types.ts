@@ -1,25 +1,27 @@
 import type { ColorState, RandomAction } from '../models/colorModel';
 
 /**
- * Strategy interface for determining randomization actions
+ * Strategy interface for active randomization
  *
- * Implementations of this interface define HOW to choose random actions
- * (add/remove/change colors) based on the current state and simulation data.
+ * Strategies manage their own timing and trigger actions when they decide to.
+ * This inverts control - strategies are active, not passively polled.
  */
 export interface RandomizationStrategy {
   /**
-   * Determine what random action to take based on current state and population
+   * Start the strategy's autonomous operation
    *
-   * @param state - Current color model state
-   * @param population - Current simulation population grid
-   * @param xDim - Width of the simulation grid
-   * @param yDim - Height of the simulation grid
-   * @returns A random action to apply, or null if no action should be taken
+   * @param getState - Function to get current color state
+   * @param getPopulation - Function to get current simulation population
+   * @param applyAction - Callback to apply a random action
    */
-  determineAction(
-    state: ColorState,
-    population: Uint8ClampedArray[][],
-    xDim: number,
-    yDim: number
-  ): RandomAction | null;
+  start(
+    getState: () => ColorState,
+    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    applyAction: (action: RandomAction) => void
+  ): void;
+
+  /**
+   * Stop the strategy and cleanup any timers/resources
+   */
+  stop(): void;
 }

@@ -5,7 +5,7 @@ import type { RandomizationStrategy } from './types';
  * No-Op Strategy
  *
  * A strategy that performs no automatic randomization.
- * Always returns null, meaning no automatic color changes will occur.
+ * Does nothing when started, providing complete manual control.
  *
  * This allows users to manually control all color changes through the UI
  * (add, remove, change colors) without any automatic randomization.
@@ -13,13 +13,15 @@ import type { RandomizationStrategy } from './types';
  * Use this when you want complete manual control over the color palette.
  */
 export class NoOpStrategy implements RandomizationStrategy {
-  determineAction(
-    _state: ColorState,
-    _population: Uint8ClampedArray[][],
-    _xDim: number,
-    _yDim: number
-  ): RandomAction | null {
-    // Never perform any automatic actions
-    return null;
+  start(
+    _getState: () => ColorState,
+    _getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    _applyAction: (action: RandomAction) => void
+  ): void {
+    // Do nothing - this strategy is intentionally inactive
+  }
+
+  stop(): void {
+    // Nothing to clean up
   }
 }

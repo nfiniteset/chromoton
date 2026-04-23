@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { RandomAction, ColorState } from '../models/colorModel';
 import type { RandomizationStrategy } from '../strategies';
 
@@ -15,16 +15,16 @@ declare global {
   }
 }
 
-const MIN_CHANGE_TIME = 8000;
-const MAX_CHANGE_TIME = 15000;
-
 /**
- * Hook to automatically randomize colors at intervals using a pluggable strategy
+ * Hook to initialize and cleanup active randomization strategies
+ *
+ * Strategies manage their own timing and trigger actions autonomously.
+ * This hook just starts/stops them based on enabled state and strategy changes.
  *
  * @param enabled - Whether randomization is enabled
- * @param strategy - The randomization strategy to use for determining actions
- * @param colorState - Current color state (needed by strategy)
- * @param onApplyAction - Callback to apply the determined action
+ * @param strategy - The randomization strategy to use
+ * @param colorState - Current color state (provided to strategy)
+ * @param onApplyAction - Callback for strategy to apply actions
  */
 export function useColorRandomizer(
   enabled: boolean,
@@ -32,42 +32,26 @@ export function useColorRandomizer(
   colorState: ColorState,
   onApplyAction: (action: RandomAction) => void
 ): void {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   useEffect(() => {
     if (!enabled) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
       return;
     }
 
-    const scheduleNextChange = () => {
-      const delay = MIN_CHANGE_TIME + Math.random() * (MAX_CHANGE_TIME - MIN_CHANGE_TIME);
-
-      timeoutRef.current = setTimeout(() => {
-        // Get current population state from chromoton
-        if (window.chromoton && window.chromoton.getPopulation) {
-          const { population, xDim, yDim } = window.chromoton.getPopulation();
-          const action = strategy.determineAction(colorState, population, xDim, yDim);
-
-          if (action && onApplyAction) {
-            onApplyAction(action);
-          }
-        }
-
-        // Schedule next change
-        scheduleNextChange();
-      }, delay);
+    // Create stable getter functions for strategy to call
+    const getState = () => colorState;
+    const getPopulation = () => {
+      if (window.chromoton && window.chromoton.getPopulation) {
+        return window.chromoton.getPopulation();
+      }
+      return { population: [], xDim: 0, yDim: 0 };
     };
 
-    scheduleNextChange();
+    // Start the strategy - it will manage its own timing
+    strategy.start(getState, getPopulation, onApplyAction);
 
+    // Cleanup on unmount or strategy change
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      strategy.stop();
     };
   }, [enabled, strategy, colorState, onApplyAction]);
 }

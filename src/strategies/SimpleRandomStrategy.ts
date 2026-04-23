@@ -4,18 +4,19 @@ import { getUniqueRandomColor } from '../utils/colorUtils';
 
 const MIN_COLORS = 1;
 const MAX_COLORS = 5;
+const MIN_CHANGE_TIME_MS = 8000; // 8 seconds
+const MAX_CHANGE_TIME_MS = 15000; // 15 seconds
 
 /**
  * Simple Random Strategy
  *
- * A simpler alternative to PopulationBasedStrategy that doesn't analyze
- * the simulation population. Instead, it just picks random actions and
- * random colors/indices.
+ * Makes random color changes at random intervals (8-15 seconds).
+ * Doesn't analyze the simulation population - just pure chaos!
  *
  * This strategy is useful for:
- * - Testing/comparison against the population-based approach
- * - Creating more chaotic, unpredictable color changes
- * - Debugging purposes
+ * - Creating chaotic, unpredictable color changes
+ * - Testing/comparison against smarter strategies
+ * - Fun visual experimentation
  *
  * Algorithm:
  * 1. Pick a random valid action (add/remove/change)
@@ -23,12 +24,44 @@ const MAX_COLORS = 5;
  * 3. Pick a random new color (for add/change)
  */
 export class SimpleRandomStrategy implements RandomizationStrategy {
-  determineAction(
-    state: ColorState,
-    _population: Uint8ClampedArray[][],
-    _xDim: number,
-    _yDim: number
-  ): RandomAction | null {
+  private timeoutId: NodeJS.Timeout | null = null;
+
+  start(
+    getState: () => ColorState,
+    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    applyAction: (action: RandomAction) => void
+  ): void {
+    this.scheduleNextChange(getState, getPopulation, applyAction);
+  }
+
+  stop(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
+  }
+
+  private scheduleNextChange(
+    getState: () => ColorState,
+    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    applyAction: (action: RandomAction) => void
+  ): void {
+    const delay = MIN_CHANGE_TIME_MS + Math.random() * (MAX_CHANGE_TIME_MS - MIN_CHANGE_TIME_MS);
+
+    this.timeoutId = setTimeout(() => {
+      const state = getState();
+      const action = this.determineAction(state);
+
+      if (action) {
+        applyAction(action);
+      }
+
+      // Schedule next change
+      this.scheduleNextChange(getState, getPopulation, applyAction);
+    }, delay);
+  }
+
+  private determineAction(state: ColorState): RandomAction | null {
     // Intentionally ignore population data - just make random choices
     const availableActions = this.getAvailableActions(state.colors.length);
     const action = this.pickRandomAction(availableActions);

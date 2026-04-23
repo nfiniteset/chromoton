@@ -1,6 +1,6 @@
 import ColorSwatch from './ColorSwatch';
 
-export default function ColorList({ colors, onColorChange, onRemoveColor, onAddColor, contrastColors }) {
+export default function ColorList({ colors, onColorChange, onRemoveColor, onAddColor, showPopulation, populationPercentages, contrastColors }) {
   const handleColorChange = (index, hex) => {
     if (!hex || hex.length !== 7) return;
 
@@ -20,6 +20,7 @@ export default function ColorList({ colors, onColorChange, onRemoveColor, onAddC
           onColorChange={(hex) => handleColorChange(index, hex)}
           onRemove={() => onRemoveColor(index)}
           canRemove={colors.length > 1}
+          percentage={showPopulation && populationPercentages[index] !== undefined ? populationPercentages[index] : null}
           contrastColors={contrastColors}
         />
       ))}

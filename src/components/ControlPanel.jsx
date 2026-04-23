@@ -13,6 +13,8 @@ export default function ControlPanel({
   strategyType,
   clarity,
   mutationRate,
+  showPopulation,
+  populationPercentages,
   onPaletteChange,
   onStrategyChange,
   onColorChange,
@@ -20,6 +22,7 @@ export default function ControlPanel({
   onAddColor,
   onClarityChange,
   onMutationRateChange,
+  onShowPopulationChange,
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
@@ -186,6 +189,8 @@ export default function ControlPanel({
           onColorChange={onColorChange}
           onRemoveColor={onRemoveColor}
           onAddColor={onAddColor}
+          showPopulation={showPopulation}
+          populationPercentages={populationPercentages}
           contrastColors={contrastColors}
         />
       </div>
@@ -206,8 +211,10 @@ export default function ControlPanel({
           <AdvancedControls
             clarity={clarity}
             mutationRate={mutationRate}
+            showPopulation={showPopulation}
             onClarityChange={onClarityChange}
             onMutationRateChange={onMutationRateChange}
+            onShowPopulationChange={onShowPopulationChange}
             contrastColors={contrastColors}
           />
         </div>
