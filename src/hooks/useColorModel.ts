@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useRef, useEffect } from 'react';
+import { useReducer, useCallback } from 'react';
 import type { PaletteName } from '../palettes';
 import type { Color, ColorState, RandomAction } from '../models/colorModel';
 import * as ColorModel from '../models/colorModel';
@@ -67,12 +67,7 @@ export function useColorModel(
     () => ColorModel.createColorState(initialPalette, initialColors, initialRandomize)
   );
 
-  // Keep a ref to the latest state for stable callbacks
-  const stateRef = useRef<ColorState>(state);
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-
+  // Action callbacks - stable references that only dispatch
   const setPalette = useCallback((paletteName: PaletteName) => {
     dispatch({ type: 'SET_PALETTE', paletteName });
   }, []);
@@ -97,30 +92,36 @@ export function useColorModel(
     dispatch({ type: 'APPLY_RANDOM_ACTION', action });
   }, []);
 
-  // Query functions using ref for stable callbacks with fresh state
-  const determineRandomAction = useCallback((population: Uint8ClampedArray[][], xDim: number, yDim: number) => {
-    return ColorModel.determineRandomAction(stateRef.current, population, xDim, yDim);
-  }, []);
+  // Query functions - properly depend on state for correct React behavior
+  const determineRandomAction = useCallback(
+    (population: Uint8ClampedArray[][], xDim: number, yDim: number) => {
+      return ColorModel.determineRandomAction(state, population, xDim, yDim);
+    },
+    [state]
+  );
 
   const getColorsForSimulation = useCallback(() => {
-    return ColorModel.getColorsForSimulation(stateRef.current);
-  }, []);
+    return ColorModel.getColorsForSimulation(state);
+  }, [state]);
 
   const getAvailableColors = useCallback(() => {
-    return ColorModel.getAvailableColors(stateRef.current);
-  }, []);
+    return ColorModel.getAvailableColors(state);
+  }, [state]);
 
-  const isColorInUse = useCallback((color: Color) => {
-    return ColorModel.isColorInUse(stateRef.current, color);
-  }, []);
+  const isColorInUse = useCallback(
+    (color: Color) => {
+      return ColorModel.isColorInUse(state, color);
+    },
+    [state]
+  );
 
   const canAddColor = useCallback(() => {
-    return ColorModel.canAddColor(stateRef.current);
-  }, []);
+    return ColorModel.canAddColor(state);
+  }, [state]);
 
   const canRemoveColor = useCallback(() => {
-    return ColorModel.canRemoveColor(stateRef.current);
-  }, []);
+    return ColorModel.canRemoveColor(state);
+  }, [state]);
 
   return {
     // State
