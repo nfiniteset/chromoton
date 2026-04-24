@@ -142,9 +142,12 @@ function calculateContrastColors(rawColor: Color): ContrastColors {
 
   // Saturate the color (180%)
   const hsl = color.hsl();
-  if (!isNaN(hsl[1])) {
-    const newSaturation = Math.min(1, hsl[1] * 1.8);
-    color = chroma.hsl(hsl[0], newSaturation, hsl[2]);
+  let hue = hsl[0];
+  let saturation = hsl[1];
+
+  if (!isNaN(saturation)) {
+    const newSaturation = Math.min(1, saturation * 1.8);
+    color = chroma.hsl(hue, newSaturation, hsl[2]);
   }
 
   const rgb = color.rgb();
@@ -165,13 +168,47 @@ function calculateContrastColors(rawColor: Color): ContrastColors {
   // Choose the color scheme with better contrast
   const useWhite = contrastWithWhite > contrastWithBlack;
 
-  return {
-    textColor: useWhite ? '#ffffff' : '#000000',
-    textColorAlpha: useWhite ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.75)',
-    textColorFaded: useWhite ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
-    textColorHeader: useWhite ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)',
-    borderColor: useWhite ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)',
-    borderColorHover: useWhite ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
-    sliderThumb: useWhite ? '#eee' : '#222'
-  };
+  // Generate colors with the sampled hue
+  // If hue is NaN (grayscale), fall back to neutral colors
+  const hasHue = !isNaN(hue) && saturation > 0.05;
+
+  if (useWhite) {
+    // Light scheme with sampled hue
+    const textColor = hasHue ? chroma.hsl(hue, 0.80, 0.92).hex() : '#ffffff';
+    const textColorAlpha = hasHue ? chroma.hsl(hue, 0.75, 0.90).alpha(0.90).css() : 'rgba(255, 255, 255, 0.75)';
+    const textColorFaded = hasHue ? chroma.hsl(hue, 0.70, 0.88).alpha(0.65).css() : 'rgba(255, 255, 255, 0.45)';
+    const textColorHeader = hasHue ? chroma.hsl(hue, 0.65, 0.85).alpha(0.55).css() : 'rgba(255, 255, 255, 0.35)';
+    const borderColor = hasHue ? chroma.hsl(hue, 0.85, 0.86).alpha(0.40).css() : 'rgba(255, 255, 255, 0.15)';
+    const borderColorHover = hasHue ? chroma.hsl(hue, 0.90, 0.88).alpha(0.70).css() : 'rgba(255, 255, 255, 0.4)';
+    const sliderThumb = hasHue ? chroma.hsl(hue, 0.80, 0.88).hex() : '#eee';
+
+    return {
+      textColor,
+      textColorAlpha,
+      textColorFaded,
+      textColorHeader,
+      borderColor,
+      borderColorHover,
+      sliderThumb
+    };
+  } else {
+    // Dark scheme with sampled hue
+    const textColor = hasHue ? chroma.hsl(hue, 0.80, 0.18).hex() : '#000000';
+    const textColorAlpha = hasHue ? chroma.hsl(hue, 0.75, 0.20).alpha(0.90).css() : 'rgba(0, 0, 0, 0.75)';
+    const textColorFaded = hasHue ? chroma.hsl(hue, 0.70, 0.24).alpha(0.65).css() : 'rgba(0, 0, 0, 0.45)';
+    const textColorHeader = hasHue ? chroma.hsl(hue, 0.65, 0.28).alpha(0.55).css() : 'rgba(0, 0, 0, 0.35)';
+    const borderColor = hasHue ? chroma.hsl(hue, 0.85, 0.22).alpha(0.40).css() : 'rgba(0, 0, 0, 0.15)';
+    const borderColorHover = hasHue ? chroma.hsl(hue, 0.90, 0.26).alpha(0.70).css() : 'rgba(0, 0, 0, 0.4)';
+    const sliderThumb = hasHue ? chroma.hsl(hue, 0.80, 0.24).hex() : '#222';
+
+    return {
+      textColor,
+      textColorAlpha,
+      textColorFaded,
+      textColorHeader,
+      borderColor,
+      borderColorHover,
+      sliderThumb
+    };
+  }
 }
