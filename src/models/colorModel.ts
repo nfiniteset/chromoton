@@ -54,7 +54,7 @@ export function setPalette(state: ColorState, paletteName: PaletteName): ColorSt
     return state;
   }
 
-  const shouldReassignColors = paletteName !== 'custom';
+  const shouldReassignColors = paletteName !== 'none';
   const newColors = shouldReassignColors
     ? getUniqueRandomColorsFromPalette(paletteName, state.colors.length)
     : state.colors;

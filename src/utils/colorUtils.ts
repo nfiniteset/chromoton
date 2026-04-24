@@ -2,7 +2,7 @@ import { PALETTES, type PaletteName } from '../palettes';
 import type { Color } from '../models/colorModel';
 
 /**
- * Generate a random color from a palette (or random if custom/null palette)
+ * Generate a random color from a palette (or random if none/null palette)
  */
 export function getRandomColor(paletteName: PaletteName): Color {
   const palette = PALETTES[paletteName];

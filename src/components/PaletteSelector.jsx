@@ -1,7 +1,7 @@
 export default function PaletteSelector({ palettes, currentPalette, onPaletteChange, contrastColors }) {
   const formatPaletteName = (name) => {
-    if (name === 'custom') {
-      return 'Custom';
+    if (name === 'none') {
+      return 'None';
     }
 
     const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
