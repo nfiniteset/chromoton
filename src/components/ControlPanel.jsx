@@ -5,6 +5,7 @@ import AdvancedControls from './AdvancedControls'
 import SubtleButton from './SubtleButton'
 import Typography from './Typography'
 import Divider from './Divider'
+import { useTheme } from '../contexts/ThemeContext'
 
 import { BsChevronRight, BsChevronCompactDown } from "react-icons/bs";
 
@@ -24,6 +25,7 @@ export default function ControlPanel({
   onClarityChange,
   onShowPopulationChange,
 }) {
+  const { panelRef } = useTheme()
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
@@ -31,7 +33,6 @@ export default function ControlPanel({
   const [hideDelay, setHideDelay] = useState(0)
   const hideTimerRef = useRef(null)
   const isHoveringRef = useRef(false)
-  const panelRef = useRef(null)
 
   const HIDE_DELAY = 500 // half second
   const EDGE_THRESHOLD = 220 // pixels from right edge to trigger show
