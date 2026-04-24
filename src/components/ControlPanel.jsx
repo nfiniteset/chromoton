@@ -4,7 +4,7 @@ import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
 import SubtleButton from './SubtleButton'
 import Typography from './Typography'
-import { useTheme } from '../contexts/ThemeContext'
+import Divider from './Divider'
 
 import { BsChevronRight, BsChevronCompactDown } from "react-icons/bs";
 
@@ -24,7 +24,6 @@ export default function ControlPanel({
   onClarityChange,
   onShowPopulationChange,
 }) {
-  const { contrastColors, panelRef } = useTheme()
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
@@ -32,6 +31,7 @@ export default function ControlPanel({
   const [hideDelay, setHideDelay] = useState(0)
   const hideTimerRef = useRef(null)
   const isHoveringRef = useRef(false)
+  const panelRef = useRef(null)
 
   const HIDE_DELAY = 500 // half second
   const EDGE_THRESHOLD = 220 // pixels from right edge to trigger show
@@ -183,8 +183,6 @@ export default function ControlPanel({
         onTransitionEnd={handleTransitionEnd}
         className="pointer-events-auto absolute top-5 right-5 box-border flex max-h-[calc(100vh-40px)] w-[220px] flex-col gap-4 overflow-x-hidden overflow-y-auto rounded-2xl bg-white/8 text-xs tracking-wider uppercase shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask-composite:exclude] before:p-px before:content-[''] before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)]"
         style={{
-          color: contrastColors.textColor,
-          borderColor: contrastColors.borderColor,
           transform: isHidden
             ? 'translateX(calc(100% + 20px))'
             : 'translateX(0)',
@@ -228,15 +226,8 @@ export default function ControlPanel({
                   />
                 </div>
               </div>
-              
 
-              <hr
-                className="h-px border-none"
-                style={{
-                  backgroundColor: contrastColors.borderColor,
-                  transition: 'background-color 300ms ease-out',
-                }}
-              />
+              <Divider />
 
               <div
                 className="relative -mt-7 overflow-hidden"
