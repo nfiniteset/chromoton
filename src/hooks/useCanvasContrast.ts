@@ -7,9 +7,13 @@ interface ContrastColors {
   textColorAlpha: string
   textColorWeak: string
   textColorHeader: string
+  textActive: string
   borderColor: string
   borderColorHover: string
   sliderThumb: string
+  backgroundHover: string
+  backgroundActive: string
+  backgroundActiveHover: string
 }
 
 /**
@@ -52,9 +56,13 @@ function getDefaultColors(): ContrastColors {
     textColorAlpha: 'rgba(255, 255, 255, 0.75)',
     textColorWeak: 'rgba(255, 255, 255, 0.45)',
     textColorHeader: 'rgba(255, 255, 255, 0.35)',
+    textActive: '#000000',
     borderColor: 'rgba(255, 255, 255, 0.18)',
     borderColorHover: 'rgba(255, 255, 255, 0.4)',
     sliderThumb: '#eee',
+    backgroundHover: 'rgba(255, 255, 255, 0.1)',
+    backgroundActive: 'rgba(255, 255, 255, 0.5)',
+    backgroundActiveHover: 'rgba(255, 255, 255, 0.3)',
   }
 }
 
@@ -205,6 +213,7 @@ function calculateContrastColors(
     const textColorWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
       : 'rgba(255, 255, 255, 0.45)'
+    const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
     const borderColor = hasHue
       ? chroma.hsl(hue, 0.85, 0.86).alpha(0.4).css()
       : 'rgba(255, 255, 255, 0.15)'
@@ -212,13 +221,26 @@ function calculateContrastColors(
       ? chroma.hsl(hue, 0.9, 0.88).alpha(0.7).css()
       : 'rgba(255, 255, 255, 0.4)'
     const sliderThumb = hasHue ? chroma.hsl(hue, 0.8, 0.88).hex() : '#eee'
+    const backgroundHover = hasHue
+      ? chroma.hsl(hue, 0.75, 0.9).alpha(0.2).css()
+      : 'rgba(255, 255, 255, 0.1)'
+    const backgroundActive = hasHue
+      ? chroma.hsl(hue, 0.8, 0.92).alpha(0.6).css()
+      : 'rgba(255, 255, 255, 0.5)'
+    const backgroundActiveHover = hasHue
+      ? chroma.hsl(hue, 0.77, 0.91).alpha(0.4).css()
+      : 'rgba(255, 255, 255, 0.3)'
 
     return {
       textColor,
       textColorWeak,
+      textActive,
       borderColor,
       borderColorHover,
       sliderThumb,
+      backgroundHover,
+      backgroundActive,
+      backgroundActiveHover,
     }
   } else {
     // Dark scheme with sampled hue
@@ -226,6 +248,7 @@ function calculateContrastColors(
     const textColorWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
       : 'rgba(0, 0, 0, 0.45)'
+    const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
     const borderColor = hasHue
       ? chroma.hsl(hue, 0.85, 0.22).alpha(0.4).css()
       : 'rgba(0, 0, 0, 0.15)'
@@ -233,13 +256,26 @@ function calculateContrastColors(
       ? chroma.hsl(hue, 0.9, 0.26).alpha(0.7).css()
       : 'rgba(0, 0, 0, 0.4)'
     const sliderThumb = hasHue ? chroma.hsl(hue, 0.8, 0.24).hex() : '#222'
+    const backgroundHover = hasHue
+      ? chroma.hsl(hue, 0.75, 0.2).alpha(0.2).css()
+      : 'rgba(0, 0, 0, 0.1)'
+    const backgroundActive = hasHue
+      ? chroma.hsl(hue, 0.8, 0.18).alpha(0.6).css()
+      : 'rgba(0, 0, 0, 0.5)'
+    const backgroundActiveHover = hasHue
+      ? chroma.hsl(hue, 0.77, 0.19).alpha(0.4).css()
+      : 'rgba(0, 0, 0, 0.3)'
 
     return {
       textColor,
       textColorWeak,
+      textActive,
       borderColor,
       borderColorHover,
       sliderThumb,
+      backgroundHover,
+      backgroundActive,
+      backgroundActiveHover,
     }
   }
 }

@@ -43,72 +43,45 @@ export default function PalettePicker({
           const isSelected = paletteName === currentPalette
 
           return (
-            <button
+            <SubtleButton
               key={paletteName}
               onClick={() => handlePaletteClick(paletteName)}
-              className="flex cursor-pointer flex-col gap-2 border-none p-3 text-left transition-all px-5 hover:bg-white/30"
-              style={{
-                backgroundColor: isSelected
-                  ? 'rgba(255, 255, 255, 0.50)'
-                  : 'rgba(255, 255, 255, 0.05)',
-                borderWidth: '1px 0',
-                borderStyle: 'solid',
-                borderColor: isSelected
-                  ? contrastColors?.borderColorHover
-                  : 'transparent',
-                transition:
-                  'background-color 300ms ease-out, border-color 300ms ease-out',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.backgroundColor =
-                    'rgba(255, 255, 255, 0.1)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.backgroundColor =
-                    'rgba(255, 255, 255, 0.05)'
-                }
-              }}
+              active={isSelected}
+              className="py-3"
             >
-              <span
-                className="text-[11px] tracking-wider uppercase"
-                style={{
-                  color: contrastColors?.textColor,
-                  transition: 'color 300ms ease-out',
-                }}
-              >
-                {formatPaletteName(paletteName)}
-              </span>
+              <div className="flex justify-start items-start w-full flex-col gap-2 border-0">
+                <span className="text-[11px] tracking-wider uppercase">
+                  {formatPaletteName(paletteName)}
+                </span>
 
-              {palette && (
-                <div className="flex gap-1.5">
-                  {palette.map((color, index) => (
+                {palette && (
+                  <div className="flex gap-1.5">
+                    {palette.map((color, index) => (
+                      <div
+                        key={index}
+                        className="h-6 w-6 rounded-sm"
+                        style={{
+                          backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {!palette && (
+                  <div className="flex gap-1.5">
                     <div
-                      key={index}
-                      className="h-6 w-6 rounded-sm"
+                      className="h-6 w-6 rounded-sm border"
                       style={{
-                        backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
+                        borderColor: contrastColors?.borderColor,
+                        borderStyle: 'dashed',
+                        transition: 'border-color 300ms ease-out',
                       }}
                     />
-                  ))}
-                </div>
-              )}
-
-              {!palette && (
-                <div className="flex gap-1.5">
-                  <div
-                    className="h-6 w-6 rounded-sm border"
-                    style={{
-                      borderColor: contrastColors?.borderColor,
-                      borderStyle: 'dashed',
-                      transition: 'border-color 300ms ease-out',
-                    }}
-                  />
-                </div>
-              )}
-            </button>
+                  </div>
+                )}
+              </div>
+            </SubtleButton>
           )
         })}
       </div>
