@@ -1,26 +1,27 @@
 export default function Checkbox({ checked, onChange, label, contrastColors }) {
   return (
     <label
-      className="flex items-center gap-1.5 text-[11px] cursor-pointer select-none"
+      className="flex cursor-pointer items-center gap-1.5 text-[11px] select-none"
       style={{
         color: contrastColors.textColorFaded,
-        transition: 'color 300ms ease-out'
+        transition: 'color 300ms ease-out',
       }}
     >
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="appearance-none w-4 h-4 rounded bg-white/10 cursor-pointer relative checked:after:content-['✓'] checked:after:absolute checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-[12px] checked:after:font-bold"
+        className="relative h-4 w-4 cursor-pointer appearance-none rounded bg-white/10 checked:after:absolute checked:after:top-1/2 checked:after:left-1/2 checked:after:-translate-x-1/2 checked:after:-translate-y-1/2 checked:after:text-[12px] checked:after:font-bold checked:after:content-['✓']"
         style={{
           borderColor: contrastColors.borderColorHover,
           borderWidth: '1px',
           borderStyle: 'solid',
           color: contrastColors.textColor,
-          transition: 'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out'
+          transition:
+            'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out',
         }}
       />
       {label}
     </label>
-  );
+  )
 }

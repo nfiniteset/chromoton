@@ -1,17 +1,17 @@
-import { useEffect } from 'react';
-import type { RandomAction, ColorState } from '../models/colorModel';
-import type { RandomizationStrategy } from '../strategies';
+import { useEffect } from 'react'
+import type { RandomAction, ColorState } from '../models/colorModel'
+import type { RandomizationStrategy } from '../strategies'
 
 // Declare chromoton global
 declare global {
   interface Window {
     chromoton?: {
       getPopulation: () => {
-        population: Uint8ClampedArray[][];
-        xDim: number;
-        yDim: number;
-      };
-    };
+        population: Uint8ClampedArray[][]
+        xDim: number
+        yDim: number
+      }
+    }
   }
 }
 
@@ -34,24 +34,24 @@ export function useColorRandomizer(
 ): void {
   useEffect(() => {
     if (!enabled) {
-      return;
+      return
     }
 
     // Create stable getter functions for strategy to call
-    const getState = () => colorState;
+    const getState = () => colorState
     const getPopulation = () => {
       if (window.chromoton && window.chromoton.getPopulation) {
-        return window.chromoton.getPopulation();
+        return window.chromoton.getPopulation()
       }
-      return { population: [], xDim: 0, yDim: 0 };
-    };
+      return { population: [], xDim: 0, yDim: 0 }
+    }
 
     // Start the strategy - it will manage its own timing
-    strategy.start(getState, getPopulation, onApplyAction);
+    strategy.start(getState, getPopulation, onApplyAction)
 
     // Cleanup on unmount or strategy change
     return () => {
-      strategy.stop();
-    };
-  }, [enabled, strategy, colorState, onApplyAction]);
+      strategy.stop()
+    }
+  }, [enabled, strategy, colorState, onApplyAction])
 }

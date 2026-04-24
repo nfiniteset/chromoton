@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import PaletteSelector from './PaletteSelector';
-import PalettePicker from './PalettePicker';
-import ColorList from './ColorList';
-import AdvancedControls from './AdvancedControls';
-import SubtleButton from './SubtleButton';
-import { useCanvasContrast } from '../hooks/useCanvasContrast';
+import { useState, useEffect, useRef } from 'react'
+import PaletteSelector from './PaletteSelector'
+import PalettePicker from './PalettePicker'
+import ColorList from './ColorList'
+import AdvancedControls from './AdvancedControls'
+import SubtleButton from './SubtleButton'
+import { useCanvasContrast } from '../hooks/useCanvasContrast'
 
 export default function ControlPanel({
   palettes,
@@ -22,112 +22,114 @@ export default function ControlPanel({
   onClarityChange,
   onShowPopulationChange,
 }) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showPalettePicker, setShowPalettePicker] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
-  const [isHiding, setIsHiding] = useState(false);
-  const [hideDelay, setHideDelay] = useState(0);
-  const hideTimerRef = useRef(null);
-  const panelRef = useRef(null);
-  const isHoveringRef = useRef(false);
-  const contrastColors = useCanvasContrast(panelRef);
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showPalettePicker, setShowPalettePicker] = useState(false)
+  const [isHidden, setIsHidden] = useState(false)
+  const [isHiding, setIsHiding] = useState(false)
+  const [hideDelay, setHideDelay] = useState(0)
+  const hideTimerRef = useRef(null)
+  const panelRef = useRef(null)
+  const isHoveringRef = useRef(false)
+  const contrastColors = useCanvasContrast(panelRef)
 
-  const HIDE_DELAY = 500; // half second
-  const EDGE_THRESHOLD = 220; // pixels from right edge to trigger show
+  const HIDE_DELAY = 500 // half second
+  const EDGE_THRESHOLD = 220 // pixels from right edge to trigger show
 
   // Helper to use View Transition API if available
   const withViewTransition = (updateFn) => {
     if (document.startViewTransition) {
       document.startViewTransition(() => {
-        updateFn();
-      });
+        updateFn()
+      })
     } else {
-      updateFn();
+      updateFn()
     }
-  };
+  }
 
   const showSidebar = () => {
     if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
+      clearTimeout(hideTimerRef.current)
     }
 
-    setIsHiding(false);
-    setHideDelay(0);
+    setIsHiding(false)
+    setHideDelay(0)
     requestAnimationFrame(() => {
-      setIsHidden(false);
-    });
-  };
+      setIsHidden(false)
+    })
+  }
 
   const scheduleSidebarHide = () => {
     if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current);
+      clearTimeout(hideTimerRef.current)
     }
 
     hideTimerRef.current = setTimeout(() => {
       // If advanced panel is open, delay the slide-out to let height collapse first
-      const needsDelay = showAdvanced;
+      const needsDelay = showAdvanced
 
-      setIsHiding(true);
-      setHideDelay(needsDelay ? 300 : 0);
+      setIsHiding(true)
+      setHideDelay(needsDelay ? 300 : 0)
 
       if (needsDelay) {
-        setShowAdvanced(false);
+        setShowAdvanced(false)
       }
 
       requestAnimationFrame(() => {
-        setIsHidden(true);
-      });
-    }, HIDE_DELAY);
-  };
+        setIsHidden(true)
+      })
+    }, HIDE_DELAY)
+  }
 
   const handleMouseEnter = () => {
-    isHoveringRef.current = true;
-    showSidebar();
-  };
+    isHoveringRef.current = true
+    showSidebar()
+  }
 
   const handleMouseLeave = () => {
-    isHoveringRef.current = false;
+    isHoveringRef.current = false
 
     // Don't hide if a color picker is currently open (focused)
-    const hasOpenColorPicker = panelRef.current?.querySelector('input[type="color"]:focus');
+    const hasOpenColorPicker = panelRef.current?.querySelector(
+      'input[type="color"]:focus'
+    )
     if (hasOpenColorPicker) {
-      return;
+      return
     }
 
-    scheduleSidebarHide();
-  };
+    scheduleSidebarHide()
+  }
 
   // Initial auto-hide after 3 seconds
   useEffect(() => {
     hideTimerRef.current = setTimeout(() => {
-      setIsHiding(true);
-      setHideDelay(0); // No advanced panel on initial load
+      setIsHiding(true)
+      setHideDelay(0) // No advanced panel on initial load
       requestAnimationFrame(() => {
-        setIsHidden(true);
-      });
-    }, 3000);
+        setIsHidden(true)
+      })
+    }, 3000)
 
     return () => {
       if (hideTimerRef.current) {
-        clearTimeout(hideTimerRef.current);
+        clearTimeout(hideTimerRef.current)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // Event listeners for mouse movement and color picker
   useEffect(() => {
     // Handle mouse movement to show sidebar when approaching right edge
     const handleMouseMove = (e) => {
-      const distanceFromRight = window.innerWidth - e.clientX;
-      const isNearRightEdge = distanceFromRight <= EDGE_THRESHOLD;
+      const distanceFromRight = window.innerWidth - e.clientX
+      const isNearRightEdge = distanceFromRight <= EDGE_THRESHOLD
 
       // Only trigger show if near edge AND panel is currently hidden
       if (!isNearRightEdge || !isHidden) {
-        return;
+        return
       }
 
-      showSidebar();
-    };
+      showSidebar()
+    }
 
     // Handle color picker closing - schedule hide if mouse not over panel
     const handleColorPickerBlur = (e) => {
@@ -135,32 +137,32 @@ export default function ControlPanel({
         // Small delay to allow cleanup, then check if we should hide
         setTimeout(() => {
           if (!isHoveringRef.current) {
-            scheduleSidebarHide();
+            scheduleSidebarHide()
           }
-        }, 100);
+        }, 100)
       }
-    };
+    }
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('blur', handleColorPickerBlur, true);
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('blur', handleColorPickerBlur, true)
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('blur', handleColorPickerBlur, true);
-    };
-  }, [isHidden]);
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('blur', handleColorPickerBlur, true)
+    }
+  }, [isHidden])
 
   // Inject dynamic slider thumb styles based on contrast colors
   useEffect(() => {
-    const styleId = 'dynamic-slider-styles';
-    let existingStyle = document.getElementById(styleId);
+    const styleId = 'dynamic-slider-styles'
+    let existingStyle = document.getElementById(styleId)
 
     if (existingStyle) {
-      existingStyle.remove();
+      existingStyle.remove()
     }
 
-    const style = document.createElement('style');
-    style.id = styleId;
+    const style = document.createElement('style')
+    style.id = styleId
     style.textContent = `
       input[type="range"]::-webkit-slider-thumb {
         background: ${contrastColors.sliderThumb} !important;
@@ -168,137 +170,151 @@ export default function ControlPanel({
       input[type="range"]::-moz-range-thumb {
         background: ${contrastColors.sliderThumb} !important;
       }
-    `;
-    document.head.appendChild(style);
+    `
+    document.head.appendChild(style)
 
     return () => {
-      const styleToRemove = document.getElementById(styleId);
+      const styleToRemove = document.getElementById(styleId)
       if (styleToRemove) {
-        styleToRemove.remove();
+        styleToRemove.remove()
       }
-    };
-  }, [contrastColors.sliderThumb]);
+    }
+  }, [contrastColors.sliderThumb])
 
   // Reset showAdvanced when sidebar closes
   useEffect(() => {
     if (isHidden) {
-      setShowAdvanced(false);
+      setShowAdvanced(false)
     }
-  }, [isHidden]);
+  }, [isHidden])
 
   // Handle transition end to reset isHiding state
   const handleTransitionEnd = (e) => {
     if (e.propertyName === 'transform' && isHiding) {
-      setIsHiding(false);
-      setHideDelay(0);
+      setIsHiding(false)
+      setHideDelay(0)
     }
-  };
+  }
 
   return (
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="fixed top-0 right-0 w-[400px] h-screen z-[100] pointer-events-none"
+      className="pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]"
     >
       <div
         ref={panelRef}
         onTransitionEnd={handleTransitionEnd}
-        className="absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl box-border flex flex-col gap-4 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none pointer-events-auto"
+        className="pointer-events-auto absolute top-5 right-5 box-border flex max-h-[calc(100vh-40px)] w-[220px] flex-col gap-4 overflow-x-hidden overflow-y-auto rounded-2xl bg-white/8 text-xs tracking-wider uppercase shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:pointer-events-none before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask-composite:exclude] before:p-px before:content-[''] before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)]"
         style={{
           color: contrastColors.textColor,
           borderColor: contrastColors.borderColor,
-          transform: isHidden ? 'translateX(calc(100% + 20px))' : 'translateX(0)',
+          transform: isHidden
+            ? 'translateX(calc(100% + 20px))'
+            : 'translateX(0)',
           transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms, color 300ms ease-out, border-color 300ms ease-out`,
         }}
       >
-      <h2
-        className="m-0 mb-0 px-5 pt-6 text-xs font-medium tracking-[0.12em] relative z-[1]"
-        style={{
-          color: contrastColors.textColor,
-          transition: 'color 300ms ease-out'
-        }}
-      >
-        Chromoton
-      </h2>
+        <h2
+          className="relative z-[1] m-0 mb-0 px-5 pt-6 text-xs font-medium tracking-[0.12em]"
+          style={{
+            color: contrastColors.textColor,
+            transition: 'color 300ms ease-out',
+          }}
+        >
+          Chromoton
+        </h2>
 
-      <div
-        className="relative z-[1] overflow-x-hidden overflow-y-auto"
-        style={{
-          maxHeight: showPalettePicker ? '2000px' : (showAdvanced ? '2000px' : '600px'),
-          transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)'
-        }}
-      >
-        {!showPalettePicker ? (
-          <div className="flex flex-col gap-7 px-5 pb-6">
-            <div className="flex flex-col gap-4">
-              <PaletteSelector
-                palettes={palettes}
-                currentPalette={currentPalette}
-                onPaletteChange={onPaletteChange}
-                onShowPicker={() => withViewTransition(() => setShowPalettePicker(true))}
-                contrastColors={contrastColors}
-              />
-              <ColorList
-                colors={colors}
-                onColorChange={onColorChange}
-                onRemoveColor={onRemoveColor}
-                onAddColor={onAddColor}
-                showPopulation={showPopulation}
-                populationPercentages={populationPercentages}
-                contrastColors={contrastColors}
-              />
-            </div>
-
-            <hr
-              className="border-none h-px"
-              style={{
-                backgroundColor: contrastColors.borderColor,
-                transition: 'background-color 300ms ease-out'
-              }}
-            />
-
-            <div
-              className="-mt-7 relative overflow-hidden"
-              style={{
-                maxHeight: !showAdvanced ? '48px' : '2000px',
-                transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)'
-              }}
-            >
-              <div className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <SubtleButton
-                  onClick={() => setShowAdvanced(true)}
+        <div
+          className="relative z-[1] overflow-x-hidden overflow-y-auto"
+          style={{
+            maxHeight: showPalettePicker
+              ? '2000px'
+              : showAdvanced
+                ? '2000px'
+                : '600px',
+            transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)',
+          }}
+        >
+          {!showPalettePicker ? (
+            <div className="flex flex-col gap-7 px-5 pb-6">
+              <div className="flex flex-col gap-4">
+                <PaletteSelector
+                  palettes={palettes}
+                  currentPalette={currentPalette}
+                  onPaletteChange={onPaletteChange}
+                  onShowPicker={() =>
+                    withViewTransition(() => setShowPalettePicker(true))
+                  }
                   contrastColors={contrastColors}
-                >
-                  <span>More</span>
-                </SubtleButton>
-              </div>
-
-              <div className={`px-5 pt-7 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                <AdvancedControls
-                  currentStrategy={strategyType}
-                  onStrategyChange={onStrategyChange}
-                  clarity={clarity}
+                />
+                <ColorList
+                  colors={colors}
+                  onColorChange={onColorChange}
+                  onRemoveColor={onRemoveColor}
+                  onAddColor={onAddColor}
                   showPopulation={showPopulation}
-                  onClarityChange={onClarityChange}
-                  onShowPopulationChange={onShowPopulationChange}
+                  populationPercentages={populationPercentages}
                   contrastColors={contrastColors}
                 />
               </div>
+
+              <hr
+                className="h-px border-none"
+                style={{
+                  backgroundColor: contrastColors.borderColor,
+                  transition: 'background-color 300ms ease-out',
+                }}
+              />
+
+              <div
+                className="relative -mt-7 overflow-hidden"
+                style={{
+                  maxHeight: !showAdvanced ? '48px' : '2000px',
+                  transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)',
+                }}
+              >
+                <div
+                  className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                >
+                  <SubtleButton
+                    onClick={() => setShowAdvanced(true)}
+                    contrastColors={contrastColors}
+                  >
+                    <span>More</span>
+                  </SubtleButton>
+                </div>
+
+                <div
+                  className={`px-5 pt-7 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                >
+                  <AdvancedControls
+                    currentStrategy={strategyType}
+                    onStrategyChange={onStrategyChange}
+                    clarity={clarity}
+                    showPopulation={showPopulation}
+                    onClarityChange={onClarityChange}
+                    onShowPopulationChange={onShowPopulationChange}
+                    contrastColors={contrastColors}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="px-5 pb-6">
-            <PalettePicker
-              palettes={palettes}
-              currentPalette={currentPalette}
-              onPaletteChange={onPaletteChange}
-              onBack={() => withViewTransition(() => setShowPalettePicker(false))}
-              contrastColors={contrastColors}
-            />
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="px-5 pb-6">
+              <PalettePicker
+                palettes={palettes}
+                currentPalette={currentPalette}
+                onPaletteChange={onPaletteChange}
+                onBack={() =>
+                  withViewTransition(() => setShowPalettePicker(false))
+                }
+                contrastColors={contrastColors}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  );
+  )
 }

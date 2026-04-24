@@ -1,27 +1,33 @@
-import { STRATEGY_REGISTRY } from '../strategies';
-import SteppedSlider from './SteppedSlider';
+import { STRATEGY_REGISTRY } from '../strategies'
+import SteppedSlider from './SteppedSlider'
 
 // Slider position to strategy ID mapping
 const STRATEGY_MAP = [
-  'none',           // 0
-  'simple',         // 1
-  'population',     // 2
-  'three-target',   // 3
-  'swap-agitation'  // 4
-];
+  'none', // 0
+  'simple', // 1
+  'population', // 2
+  'three-target', // 3
+  'swap-agitation', // 4
+]
 
-export default function StrategySelector({ currentStrategy, onStrategyChange, contrastColors }) {
+export default function StrategySelector({
+  currentStrategy,
+  onStrategyChange,
+  contrastColors,
+}) {
   // Get current slider position from strategy ID
-  const currentPosition = STRATEGY_MAP.indexOf(currentStrategy);
+  const currentPosition = STRATEGY_MAP.indexOf(currentStrategy)
 
   // Get current strategy metadata
-  const currentMetadata = STRATEGY_REGISTRY.find(({ metadata }) => metadata.id === currentStrategy)?.metadata;
+  const currentMetadata = STRATEGY_REGISTRY.find(
+    ({ metadata }) => metadata.id === currentStrategy
+  )?.metadata
 
   const handleSliderChange = (e) => {
-    const position = parseInt(e.target.value, 10);
-    const strategyId = STRATEGY_MAP[position];
-    onStrategyChange(strategyId);
-  };
+    const position = parseInt(e.target.value, 10)
+    const strategyId = STRATEGY_MAP[position]
+    onStrategyChange(strategyId)
+  }
 
   return (
     <SteppedSlider
@@ -32,5 +38,5 @@ export default function StrategySelector({ currentStrategy, onStrategyChange, co
       onChange={handleSliderChange}
       contrastColors={contrastColors}
     />
-  );
+  )
 }

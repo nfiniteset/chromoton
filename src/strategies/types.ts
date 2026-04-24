@@ -1,12 +1,12 @@
-import type { ColorState, RandomAction } from '../models/colorModel';
+import type { ColorState, RandomAction } from '../models/colorModel'
 
 /**
  * Strategy metadata for UI display and registration
  */
 export interface StrategyMetadata {
-  id: string;
-  name: string;
-  description: string;
+  id: string
+  name: string
+  description: string
 }
 
 /**
@@ -25,20 +25,24 @@ export interface RandomizationStrategy {
    */
   start(
     getState: () => ColorState,
-    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    getPopulation: () => {
+      population: Uint8ClampedArray[][]
+      xDim: number
+      yDim: number
+    },
     applyAction: (action: RandomAction) => void
-  ): void;
+  ): void
 
   /**
    * Stop the strategy and cleanup any timers/resources
    */
-  stop(): void;
+  stop(): void
 }
 
 /**
  * Strategy registry entry combining class and metadata
  */
 export interface StrategyRegistryEntry {
-  metadata: StrategyMetadata;
-  Strategy: new () => RandomizationStrategy;
+  metadata: StrategyMetadata
+  Strategy: new () => RandomizationStrategy
 }

@@ -1,11 +1,20 @@
-import Checkbox from './Checkbox';
-import StrategySelector from './StrategySelector';
-import SteppedSlider from './SteppedSlider';
+import Checkbox from './Checkbox'
+import StrategySelector from './StrategySelector'
+import SteppedSlider from './SteppedSlider'
 
-export default function AdvancedControls({ currentStrategy, onStrategyChange, clarity, showPopulation, onClarityChange, onShowPopulationChange, contrastColors }) {
-  const resolutionSteps = [160, 240, 320, 480, 640];
-  const currentStepIndex = resolutionSteps.findIndex(val => val >= clarity);
-  const stepIndex = currentStepIndex === -1 ? resolutionSteps.length - 1 : currentStepIndex;
+export default function AdvancedControls({
+  currentStrategy,
+  onStrategyChange,
+  clarity,
+  showPopulation,
+  onClarityChange,
+  onShowPopulationChange,
+  contrastColors,
+}) {
+  const resolutionSteps = [160, 240, 320, 480, 640]
+  const currentStepIndex = resolutionSteps.findIndex((val) => val >= clarity)
+  const stepIndex =
+    currentStepIndex === -1 ? resolutionSteps.length - 1 : currentStepIndex
 
   return (
     <div className="flex flex-col gap-7">
@@ -22,7 +31,9 @@ export default function AdvancedControls({ currentStrategy, onStrategyChange, cl
         value={stepIndex}
         displayValue={clarity}
         steps={resolutionSteps}
-        onChange={(e) => onClarityChange(resolutionSteps[parseInt(e.target.value)])}
+        onChange={(e) =>
+          onClarityChange(resolutionSteps[parseInt(e.target.value)])
+        }
         contrastColors={contrastColors}
       />
 
@@ -35,5 +46,5 @@ export default function AdvancedControls({ currentStrategy, onStrategyChange, cl
         />
       </div>
     </div>
-  );
+  )
 }

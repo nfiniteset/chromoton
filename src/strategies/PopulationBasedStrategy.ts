@@ -1,18 +1,22 @@
-import type { Color, ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy, StrategyMetadata } from './types';
-import { PALETTES } from '../palettes';
-import { getRandomColor, getUniqueRandomColor, getColorSuccessCounts } from '../utils/colorUtils';
+import type { Color, ColorState, RandomAction } from '../models/colorModel'
+import type { RandomizationStrategy, StrategyMetadata } from './types'
+import { PALETTES } from '../palettes'
+import {
+  getRandomColor,
+  getUniqueRandomColor,
+  getColorSuccessCounts,
+} from '../utils/colorUtils'
 
 export const metadata: StrategyMetadata = {
   id: 'population',
   name: 'Chill',
-  description: 'Analyzes simulation to make smart decisions'
-};
+  description: 'Analyzes simulation to make smart decisions',
+}
 
-const MIN_COLORS = 1;
-const MAX_COLORS = 5;
-const MIN_CHANGE_TIME_MS = 8000; // 8 seconds
-const MAX_CHANGE_TIME_MS = 15000; // 15 seconds
+const MIN_COLORS = 1
+const MAX_COLORS = 5
+const MIN_CHANGE_TIME_MS = 8000 // 8 seconds
+const MAX_CHANGE_TIME_MS = 15000 // 15 seconds
 
 /**
  * Population-Based Randomization Strategy
@@ -28,42 +32,52 @@ const MAX_CHANGE_TIME_MS = 15000; // 15 seconds
  * 5. For add/change: pick colors not currently in use
  */
 export class PopulationBasedStrategy implements RandomizationStrategy {
-  private timeoutId: NodeJS.Timeout | null = null;
+  private timeoutId: NodeJS.Timeout | null = null
 
   start(
     getState: () => ColorState,
-    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    getPopulation: () => {
+      population: Uint8ClampedArray[][]
+      xDim: number
+      yDim: number
+    },
     applyAction: (action: RandomAction) => void
   ): void {
-    this.scheduleNextChange(getState, getPopulation, applyAction);
+    this.scheduleNextChange(getState, getPopulation, applyAction)
   }
 
   stop(): void {
     if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
+      clearTimeout(this.timeoutId)
+      this.timeoutId = null
     }
   }
 
   private scheduleNextChange(
     getState: () => ColorState,
-    getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    getPopulation: () => {
+      population: Uint8ClampedArray[][]
+      xDim: number
+      yDim: number
+    },
     applyAction: (action: RandomAction) => void
   ): void {
-    const delay = MIN_CHANGE_TIME_MS + Math.random() * (MAX_CHANGE_TIME_MS - MIN_CHANGE_TIME_MS);
+    const delay =
+      MIN_CHANGE_TIME_MS +
+      Math.random() * (MAX_CHANGE_TIME_MS - MIN_CHANGE_TIME_MS)
 
     this.timeoutId = setTimeout(() => {
-      const state = getState();
-      const { population, xDim, yDim } = getPopulation();
-      const action = this.determineAction(state, population, xDim, yDim);
+      const state = getState()
+      const { population, xDim, yDim } = getPopulation()
+      const action = this.determineAction(state, population, xDim, yDim)
 
       if (action) {
-        applyAction(action);
+        applyAction(action)
       }
 
       // Schedule next change
-      this.scheduleNextChange(getState, getPopulation, applyAction);
-    }, delay);
+      this.scheduleNextChange(getState, getPopulation, applyAction)
+    }, delay)
   }
 
   private determineAction(
@@ -72,54 +86,58 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
     xDim: number,
     yDim: number
   ): RandomAction | null {
-    const counts = getColorSuccessCounts(population, state.colors, xDim, yDim);
-    const mostSuccessfulIndex = this.findMaxIndex(counts);
+    const counts = getColorSuccessCounts(population, state.colors, xDim, yDim)
+    const mostSuccessfulIndex = this.findMaxIndex(counts)
 
-    const availableActions = this.getAvailableActions(state.colors.length);
-    const action = this.pickRandomAction(availableActions);
+    const availableActions = this.getAvailableActions(state.colors.length)
+    const action = this.pickRandomAction(availableActions)
 
-    return this.createActionResult(action, state, mostSuccessfulIndex);
+    return this.createActionResult(action, state, mostSuccessfulIndex)
   }
 
   private findMaxIndex(counts: number[]): number {
     if (counts.length === 0) {
-      return 0;
+      return 0
     }
 
-    let maxCount = -1;
-    let maxIndex = 0;
+    let maxCount = -1
+    let maxIndex = 0
 
     for (let i = 0; i < counts.length; i++) {
       if (counts[i] > maxCount) {
-        maxCount = counts[i];
-        maxIndex = i;
+        maxCount = counts[i]
+        maxIndex = i
       }
     }
 
-    return maxIndex;
+    return maxIndex
   }
 
-  private getAvailableActions(currentCount: number): Array<'add' | 'remove' | 'change'> {
-    const availableActions: Array<'add' | 'remove' | 'change'> = [];
+  private getAvailableActions(
+    currentCount: number
+  ): Array<'add' | 'remove' | 'change'> {
+    const availableActions: Array<'add' | 'remove' | 'change'> = []
 
     if (currentCount > MIN_COLORS) {
-      availableActions.push('remove');
+      availableActions.push('remove')
     }
     if (currentCount < MAX_COLORS) {
-      availableActions.push('add');
+      availableActions.push('add')
     }
-    availableActions.push('change');
+    availableActions.push('change')
 
-    return availableActions;
+    return availableActions
   }
 
-  private pickRandomAction(availableActions: Array<'add' | 'remove' | 'change'>): 'add' | 'remove' | 'change' {
+  private pickRandomAction(
+    availableActions: Array<'add' | 'remove' | 'change'>
+  ): 'add' | 'remove' | 'change' {
     if (availableActions.length === 0) {
-      return 'change';
+      return 'change'
     }
 
-    const actionIndex = Math.floor(Math.random() * availableActions.length);
-    return availableActions[actionIndex];
+    const actionIndex = Math.floor(Math.random() * availableActions.length)
+    return availableActions[actionIndex]
   }
 
   private createActionResult(
@@ -128,87 +146,101 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
     mostSuccessfulIndex: number
   ): RandomAction | null {
     if (action === 'remove') {
-      return { action: 'remove', targetIndex: mostSuccessfulIndex };
+      return { action: 'remove', targetIndex: mostSuccessfulIndex }
     }
 
     if (action === 'add') {
-      const newColor = getUniqueRandomColor(state.currentPalette, state.colors);
-      return { action: 'add', newColor };
+      const newColor = getUniqueRandomColor(state.currentPalette, state.colors)
+      return { action: 'add', newColor }
     }
 
     if (action === 'change') {
-      const newColor = this.getColorForChange(state, mostSuccessfulIndex);
-      return { action: 'change', targetIndex: mostSuccessfulIndex, newColor };
+      const newColor = this.getColorForChange(state, mostSuccessfulIndex)
+      return { action: 'change', targetIndex: mostSuccessfulIndex, newColor }
     }
 
-    return null;
+    return null
   }
 
   private getColorForChange(state: ColorState, excludeIndex: number): Color {
-    const palette = PALETTES[state.currentPalette];
-    const isCustomMode = palette === null;
+    const palette = PALETTES[state.currentPalette]
+    const isCustomMode = palette === null
 
     if (isCustomMode) {
-      return getRandomColor(state.currentPalette);
+      return getRandomColor(state.currentPalette)
     }
 
-    const availableColors = this.findAvailableColorsExcluding(state, excludeIndex);
-    const hasAvailableColors = availableColors.length > 0;
+    const availableColors = this.findAvailableColorsExcluding(
+      state,
+      excludeIndex
+    )
+    const hasAvailableColors = availableColors.length > 0
 
     return hasAvailableColors
       ? this.selectRandomFromArray(availableColors)!
-      : getRandomColor(state.currentPalette);
+      : getRandomColor(state.currentPalette)
   }
 
-  private findAvailableColorsExcluding(state: ColorState, excludeIndex: number): Color[] {
-    const palette = PALETTES[state.currentPalette];
+  private findAvailableColorsExcluding(
+    state: ColorState,
+    excludeIndex: number
+  ): Color[] {
+    const palette = PALETTES[state.currentPalette]
     if (!palette) {
-      return [];
+      return []
     }
 
-    const availableColors: Color[] = [];
+    const availableColors: Color[] = []
 
     for (const paletteColor of palette) {
-      const isInUse = this.isColorInTargetsExcluding(paletteColor, state.colors, excludeIndex);
+      const isInUse = this.isColorInTargetsExcluding(
+        paletteColor,
+        state.colors,
+        excludeIndex
+      )
 
       if (!isInUse) {
-        availableColors.push(paletteColor);
+        availableColors.push(paletteColor)
       }
     }
 
-    return availableColors;
+    return availableColors
   }
 
-  private isColorInTargetsExcluding(paletteColor: Color, targetColors: Color[], excludeIndex: number): boolean {
+  private isColorInTargetsExcluding(
+    paletteColor: Color,
+    targetColors: Color[],
+    excludeIndex: number
+  ): boolean {
     for (let j = 0; j < targetColors.length; j++) {
       if (j === excludeIndex) {
-        continue;
+        continue
       }
 
-      const target = targetColors[j];
+      const target = targetColors[j]
       if (
         target.r === paletteColor.r &&
         target.g === paletteColor.g &&
         target.b === paletteColor.b
       ) {
-        return true;
+        return true
       }
     }
 
-    return false;
+    return false
   }
 
   private selectRandomFromArray(colors: Color[]): Color | null {
     if (colors.length === 0) {
-      return null;
+      return null
     }
 
-    const index = Math.floor(Math.random() * colors.length);
-    const selectedColor = colors[index];
+    const index = Math.floor(Math.random() * colors.length)
+    const selectedColor = colors[index]
     return {
       r: selectedColor.r,
       g: selectedColor.g,
-      b: selectedColor.b
-    };
+      b: selectedColor.b,
+    }
   }
 }

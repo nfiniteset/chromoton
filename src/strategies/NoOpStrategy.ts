@@ -1,11 +1,11 @@
-import type { ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy, StrategyMetadata } from './types';
+import type { ColorState, RandomAction } from '../models/colorModel'
+import type { RandomizationStrategy, StrategyMetadata } from './types'
 
 export const metadata: StrategyMetadata = {
   id: 'none',
   name: 'None',
-  description: 'Manual control only, no auto-randomization'
-};
+  description: 'Manual control only, no auto-randomization',
+}
 
 /**
  * No-Op Strategy
@@ -21,7 +21,11 @@ export const metadata: StrategyMetadata = {
 export class NoOpStrategy implements RandomizationStrategy {
   start(
     _getState: () => ColorState,
-    _getPopulation: () => { population: Uint8ClampedArray[][]; xDim: number; yDim: number },
+    _getPopulation: () => {
+      population: Uint8ClampedArray[][]
+      xDim: number
+      yDim: number
+    },
     _applyAction: (action: RandomAction) => void
   ): void {
     // Do nothing - this strategy is intentionally inactive

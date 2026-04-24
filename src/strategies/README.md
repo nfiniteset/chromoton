@@ -18,6 +18,7 @@ The randomization logic has been extracted from the color model into pluggable S
 Analyzes the simulation population to make intelligent decisions about color changes.
 
 **Algorithm:**
+
 1. Counts how many cells are closest to each target color
 2. Identifies the most successful color
 3. Randomly picks an action (add/remove/change) based on constraints
@@ -31,6 +32,7 @@ Analyzes the simulation population to make intelligent decisions about color cha
 Makes purely random decisions without analyzing the simulation population.
 
 **Algorithm:**
+
 1. Randomly picks a valid action (add/remove/change)
 2. Randomly picks a color index (for remove/change)
 3. Randomly picks a new color (for add/change)
@@ -44,19 +46,14 @@ Makes purely random decisions without analyzing the simulation population.
 In `App.jsx`:
 
 ```javascript
-import { PopulationBasedStrategy } from './strategies';
+import { PopulationBasedStrategy } from './strategies'
 
 function App() {
   // Create strategy instance (memoized for stable reference)
-  const strategy = useMemo(() => new PopulationBasedStrategy(), []);
+  const strategy = useMemo(() => new PopulationBasedStrategy(), [])
 
   // Pass to randomizer hook
-  useColorRandomizer(
-    enabled,
-    strategy,
-    colorState,
-    onApplyAction
-  );
+  useColorRandomizer(enabled, strategy, colorState, onApplyAction)
 }
 ```
 
@@ -66,10 +63,10 @@ To try a different strategy, just change one line:
 
 ```javascript
 // Before:
-const strategy = useMemo(() => new PopulationBasedStrategy(), []);
+const strategy = useMemo(() => new PopulationBasedStrategy(), [])
 
 // After:
-const strategy = useMemo(() => new SimpleRandomStrategy(), []);
+const strategy = useMemo(() => new SimpleRandomStrategy(), [])
 ```
 
 ## Creating a New Strategy
@@ -78,8 +75,8 @@ const strategy = useMemo(() => new SimpleRandomStrategy(), []);
 2. Implement the `RandomizationStrategy` interface:
 
 ```typescript
-import type { ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy } from './types';
+import type { ColorState, RandomAction } from '../models/colorModel'
+import type { RandomizationStrategy } from './types'
 
 export class WeightedStrategy implements RandomizationStrategy {
   determineAction(
@@ -97,15 +94,15 @@ export class WeightedStrategy implements RandomizationStrategy {
 3. Export it from `src/strategies/index.ts`:
 
 ```typescript
-export { WeightedStrategy } from './WeightedStrategy';
+export { WeightedStrategy } from './WeightedStrategy'
 ```
 
 4. Use it in your app:
 
 ```javascript
-import { WeightedStrategy } from './strategies';
+import { WeightedStrategy } from './strategies'
 
-const strategy = useMemo(() => new WeightedStrategy(), []);
+const strategy = useMemo(() => new WeightedStrategy(), [])
 ```
 
 ## Strategy Interface
@@ -119,16 +116,18 @@ interface RandomizationStrategy {
     population: Uint8ClampedArray[][],
     xDim: number,
     yDim: number
-  ): RandomAction | null;
+  ): RandomAction | null
 }
 ```
 
 **Parameters:**
+
 - `state` - Current color model state (palette, colors, etc.)
 - `population` - 2D array of cell color data from the simulation
 - `xDim`, `yDim` - Dimensions of the simulation grid
 
 **Returns:**
+
 - `RandomAction` object with `action` ('add'|'remove'|'change') and relevant data
 - `null` if no action should be taken
 

@@ -1,14 +1,36 @@
-export type { RandomizationStrategy, StrategyMetadata, StrategyRegistryEntry } from './types';
+export type {
+  RandomizationStrategy,
+  StrategyMetadata,
+  StrategyRegistryEntry,
+} from './types'
 
 // Import strategy classes and metadata
-import { NoOpStrategy, metadata as noOpMetadata } from './NoOpStrategy';
-import { SimpleRandomStrategy, metadata as simpleMetadata } from './SimpleRandomStrategy';
-import { PopulationBasedStrategy, metadata as populationMetadata } from './PopulationBasedStrategy';
-import { ThreeTargetStrategy, metadata as threeTargetMetadata } from './ThreeTargetStrategy';
-import { SwapAgitationStrategy, metadata as swapAgitationMetadata } from './SwapAgitationStrategy';
+import { NoOpStrategy, metadata as noOpMetadata } from './NoOpStrategy'
+import {
+  SimpleRandomStrategy,
+  metadata as simpleMetadata,
+} from './SimpleRandomStrategy'
+import {
+  PopulationBasedStrategy,
+  metadata as populationMetadata,
+} from './PopulationBasedStrategy'
+import {
+  ThreeTargetStrategy,
+  metadata as threeTargetMetadata,
+} from './ThreeTargetStrategy'
+import {
+  SwapAgitationStrategy,
+  metadata as swapAgitationMetadata,
+} from './SwapAgitationStrategy'
 
 // Export individual strategies for backwards compatibility
-export { NoOpStrategy, SimpleRandomStrategy, PopulationBasedStrategy, ThreeTargetStrategy, SwapAgitationStrategy };
+export {
+  NoOpStrategy,
+  SimpleRandomStrategy,
+  PopulationBasedStrategy,
+  ThreeTargetStrategy,
+  SwapAgitationStrategy,
+}
 
 // Strategy registry - single source of truth for all strategy metadata
 export const STRATEGY_REGISTRY = [
@@ -16,19 +38,19 @@ export const STRATEGY_REGISTRY = [
   { metadata: populationMetadata, Strategy: PopulationBasedStrategy },
   { metadata: simpleMetadata, Strategy: SimpleRandomStrategy },
   { metadata: threeTargetMetadata, Strategy: ThreeTargetStrategy },
-  { metadata: swapAgitationMetadata, Strategy: SwapAgitationStrategy }
-] as const;
+  { metadata: swapAgitationMetadata, Strategy: SwapAgitationStrategy },
+] as const
 
 // Helper to get strategy by id
 export function getStrategyById(id: string) {
-  return STRATEGY_REGISTRY.find(entry => entry.metadata.id === id);
+  return STRATEGY_REGISTRY.find((entry) => entry.metadata.id === id)
 }
 
 // Helper to create strategy instance by id
 export function createStrategyById(id: string): RandomizationStrategy {
-  const entry = getStrategyById(id);
+  const entry = getStrategyById(id)
   if (!entry) {
-    throw new Error(`Strategy with id "${id}" not found`);
+    throw new Error(`Strategy with id "${id}" not found`)
   }
-  return new entry.Strategy();
+  return new entry.Strategy()
 }

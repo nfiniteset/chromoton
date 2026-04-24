@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --font-family-sans: Futura, Helvetica, Arial, sans-serif;
@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  @apply h-full m-0 p-0 overflow-hidden bg-[rgb(40,40,40)] text-gray-200;
+  @apply m-0 h-full overflow-hidden bg-[rgb(40,40,40)] p-0 text-gray-200;
   font-family: var(--font-family-sans);
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -24,6 +24,6 @@ body {
 }
 
 .chromoton canvas {
-  @apply block absolute inset-0 w-full h-full;
+  @apply absolute inset-0 block h-full w-full;
   image-rendering: pixelated;
 }

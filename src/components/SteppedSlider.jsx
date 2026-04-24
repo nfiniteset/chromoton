@@ -4,19 +4,25 @@ export default function SteppedSlider({
   displayValue,
   steps,
   onChange,
-  contrastColors
+  contrastColors,
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-baseline" style={{
-        color: contrastColors?.textColorAlpha,
-        transition: 'color 300ms ease-out'
-      }}>
+      <div
+        className="flex items-baseline justify-between"
+        style={{
+          color: contrastColors?.textColorAlpha,
+          transition: 'color 300ms ease-out',
+        }}
+      >
         <span>{label}</span>
-        <span className="text-[11px] tabular-nums" style={{
-          color: contrastColors?.textColorFaded,
-          transition: 'color 300ms ease-out'
-        }}>
+        <span
+          className="text-[11px] tabular-nums"
+          style={{
+            color: contrastColors?.textColorFaded,
+            transition: 'color 300ms ease-out',
+          }}
+        >
           {displayValue}
         </span>
       </div>
@@ -27,17 +33,13 @@ export default function SteppedSlider({
         step="1"
         value={value}
         onChange={onChange}
-        className="w-full h-0.5 appearance-none rounded-sm outline-none cursor-pointer
-                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3
-                   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
-                   [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full
-                   [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
+        className="h-0.5 w-full cursor-pointer appearance-none rounded-sm outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full"
         style={{
           background: contrastColors?.borderColor,
           '--slider-thumb-color': contrastColors?.sliderThumb,
-          transition: 'background 300ms ease-out'
+          transition: 'background 300ms ease-out',
         }}
       />
     </div>
-  );
+  )
 }

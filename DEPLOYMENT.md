@@ -99,17 +99,21 @@ For better performance and HTTPS, consider adding CloudFront:
 ## Troubleshooting
 
 ### "S3_BUCKET environment variable is required"
+
 - Make sure you've created a `.env` file from `.env.example`
 - Check that all required variables are set
 
 ### "dist directory not found"
+
 - Run `npm run build` first, or use `npm run deploy` which builds automatically
 
 ### Permission Denied
+
 - Verify your AWS credentials have S3 write permissions
 - Check IAM policy allows `s3:PutObject` and `s3:DeleteObject` actions
 
 ### Files Upload But Site Doesn't Work
+
 - Ensure static website hosting is enabled on your bucket
 - Check bucket policy allows public read access
 - Verify the bucket URL in your browser
