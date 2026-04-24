@@ -1,55 +1,36 @@
 import { STRATEGY_REGISTRY } from '../strategies';
+import SteppedSlider from './SteppedSlider';
+
+// Slider position to strategy ID mapping
+const STRATEGY_MAP = [
+  'none',           // 0
+  'simple',         // 1
+  'population',     // 2
+  'three-target',   // 3
+  'swap-agitation'  // 4
+];
 
 export default function StrategySelector({ currentStrategy, onStrategyChange, contrastColors }) {
+  // Get current slider position from strategy ID
+  const currentPosition = STRATEGY_MAP.indexOf(currentStrategy);
+
+  // Get current strategy metadata
+  const currentMetadata = STRATEGY_REGISTRY.find(({ metadata }) => metadata.id === currentStrategy)?.metadata;
+
+  const handleSliderChange = (e) => {
+    const position = parseInt(e.target.value, 10);
+    const strategyId = STRATEGY_MAP[position];
+    onStrategyChange(strategyId);
+  };
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-between items-baseline" style={{
-        color: contrastColors?.textColorAlpha,
-        transition: 'color 300ms ease-out'
-      }}>
-        <span>Randomization Strategy</span>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        {STRATEGY_REGISTRY.map(({ metadata }) => (
-          <label
-            key={metadata.id}
-            className="flex items-start gap-2 cursor-pointer select-none group"
-          >
-            <input
-              type="radio"
-              name="strategy"
-              value={metadata.id}
-              checked={currentStrategy === metadata.id}
-              onChange={(e) => onStrategyChange(e.target.value)}
-              className="mt-0.5 cursor-pointer"
-              style={{
-                accentColor: contrastColors?.textColor,
-                transition: 'accent-color 300ms ease-out'
-              }}
-            />
-            <div className="flex flex-col gap-0.5">
-              <span
-                className="text-[11px] tracking-wide uppercase group-hover:opacity-80"
-                style={{
-                  color: contrastColors?.textColor,
-                  transition: 'color 300ms ease-out, opacity 300ms ease-out'
-                }}
-              >
-                {metadata.name}
-              </span>
-              <span
-                className="text-[10px] leading-tight"
-                style={{
-                  color: contrastColors?.textColorFaded,
-                  transition: 'color 300ms ease-out'
-                }}
-              >
-                {metadata.description}
-              </span>
-            </div>
-          </label>
-        ))}
-      </div>
-    </div>
+    <SteppedSlider
+      label="Spice"
+      value={currentPosition}
+      displayValue={currentMetadata?.name || 'None'}
+      steps={STRATEGY_MAP}
+      onChange={handleSliderChange}
+      contrastColors={contrastColors}
+    />
   );
 }

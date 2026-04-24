@@ -5,7 +5,7 @@ import { getUniqueRandomColor } from '../utils/colorUtils';
 
 export const metadata: StrategyMetadata = {
   id: 'three-target',
-  name: 'Three-Target',
+  name: 'Drama',
   description: 'Maintains 3 colors, replaces any reaching 40%+'
 };
 

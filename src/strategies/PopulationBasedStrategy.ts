@@ -5,7 +5,7 @@ import { getRandomColor, getUniqueRandomColor, getColorSuccessCounts } from '../
 
 export const metadata: StrategyMetadata = {
   id: 'population',
-  name: 'Population-Based',
+  name: 'Chill',
   description: 'Analyzes simulation to make smart decisions'
 };
 

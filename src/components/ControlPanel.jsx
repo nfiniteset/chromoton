@@ -190,7 +190,7 @@ export default function ControlPanel({
       <div
         ref={panelRef}
         onTransitionEnd={handleTransitionEnd}
-        className="absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-7 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none pointer-events-auto"
+        className="absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-4 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none pointer-events-auto"
         style={{
           color: contrastColors.textColor,
           borderColor: contrastColors.borderColor,
@@ -199,9 +199,9 @@ export default function ControlPanel({
         }}
       >
       <h2
-        className="m-0 mb-1 text-[10px] font-semibold tracking-[0.12em] relative z-[1]"
+        className="m-0 mb-0 text-xs font-medium tracking-[0.12em] relative z-[1]"
         style={{
-          color: contrastColors.textColorHeader,
+          color: contrastColors.textColor,
           transition: 'color 300ms ease-out'
         }}
       >

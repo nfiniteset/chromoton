@@ -4,7 +4,7 @@ import { getUniqueRandomColor, getColorSuccessCounts } from '../utils/colorUtils
 
 export const metadata: StrategyMetadata = {
   id: 'swap-agitation',
-  name: 'Swap Agitation',
+  name: 'Chaos',
   description: 'High-energy chaos - swaps most successful color every 2 seconds'
 };
 

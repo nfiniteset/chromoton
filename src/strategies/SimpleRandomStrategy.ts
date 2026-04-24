@@ -4,7 +4,7 @@ import { getUniqueRandomColor } from '../utils/colorUtils';
 
 export const metadata: StrategyMetadata = {
   id: 'simple',
-  name: 'Simple Random',
+  name: 'Classic',
   description: 'Randomly changes existing colors'
 };
 
