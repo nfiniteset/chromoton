@@ -153,37 +153,6 @@ export default function ControlPanel({
     }
   }, [isHidden])
 
-  // Inject dynamic slider thumb styles based on contrast colors
-  useEffect(() => {
-    const styleId = 'dynamic-slider-styles'
-    let existingStyle = document.getElementById(styleId)
-
-    if (existingStyle) {
-      existingStyle.remove()
-    }
-
-    const style = document.createElement('style')
-    style.id = styleId
-    style.textContent = `
-      input[type="range"]::-webkit-slider-thumb {
-        background: ${contrastColors.sliderThumb} !important;
-        transition: background 300ms ease-out !important;
-      }
-      input[type="range"]::-moz-range-thumb {
-        background: ${contrastColors.sliderThumb} !important;
-        transition: background 300ms ease-out !important;
-      }
-    `
-    document.head.appendChild(style)
-
-    return () => {
-      const styleToRemove = document.getElementById(styleId)
-      if (styleToRemove) {
-        styleToRemove.remove()
-      }
-    }
-  }, [contrastColors.sliderThumb])
-
   // Reset showAdvanced when sidebar closes
   useEffect(() => {
     if (isHidden) {
