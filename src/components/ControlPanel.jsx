@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import PaletteSelector from './PaletteSelector';
-import StrategySelector from './StrategySelector';
 import ColorList from './ColorList';
 import AdvancedControls from './AdvancedControls';
-import Checkbox from './Checkbox';
+import SubtleButton from './SubtleButton';
 import { useCanvasContrast } from '../hooks/useCanvasContrast';
 
 export default function ControlPanel({
@@ -12,7 +11,6 @@ export default function ControlPanel({
   colors,
   strategyType,
   clarity,
-  mutationRate,
   showPopulation,
   populationPercentages,
   onPaletteChange,
@@ -21,7 +19,6 @@ export default function ControlPanel({
   onRemoveColor,
   onAddColor,
   onClarityChange,
-  onMutationRateChange,
   onShowPopulationChange,
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -140,6 +137,13 @@ export default function ControlPanel({
     };
   }, [contrastColors.sliderThumb]);
 
+  // Reset showAdvanced when sidebar closes
+  useEffect(() => {
+    if (isHidden) {
+      setShowAdvanced(false);
+    }
+  }, [isHidden]);
+
   return (
     <div
       onMouseEnter={handleMouseEnter}
@@ -163,62 +167,59 @@ export default function ControlPanel({
         Chromoton
       </h2>
 
-      <div className="flex flex-col gap-2 relative z-[1]">
-        <PaletteSelector
-          palettes={palettes}
-          currentPalette={currentPalette}
-          onPaletteChange={onPaletteChange}
-          contrastColors={contrastColors}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2 relative z-[1]">
-        <StrategySelector
-          currentStrategy={strategyType}
-          onStrategyChange={onStrategyChange}
-          contrastColors={contrastColors}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2 relative z-[1]">
-        <div className="flex justify-between items-center" style={{ color: contrastColors.textColorAlpha }}>
-          <span>Target Colors</span>
-        </div>
-        <ColorList
-          colors={colors}
-          onColorChange={onColorChange}
-          onRemoveColor={onRemoveColor}
-          onAddColor={onAddColor}
-          showPopulation={showPopulation}
-          populationPercentages={populationPercentages}
-          contrastColors={contrastColors}
-        />
-      </div>
-
-      <hr className="border-none border-t my-3 relative z-[1]" style={{ borderTopColor: contrastColors.borderColor }} />
-
-      <div className="flex flex-col gap-2 relative z-[1]">
-        <Checkbox
-          checked={showAdvanced}
-          onChange={setShowAdvanced}
-          label="More Settings"
-          contrastColors={contrastColors}
-        />
-      </div>
-
-      {showAdvanced && (
-        <div className="relative z-[1]">
-          <AdvancedControls
-            clarity={clarity}
-            mutationRate={mutationRate}
+      <div className="flex flex-col gap-7 relative z-[1]">
+        <div className="flex flex-col gap-4">
+          <PaletteSelector
+            palettes={palettes}
+            currentPalette={currentPalette}
+            onPaletteChange={onPaletteChange}
+            contrastColors={contrastColors}
+          />
+          <ColorList
+            colors={colors}
+            onColorChange={onColorChange}
+            onRemoveColor={onRemoveColor}
+            onAddColor={onAddColor}
             showPopulation={showPopulation}
-            onClarityChange={onClarityChange}
-            onMutationRateChange={onMutationRateChange}
-            onShowPopulationChange={onShowPopulationChange}
+            populationPercentages={populationPercentages}
             contrastColors={contrastColors}
           />
         </div>
-      )}
+
+        {!showAdvanced ? (
+          <>
+            <hr
+              className="border-none h-px -mx-5"
+              style={{ backgroundColor: contrastColors.borderColor }}
+            />
+            <div className="-mx-5 -mb-6 -mt-7">
+              <SubtleButton
+                onClick={() => setShowAdvanced(true)}
+                contrastColors={contrastColors}
+              >
+                <span>More</span>
+                <span className="text-[10px]">▶</span>
+              </SubtleButton>
+            </div>
+          </>
+        ) : (
+          <>
+            <hr
+              className="border-none h-px -mx-5"
+              style={{ backgroundColor: contrastColors.borderColor }}
+            />
+            <AdvancedControls
+              currentStrategy={strategyType}
+              onStrategyChange={onStrategyChange}
+              clarity={clarity}
+              showPopulation={showPopulation}
+              onClarityChange={onClarityChange}
+              onShowPopulationChange={onShowPopulationChange}
+              contrastColors={contrastColors}
+            />
+          </>
+        )}
+      </div>
       </div>
     </div>
   );

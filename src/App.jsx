@@ -12,7 +12,6 @@ import { createStrategyById } from './strategies';
 function App() {
   // Persisted settings with defaults
   const [clarity, setClarity] = useLocalStorage('chromoton-clarity', 240);
-  const [mutationRate, setMutationRate] = useLocalStorage('chromoton-mutationRate', 0.002);
   const [strategyType, setStrategyType] = useLocalStorage('chromoton-strategyType', 'three-target');
   const [showPopulation, setShowPopulation] = useLocalStorage('chromoton-showPopulation', false);
   const [populationPercentages, setPopulationPercentages] = useState([]);
@@ -121,7 +120,6 @@ function App() {
     <>
       <Chromoton
         width={clarity}
-        mutationRate={mutationRate}
         autoStart={true}
       />
 
@@ -131,7 +129,6 @@ function App() {
         colors={colorModel.colors}
         strategyType={strategyType}
         clarity={clarity}
-        mutationRate={mutationRate}
         showPopulation={showPopulation}
         populationPercentages={populationPercentages}
         onPaletteChange={colorModel.setPalette}
@@ -140,7 +137,6 @@ function App() {
         onRemoveColor={colorModel.removeColor}
         onAddColor={colorModel.addColor}
         onClarityChange={setClarity}
-        onMutationRateChange={setMutationRate}
         onShowPopulationChange={setShowPopulation}
       />
     </>

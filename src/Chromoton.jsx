@@ -7,17 +7,17 @@ import '../chromoton.js';
  * @param {Object} props
  * @param {number} [props.width=240] - Initial grid width (clarity)
  * @param {number} [props.height] - Initial grid height (auto-calculated if not provided)
- * @param {number} [props.mutationRate=0.002] - Mutation rate for the genetic algorithm
  * @param {boolean} [props.autoStart=true] - Whether to start the simulation automatically
  * @param {string} [props.className] - Additional CSS classes for the container
  */
 export default function Chromoton({
   width = 240,
   height,
-  mutationRate = 0.002,
   autoStart = true,
   className = ''
 }) {
+  // Internal mutation rate for the simulation (not exposed as a prop)
+  const mutationRate = 0.002;
   const containerRef = useRef(null);
   const isInitialized = useRef(false);
   const resizeTimeoutRef = useRef(null);
@@ -86,7 +86,7 @@ export default function Chromoton({
         window.chromoton.hide();
       }
     };
-  }, [width, height, mutationRate, autoStart]);
+  }, [width, height, autoStart]);
 
   return (
     <div
