@@ -19,6 +19,7 @@ interface ContrastColors {
 export function useCanvasContrast(panelRef: RefObject<HTMLElement>): ContrastColors {
   const [colors, setColors] = useState<ContrastColors>(getDefaultColors());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isLightThemeRef = useRef<boolean>(true); // Track current theme to prevent flashing
 
   useEffect(() => {
     if (!panelRef?.current) {
@@ -27,11 +28,11 @@ export function useCanvasContrast(panelRef: RefObject<HTMLElement>): ContrastCol
 
     // Update contrast every 100ms
     intervalRef.current = setInterval(() => {
-      updateContrast(panelRef.current, setColors);
+      updateContrast(panelRef.current, setColors, isLightThemeRef);
     }, 100);
 
     // Initial update
-    updateContrast(panelRef.current, setColors);
+    updateContrast(panelRef.current, setColors, isLightThemeRef);
 
     return () => {
       if (intervalRef.current) {
@@ -57,7 +58,8 @@ function getDefaultColors(): ContrastColors {
 
 function updateContrast(
   panel: HTMLElement,
-  setColors: (colors: ContrastColors) => void
+  setColors: (colors: ContrastColors) => void,
+  isLightThemeRef: RefObject<boolean>
 ): void {
   if (!panel) {
     return;
@@ -68,7 +70,7 @@ function updateContrast(
     return;
   }
 
-  const calculatedColors = calculateContrastColors(rawColor);
+  const calculatedColors = calculateContrastColors(rawColor, isLightThemeRef);
   setColors(calculatedColors);
 }
 
@@ -136,7 +138,7 @@ function sampleCanvasColorBehindPanel(panel: HTMLElement): Color | null {
   };
 }
 
-function calculateContrastColors(rawColor: Color): ContrastColors {
+function calculateContrastColors(rawColor: Color, isLightThemeRef: RefObject<boolean>): ContrastColors {
   // Apply blur effect (simulated by slight desaturation)
   let color = chroma(rawColor.r, rawColor.g, rawColor.b);
 
@@ -165,8 +167,24 @@ function calculateContrastColors(rawColor: Color): ContrastColors {
   const contrastWithWhite = chroma.contrast(bgChroma, 'white');
   const contrastWithBlack = chroma.contrast(bgChroma, 'black');
 
-  // Choose the color scheme with better contrast
-  const useWhite = contrastWithWhite > contrastWithBlack;
+  // Apply hysteresis to prevent flashing between themes
+  // Require 55% better contrast before switching themes
+  const hysteresisThreshold = 1.55;
+  const currentlyLight = isLightThemeRef.current ?? true;
+
+  let useWhite: boolean;
+  if (currentlyLight) {
+    // Currently light theme - only switch to dark if black contrast is 55% better
+    useWhite = contrastWithWhite * hysteresisThreshold > contrastWithBlack;
+  } else {
+    // Currently dark theme - only switch to light if white contrast is 55% better
+    useWhite = contrastWithWhite > contrastWithBlack * hysteresisThreshold;
+  }
+
+  // Update the ref with the new theme choice
+  if (isLightThemeRef.current !== undefined) {
+    isLightThemeRef.current = useWhite;
+  }
 
   // Generate colors with the sampled hue
   // If hue is NaN (grayscale), fall back to neutral colors
