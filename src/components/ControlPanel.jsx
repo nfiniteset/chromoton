@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import PaletteSelector from './PaletteSelector'
 import PalettePicker from './PalettePicker'
 import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
@@ -196,6 +195,10 @@ export default function ControlPanel({
     }
   }
 
+  function handlePalettePickerLink() {
+    withViewTransition(() => setShowPalettePicker(true));              
+  }
+
   return (
     <div
       onMouseEnter={handleMouseEnter}
@@ -238,26 +241,24 @@ export default function ControlPanel({
         >
           {!showPalettePicker ? (
             <div className="flex flex-col gap-7">
-              <div className="flex flex-col gap-4 px-5 pb-6">
-                <PaletteSelector
-                  palettes={palettes}
-                  currentPalette={currentPalette}
-                  onPaletteChange={onPaletteChange}
-                  onShowPicker={() =>
-                    withViewTransition(() => setShowPalettePicker(true))
-                  }
-                  contrastColors={contrastColors}
-                />
-                <ColorList
-                  colors={colors}
-                  onColorChange={onColorChange}
-                  onRemoveColor={onRemoveColor}
-                  onAddColor={onAddColor}
-                  showPopulation={showPopulation}
-                  populationPercentages={populationPercentages}
-                  contrastColors={contrastColors}
-                />
+              <div className="flex flex-col gap-4">
+                <SubtleButton onClick={handlePalettePickerLink} contrastColors={contrastColors}>
+                  <span>{currentPalette}</span>
+                  <span className="text-[10px]">▶</span>
+                </SubtleButton>
+                <div className=' px-5'>
+                  <ColorList
+                    colors={colors}
+                    onColorChange={onColorChange}
+                    onRemoveColor={onRemoveColor}
+                    onAddColor={onAddColor}
+                    showPopulation={showPopulation}
+                    populationPercentages={populationPercentages}
+                    contrastColors={contrastColors}
+                  />
+                </div>
               </div>
+              
 
               <hr
                 className="h-px border-none"
@@ -301,17 +302,15 @@ export default function ControlPanel({
               </div>
             </div>
           ) : (
-            <div className="px-5 pb-6">
-              <PalettePicker
-                palettes={palettes}
-                currentPalette={currentPalette}
-                onPaletteChange={onPaletteChange}
-                onBack={() =>
-                  withViewTransition(() => setShowPalettePicker(false))
-                }
-                contrastColors={contrastColors}
-              />
-            </div>
+            <PalettePicker
+              palettes={palettes}
+              currentPalette={currentPalette}
+              onPaletteChange={onPaletteChange}
+              onBack={() =>
+                withViewTransition(() => setShowPalettePicker(false))
+              }
+              contrastColors={contrastColors}
+            />
           )}
         </div>
       </div>

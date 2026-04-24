@@ -22,10 +22,10 @@ export default function PalettePicker({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col pb-7">
       <button
         onClick={onBack}
-        className="-mx-5 flex cursor-pointer items-center gap-2 border-none bg-transparent px-5 pt-4 pb-4 text-left transition-colors hover:bg-white/5"
+        className="-mx-5 flex cursor-pointer items-center gap-2 border-none bg-transparent px-5 pt-4 pb-4 text-left transition-colors hover:bg-white/30"
         style={{
           color: contrastColors?.textColorAlpha,
           transition: 'color 300ms ease-out',
@@ -35,7 +35,7 @@ export default function PalettePicker({
         <span className="text-xs tracking-wider uppercase">Back</span>
       </button>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col">
         {palettes.map((paletteName) => {
           const palette = PALETTES[paletteName]
           const isSelected = paletteName === currentPalette
@@ -44,12 +44,12 @@ export default function PalettePicker({
             <button
               key={paletteName}
               onClick={() => handlePaletteClick(paletteName)}
-              className="flex cursor-pointer flex-col gap-2 rounded-sm border-none p-3 text-left transition-all"
+              className="flex cursor-pointer flex-col gap-2 border-none p-3 text-left transition-all px-5 hover:bg-white/30"
               style={{
                 backgroundColor: isSelected
-                  ? 'rgba(255, 255, 255, 0.15)'
+                  ? 'rgba(255, 255, 255, 0.50)'
                   : 'rgba(255, 255, 255, 0.05)',
-                borderWidth: '1px',
+                borderWidth: '1px 0',
                 borderStyle: 'solid',
                 borderColor: isSelected
                   ? contrastColors?.borderColorHover
