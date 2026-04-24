@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import PaletteSelector from './PaletteSelector';
+import PalettePicker from './PalettePicker';
 import ColorList from './ColorList';
 import AdvancedControls from './AdvancedControls';
 import SubtleButton from './SubtleButton';
@@ -22,6 +23,7 @@ export default function ControlPanel({
   onShowPopulationChange,
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showPalettePicker, setShowPalettePicker] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   const [isHiding, setIsHiding] = useState(false);
   const [hideDelay, setHideDelay] = useState(0);
@@ -32,6 +34,17 @@ export default function ControlPanel({
 
   const HIDE_DELAY = 500; // half second
   const EDGE_THRESHOLD = 220; // pixels from right edge to trigger show
+
+  // Helper to use View Transition API if available
+  const withViewTransition = (updateFn) => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        updateFn();
+      });
+    } else {
+      updateFn();
+    }
+  };
 
   const showSidebar = () => {
     if (hideTimerRef.current) {
@@ -190,7 +203,7 @@ export default function ControlPanel({
       <div
         ref={panelRef}
         onTransitionEnd={handleTransitionEnd}
-        className="absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-4 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none pointer-events-auto"
+        className="absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl box-border flex flex-col gap-4 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none pointer-events-auto"
         style={{
           color: contrastColors.textColor,
           borderColor: contrastColors.borderColor,
@@ -199,7 +212,7 @@ export default function ControlPanel({
         }}
       >
       <h2
-        className="m-0 mb-0 text-xs font-medium tracking-[0.12em] relative z-[1]"
+        className="m-0 mb-0 px-5 pt-6 text-xs font-medium tracking-[0.12em] relative z-[1]"
         style={{
           color: contrastColors.textColor,
           transition: 'color 300ms ease-out'
@@ -208,62 +221,82 @@ export default function ControlPanel({
         Chromoton
       </h2>
 
-      <div className="flex flex-col gap-7 relative z-[1]">
-        <div className="flex flex-col gap-4">
-          <PaletteSelector
-            palettes={palettes}
-            currentPalette={currentPalette}
-            onPaletteChange={onPaletteChange}
-            contrastColors={contrastColors}
-          />
-          <ColorList
-            colors={colors}
-            onColorChange={onColorChange}
-            onRemoveColor={onRemoveColor}
-            onAddColor={onAddColor}
-            showPopulation={showPopulation}
-            populationPercentages={populationPercentages}
-            contrastColors={contrastColors}
-          />
-        </div>
+      <div
+        className="relative z-[1] overflow-x-hidden overflow-y-auto"
+        style={{
+          maxHeight: showPalettePicker ? '2000px' : (showAdvanced ? '2000px' : '600px'),
+          transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)'
+        }}
+      >
+        {!showPalettePicker ? (
+          <div className="flex flex-col gap-7 px-5 pb-6">
+            <div className="flex flex-col gap-4">
+              <PaletteSelector
+                palettes={palettes}
+                currentPalette={currentPalette}
+                onPaletteChange={onPaletteChange}
+                onShowPicker={() => withViewTransition(() => setShowPalettePicker(true))}
+                contrastColors={contrastColors}
+              />
+              <ColorList
+                colors={colors}
+                onColorChange={onColorChange}
+                onRemoveColor={onRemoveColor}
+                onAddColor={onAddColor}
+                showPopulation={showPopulation}
+                populationPercentages={populationPercentages}
+                contrastColors={contrastColors}
+              />
+            </div>
 
-        <hr
-          className="border-none h-px -mx-5"
-          style={{
-            backgroundColor: contrastColors.borderColor,
-            transition: 'background-color 300ms ease-out'
-          }}
-        />
+            <hr
+              className="border-none h-px"
+              style={{
+                backgroundColor: contrastColors.borderColor,
+                transition: 'background-color 300ms ease-out'
+              }}
+            />
 
-        <div
-          className="-mx-5 -mb-6 -mt-7 relative overflow-hidden"
-          style={{
-            maxHeight: !showAdvanced ? '48px' : '2000px',
-            transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)'
-          }}
-        >
-          <div className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-            <SubtleButton
-              onClick={() => setShowAdvanced(true)}
-              contrastColors={contrastColors}
+            <div
+              className="-mt-7 relative overflow-hidden"
+              style={{
+                maxHeight: !showAdvanced ? '48px' : '2000px',
+                transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)'
+              }}
             >
-              <span>More</span>
-              <span className="text-[10px]">▶</span>
-            </SubtleButton>
-          </div>
+              <div className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <SubtleButton
+                  onClick={() => setShowAdvanced(true)}
+                  contrastColors={contrastColors}
+                >
+                  <span>More</span>
+                </SubtleButton>
+              </div>
 
-          <div className={`px-5 pt-7 pb-6 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-            <AdvancedControls
-              currentStrategy={strategyType}
-              onStrategyChange={onStrategyChange}
-              clarity={clarity}
-              showPopulation={showPopulation}
-              onClarityChange={onClarityChange}
-              onShowPopulationChange={onShowPopulationChange}
+              <div className={`px-5 pt-7 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <AdvancedControls
+                  currentStrategy={strategyType}
+                  onStrategyChange={onStrategyChange}
+                  clarity={clarity}
+                  showPopulation={showPopulation}
+                  onClarityChange={onClarityChange}
+                  onShowPopulationChange={onShowPopulationChange}
+                  contrastColors={contrastColors}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-5 pb-6">
+            <PalettePicker
+              palettes={palettes}
+              currentPalette={currentPalette}
+              onPaletteChange={onPaletteChange}
+              onBack={() => withViewTransition(() => setShowPalettePicker(false))}
               contrastColors={contrastColors}
             />
           </div>
-        </div>
+        )}
       </div>
       </div>
     </div>

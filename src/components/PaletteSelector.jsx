@@ -1,4 +1,4 @@
-export default function PaletteSelector({ palettes, currentPalette, onPaletteChange, contrastColors }) {
+export default function PaletteSelector({ palettes, currentPalette, onPaletteChange, onShowPicker, contrastColors }) {
   const formatPaletteName = (name) => {
     if (name === 'none') {
       return 'None';
@@ -9,10 +9,9 @@ export default function PaletteSelector({ palettes, currentPalette, onPaletteCha
   };
 
   return (
-    <select
-      value={currentPalette}
-      onChange={(e) => onPaletteChange(e.target.value)}
-      className="w-full px-2 py-2 bg-white/10 cursor-pointer rounded-sm text-[11px] tracking-wider uppercase hover:bg-white/15 focus:outline-none focus:ring-2"
+    <button
+      onClick={onShowPicker}
+      className="w-full px-2 py-2 bg-white/10 cursor-pointer rounded-sm text-[11px] tracking-wider uppercase hover:bg-white/15 focus:outline-none focus:ring-2 flex justify-between items-center border-none"
       style={{
         color: contrastColors?.textColor,
         borderColor: contrastColors?.borderColorHover,
@@ -21,11 +20,8 @@ export default function PaletteSelector({ palettes, currentPalette, onPaletteCha
         transition: 'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out'
       }}
     >
-      {palettes.map(palette => (
-        <option key={palette} value={palette}>
-          {formatPaletteName(palette)}
-        </option>
-      ))}
-    </select>
+      <span>{formatPaletteName(currentPalette)}</span>
+      <span className="text-[10px]">▶</span>
+    </button>
   );
 }
