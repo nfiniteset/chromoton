@@ -17,7 +17,7 @@ export default function AdvancedControls({
     currentStepIndex === -1 ? resolutionSteps.length - 1 : currentStepIndex
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex flex-col gap-7 pb-7">
       <div className="flex flex-col gap-2">
         <StrategySelector
           currentStrategy={currentStrategy}

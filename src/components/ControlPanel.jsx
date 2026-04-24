@@ -237,8 +237,8 @@ export default function ControlPanel({
           }}
         >
           {!showPalettePicker ? (
-            <div className="flex flex-col gap-7 px-5 pb-6">
-              <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-7">
+              <div className="flex flex-col gap-4 px-5 pb-6">
                 <PaletteSelector
                   palettes={palettes}
                   currentPalette={currentPalette}
