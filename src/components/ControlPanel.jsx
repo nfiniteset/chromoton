@@ -23,6 +23,8 @@ export default function ControlPanel({
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [isHiding, setIsHiding] = useState(false);
+  const [hideDelay, setHideDelay] = useState(0);
   const hideTimerRef = useRef(null);
   const panelRef = useRef(null);
   const isHoveringRef = useRef(false);
@@ -36,7 +38,11 @@ export default function ControlPanel({
       clearTimeout(hideTimerRef.current);
     }
 
-    setIsHidden(false);
+    setIsHiding(false);
+    setHideDelay(0);
+    requestAnimationFrame(() => {
+      setIsHidden(false);
+    });
   };
 
   const scheduleSidebarHide = () => {
@@ -45,7 +51,19 @@ export default function ControlPanel({
     }
 
     hideTimerRef.current = setTimeout(() => {
-      setIsHidden(true);
+      // If advanced panel is open, delay the slide-out to let height collapse first
+      const needsDelay = showAdvanced;
+
+      setIsHiding(true);
+      setHideDelay(needsDelay ? 300 : 0);
+
+      if (needsDelay) {
+        setShowAdvanced(false);
+      }
+
+      requestAnimationFrame(() => {
+        setIsHidden(true);
+      });
     }, HIDE_DELAY);
   };
 
@@ -96,7 +114,11 @@ export default function ControlPanel({
 
     // Start with sidebar visible for 3 seconds on page load
     hideTimerRef.current = setTimeout(() => {
-      setIsHidden(true);
+      setIsHiding(true);
+      setHideDelay(0); // No advanced panel on initial load
+      requestAnimationFrame(() => {
+        setIsHidden(true);
+      });
     }, 3000);
 
     return () => {
@@ -144,6 +166,14 @@ export default function ControlPanel({
     }
   }, [isHidden]);
 
+  // Handle transition end to reset isHiding state
+  const handleTransitionEnd = (e) => {
+    if (e.propertyName === 'transform' && isHiding) {
+      setIsHiding(false);
+      setHideDelay(0);
+    }
+  };
+
   return (
     <div
       onMouseEnter={handleMouseEnter}
@@ -152,12 +182,13 @@ export default function ControlPanel({
     >
       <div
         ref={panelRef}
-        className={`absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-7 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none transition-transform duration-300 ease-out pointer-events-auto ${
-          isHidden ? 'translate-x-[calc(100%+20px)]' : 'translate-x-0'
-        }`}
+        onTransitionEnd={handleTransitionEnd}
+        className="absolute top-5 right-5 max-h-[calc(100vh-40px)] w-[220px] bg-white/8 rounded-2xl px-5 py-6 box-border flex flex-col gap-7 text-xs tracking-wider uppercase overflow-y-auto overflow-x-hidden shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:p-px before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] before:[mask-composite:exclude] before:pointer-events-none pointer-events-auto"
         style={{
           color: contrastColors.textColor,
           borderColor: contrastColors.borderColor,
+          transform: isHidden ? 'translateX(calc(100% + 20px))' : 'translateX(0)',
+          transition: `transform 300ms ${isHiding ? 'ease-in' : 'ease-out'} ${hideDelay}ms`,
         }}
       >
       <h2
@@ -186,28 +217,29 @@ export default function ControlPanel({
           />
         </div>
 
-        {!showAdvanced ? (
-          <>
-            <hr
-              className="border-none h-px -mx-5"
-              style={{ backgroundColor: contrastColors.borderColor }}
-            />
-            <div className="-mx-5 -mb-6 -mt-7">
-              <SubtleButton
-                onClick={() => setShowAdvanced(true)}
-                contrastColors={contrastColors}
-              >
-                <span>More</span>
-                <span className="text-[10px]">▶</span>
-              </SubtleButton>
-            </div>
-          </>
-        ) : (
-          <>
-            <hr
-              className="border-none h-px -mx-5"
-              style={{ backgroundColor: contrastColors.borderColor }}
-            />
+        <hr
+          className="border-none h-px -mx-5"
+          style={{ backgroundColor: contrastColors.borderColor }}
+        />
+
+        <div
+          className="-mx-5 -mb-6 -mt-7 relative overflow-hidden"
+          style={{
+            maxHeight: !showAdvanced ? '48px' : '2000px',
+            transition: 'max-height 300ms ease-in-out'
+          }}
+        >
+          <div className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <SubtleButton
+              onClick={() => setShowAdvanced(true)}
+              contrastColors={contrastColors}
+            >
+              <span>More</span>
+              <span className="text-[10px]">▶</span>
+            </SubtleButton>
+          </div>
+
+          <div className={`px-5 pt-7 pb-6 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <AdvancedControls
               currentStrategy={strategyType}
               onStrategyChange={onStrategyChange}
@@ -217,8 +249,8 @@ export default function ControlPanel({
               onShowPopulationChange={onShowPopulationChange}
               contrastColors={contrastColors}
             />
-          </>
-        )}
+          </div>
+        </div>
       </div>
       </div>
     </div>
