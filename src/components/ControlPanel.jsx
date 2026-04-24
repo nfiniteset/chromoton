@@ -84,13 +84,32 @@ export default function ControlPanel({
     scheduleSidebarHide();
   };
 
+  // Initial auto-hide after 3 seconds
+  useEffect(() => {
+    hideTimerRef.current = setTimeout(() => {
+      setIsHiding(true);
+      setHideDelay(0); // No advanced panel on initial load
+      requestAnimationFrame(() => {
+        setIsHidden(true);
+      });
+    }, 3000);
+
+    return () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Event listeners for mouse movement and color picker
   useEffect(() => {
     // Handle mouse movement to show sidebar when approaching right edge
     const handleMouseMove = (e) => {
       const distanceFromRight = window.innerWidth - e.clientX;
       const isNearRightEdge = distanceFromRight <= EDGE_THRESHOLD;
 
-      if (!isNearRightEdge) {
+      // Only trigger show if near edge AND panel is currently hidden
+      if (!isNearRightEdge || !isHidden) {
         return;
       }
 
@@ -112,23 +131,11 @@ export default function ControlPanel({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('blur', handleColorPickerBlur, true);
 
-    // Start with sidebar visible for 3 seconds on page load
-    hideTimerRef.current = setTimeout(() => {
-      setIsHiding(true);
-      setHideDelay(0); // No advanced panel on initial load
-      requestAnimationFrame(() => {
-        setIsHidden(true);
-      });
-    }, 3000);
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('blur', handleColorPickerBlur, true);
-      if (hideTimerRef.current) {
-        clearTimeout(hideTimerRef.current);
-      }
     };
-  }, []);
+  }, [isHidden]);
 
   // Inject dynamic slider thumb styles based on contrast colors
   useEffect(() => {
@@ -188,12 +195,15 @@ export default function ControlPanel({
           color: contrastColors.textColor,
           borderColor: contrastColors.borderColor,
           transform: isHidden ? 'translateX(calc(100% + 20px))' : 'translateX(0)',
-          transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms`,
+          transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms, color 300ms ease-out, border-color 300ms ease-out`,
         }}
       >
       <h2
         className="m-0 mb-1 text-[10px] font-semibold tracking-[0.12em] relative z-[1]"
-        style={{ color: contrastColors.textColorHeader }}
+        style={{
+          color: contrastColors.textColorHeader,
+          transition: 'color 300ms ease-out'
+        }}
       >
         Chromoton
       </h2>
@@ -219,7 +229,10 @@ export default function ControlPanel({
 
         <hr
           className="border-none h-px -mx-5"
-          style={{ backgroundColor: contrastColors.borderColor }}
+          style={{
+            backgroundColor: contrastColors.borderColor,
+            transition: 'background-color 300ms ease-out'
+          }}
         />
 
         <div

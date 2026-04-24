@@ -27,12 +27,13 @@ export default function ColorList({ colors, onColorChange, onRemoveColor, onAddC
       <button
         onClick={onAddColor}
         disabled={colors.length >= 5}
-        className="w-full py-1.5 mt-0 bg-white/10 rounded-sm text-[11px] tracking-wider uppercase transition-colors hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-1.5 mt-0 bg-white/10 rounded-sm text-[11px] tracking-wider uppercase hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
           color: contrastColors?.textColor,
           borderColor: contrastColors?.borderColorHover,
           borderWidth: '1px',
-          borderStyle: 'solid'
+          borderStyle: 'solid',
+          transition: 'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out, opacity 300ms ease-out'
         }}
       >
         + Add Color

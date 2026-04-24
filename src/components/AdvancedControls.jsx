@@ -5,9 +5,15 @@ export default function AdvancedControls({ currentStrategy, onStrategyChange, cl
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-col gap-2">
-        <div className="flex justify-between items-baseline" style={{ color: contrastColors?.textColorAlpha }}>
+        <div className="flex justify-between items-baseline" style={{
+          color: contrastColors?.textColorAlpha,
+          transition: 'color 300ms ease-out'
+        }}>
           <span>Resolution</span>
-          <span className="text-[11px] tabular-nums" style={{ color: contrastColors?.textColorFaded }}>{clarity}</span>
+          <span className="text-[11px] tabular-nums" style={{
+            color: contrastColors?.textColorFaded,
+            transition: 'color 300ms ease-out'
+          }}>{clarity}</span>
         </div>
         <input
           type="range"
@@ -23,7 +29,8 @@ export default function AdvancedControls({ currentStrategy, onStrategyChange, cl
                      [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-0"
           style={{
             background: contrastColors?.borderColor,
-            '--slider-thumb-color': contrastColors?.sliderThumb
+            '--slider-thumb-color': contrastColors?.sliderThumb,
+            transition: 'background 300ms ease-out'
           }}
         />
       </div>

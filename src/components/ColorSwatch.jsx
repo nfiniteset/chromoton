@@ -26,12 +26,13 @@ export default function ColorSwatch({ color, onColorChange, onRemove, canRemove,
     <div className="flex gap-2 items-center">
       <div className="relative flex-1 h-8 rounded-sm overflow-hidden">
         <div
-          className="w-full h-full rounded-sm box-border transition-colors pointer-events-none"
+          className="w-full h-full rounded-sm box-border pointer-events-none"
           style={{
             background: `rgb(${color.r}, ${color.g}, ${color.b})`,
             borderColor: contrastColors?.borderColorHover,
             borderWidth: '1px',
-            borderStyle: 'solid'
+            borderStyle: 'solid',
+            transition: 'background 300ms ease-out, border-color 300ms ease-out'
           }}
         />
         {percentage !== null && (
@@ -53,12 +54,13 @@ export default function ColorSwatch({ color, onColorChange, onRemove, canRemove,
       {canRemove && (
         <button
           onClick={onRemove}
-          className="w-8 h-8 bg-white/10 cursor-pointer rounded-sm text-lg leading-none p-0 transition-colors hover:bg-white/15"
+          className="w-8 h-8 bg-white/10 cursor-pointer rounded-sm text-lg leading-none p-0 hover:bg-white/15"
           style={{
             color: contrastColors?.textColor,
             borderColor: contrastColors?.borderColorHover,
             borderWidth: '1px',
-            borderStyle: 'solid'
+            borderStyle: 'solid',
+            transition: 'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out'
           }}
         >
           ×
