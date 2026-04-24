@@ -5,16 +5,18 @@ import { NoOpStrategy, metadata as noOpMetadata } from './NoOpStrategy';
 import { SimpleRandomStrategy, metadata as simpleMetadata } from './SimpleRandomStrategy';
 import { PopulationBasedStrategy, metadata as populationMetadata } from './PopulationBasedStrategy';
 import { ThreeTargetStrategy, metadata as threeTargetMetadata } from './ThreeTargetStrategy';
+import { SwapAgitationStrategy, metadata as swapAgitationMetadata } from './SwapAgitationStrategy';
 
 // Export individual strategies for backwards compatibility
-export { NoOpStrategy, SimpleRandomStrategy, PopulationBasedStrategy, ThreeTargetStrategy };
+export { NoOpStrategy, SimpleRandomStrategy, PopulationBasedStrategy, ThreeTargetStrategy, SwapAgitationStrategy };
 
 // Strategy registry - single source of truth for all strategy metadata
 export const STRATEGY_REGISTRY = [
   { metadata: noOpMetadata, Strategy: NoOpStrategy },
   { metadata: populationMetadata, Strategy: PopulationBasedStrategy },
   { metadata: simpleMetadata, Strategy: SimpleRandomStrategy },
-  { metadata: threeTargetMetadata, Strategy: ThreeTargetStrategy }
+  { metadata: threeTargetMetadata, Strategy: ThreeTargetStrategy },
+  { metadata: swapAgitationMetadata, Strategy: SwapAgitationStrategy }
 ] as const;
 
 // Helper to get strategy by id
