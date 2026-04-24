@@ -18,7 +18,7 @@ export default function StrategySelector({ currentStrategy, onStrategyChange, co
     {
       value: 'three-target',
       label: 'Three-Target',
-      description: 'Maintains 3 colors, replaces any reaching 50%+'
+      description: 'Maintains 3 colors, replaces any reaching 40%+'
     }
   ];
 

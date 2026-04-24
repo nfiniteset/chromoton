@@ -12,12 +12,12 @@ const CHECK_INTERVAL_MS = 2000; // Check every 2 seconds
  *
  * Maintains exactly three target colors at all times.
  * Checks every 2 seconds and immediately replaces any color
- * that reaches 50% or more of the population.
+ * that reaches 40% or more of the population.
  *
  * Algorithm:
  * 1. Ensure exactly 3 colors are present (add/remove if needed)
  * 2. Calculate population percentages for each color
- * 3. If any color reaches 50%+, replace it immediately
+ * 3. If any color reaches 40%+, replace it immediately
  * 4. If multiple colors reach threshold, replace one randomly
  */
 export class ThreeTargetStrategy implements RandomizationStrategy {
