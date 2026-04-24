@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 
-export default function SubtleButton({ onClick, children, className, active = false }) {
+export default function SubtleButton({
+  onClick,
+  children,
+  className,
+  active = false,
+}) {
   const { contrastColors } = useTheme()
   const [isHovered, setIsHovered] = useState(false)
 
@@ -27,12 +32,13 @@ export default function SubtleButton({ onClick, children, className, active = fa
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`flex w-full items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase cursor-pointer ${className}`}
+      className={`flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase ${className}`}
       style={{
         backgroundColor: getBackgroundColor(),
         borderColor: getBorderColor(),
         color: getTextColor(),
-        transition: 'color 300ms ease-out, background-color 300ms ease-out, border-color 300ms ease-out',
+        transition:
+          'color 300ms ease-out, background-color 300ms ease-out, border-color 300ms ease-out',
       }}
     >
       {children}

@@ -1,6 +1,12 @@
 import { useTheme } from '../contexts/ThemeContext'
 
-export default function Typography({ as = 'p', intent = 'strong', children, className = '', style = {} }) {
+export default function Typography({
+  as = 'p',
+  intent = 'strong',
+  children,
+  className = '',
+  style = {},
+}) {
   const { contrastColors } = useTheme()
   const Component = as
 

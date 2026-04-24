@@ -44,14 +44,9 @@ export default function SteppedSlider({
 
   return (
     <div className="flex flex-col gap-2">
-      <div
-        className="flex items-baseline justify-between"
-      >
+      <div className="flex items-baseline justify-between">
         <Typography intent="strong">{label}</Typography>
-        <Typography
-          className="text-[11px] tabular-nums"
-          intent="weak"
-        >
+        <Typography className="text-[11px] tabular-nums" intent="weak">
           {displayValue}
         </Typography>
       </div>

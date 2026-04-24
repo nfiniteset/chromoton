@@ -27,11 +27,8 @@ export default function PalettePicker({
 
   return (
     <div className="flex flex-col pb-7">
-      <SubtleButton
-        onClick={onBack}
-        className="pl-1 border-y"
-      >
-        <span className="flex justify-center items-center">
+      <SubtleButton onClick={onBack} className="border-y pl-1">
+        <span className="flex items-center justify-center">
           <BsChevronLeft size="1em" />
           <span className="pl-1 text-xs tracking-wider uppercase">Back</span>
         </span>
@@ -49,7 +46,7 @@ export default function PalettePicker({
               active={isSelected}
               className="py-3"
             >
-              <div className="flex justify-start items-start w-full flex-col gap-2 border-0">
+              <div className="flex w-full flex-col items-start justify-start gap-2 border-0">
                 <span className="text-[11px] tracking-wider uppercase">
                   {formatPaletteName(paletteName)}
                 </span>

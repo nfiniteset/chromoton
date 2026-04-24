@@ -7,7 +7,7 @@ import Typography from './Typography'
 import Divider from './Divider'
 import { useTheme } from '../contexts/ThemeContext'
 
-import { BsChevronRight, BsChevronCompactDown } from "react-icons/bs";
+import { BsChevronRight, BsChevronCompactDown } from 'react-icons/bs'
 
 export default function ControlPanel({
   palettes,
@@ -170,7 +170,7 @@ export default function ControlPanel({
   }
 
   function handlePalettePickerLink() {
-    withViewTransition(() => setShowPalettePicker(true));              
+    withViewTransition(() => setShowPalettePicker(true))
   }
 
   return (
@@ -212,14 +212,19 @@ export default function ControlPanel({
           {!showPalettePicker ? (
             <div className="flex flex-col gap-7">
               <div className="flex flex-col gap-2">
-                <SubtleButton onClick={handlePalettePickerLink} className="border-y">
-                  <div className='text-left gap-0'>
+                <SubtleButton
+                  onClick={handlePalettePickerLink}
+                  className="border-y"
+                >
+                  <div className="gap-0 text-left">
                     <Typography as="p">Color palette</Typography>
-                    <Typography intent="weak" as="p">{currentPalette}</Typography>
+                    <Typography intent="weak" as="p">
+                      {currentPalette}
+                    </Typography>
                   </div>
                   <BsChevronRight size="1.5em" />
                 </SubtleButton>
-                <div className='px-5'>
+                <div className="px-5">
                   <ColorList
                     colors={colors}
                     onColorChange={onColorChange}
@@ -245,7 +250,7 @@ export default function ControlPanel({
                 >
                   <SubtleButton
                     onClick={() => setShowAdvanced(true)}
-                    className="flex justify-center items-center py-1"
+                    className="flex items-center justify-center py-1"
                   >
                     <BsChevronCompactDown size="2em" />
                   </SubtleButton>
