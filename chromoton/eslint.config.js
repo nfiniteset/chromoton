@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import react from 'eslint-plugin-react'
 import tailwindcss from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
+import eslintConfigPrettier from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
@@ -16,6 +17,7 @@ export default defineConfig([
       tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
+      eslintConfigPrettier,
     ],
     plugins: {
       react,

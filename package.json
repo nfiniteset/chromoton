@@ -15,7 +15,9 @@
     "deploy": "npm run build && node deploy.js",
     "deploy:only": "node deploy.js",
     "lint": "cd chromoton && eslint . --ext ts,tsx",
-    "lint:fix": "cd chromoton && eslint . --ext ts,tsx --fix"
+    "lint:fix": "cd chromoton && eslint . --ext ts,tsx --fix",
+    "format": "prettier --write \"chromoton/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"chromoton/**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1032.0",
@@ -27,10 +29,13 @@
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
     "dotenv": "^17.4.2",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-tailwindcss": "^3.18.3",
     "mime-types": "^3.0.2",
     "postcss": "^8.5.10",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.7.3",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.3",
     "vite": "^8.0.8"
