@@ -1,6 +1,12 @@
 import type { ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy } from './types';
+import type { RandomizationStrategy, StrategyMetadata } from './types';
 import { getUniqueRandomColor } from '../utils/colorUtils';
+
+export const metadata: StrategyMetadata = {
+  id: 'simple',
+  name: 'Simple Random',
+  description: 'Purely random, chaotic changes'
+};
 
 const MIN_COLORS = 1;
 const MAX_COLORS = 5;

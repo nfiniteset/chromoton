@@ -1,43 +1,22 @@
-export default function StrategySelector({ currentStrategy, onStrategyChange, contrastColors }) {
-  const strategies = [
-    {
-      value: 'none',
-      label: 'None',
-      description: 'Manual control only, no auto-randomization'
-    },
-    {
-      value: 'population',
-      label: 'Population-Based',
-      description: 'Analyzes simulation to make smart decisions'
-    },
-    {
-      value: 'simple',
-      label: 'Simple Random',
-      description: 'Purely random, chaotic changes'
-    },
-    {
-      value: 'three-target',
-      label: 'Three-Target',
-      description: 'Maintains 3 colors, replaces any reaching 40%+'
-    }
-  ];
+import { STRATEGY_REGISTRY } from '../strategies';
 
+export default function StrategySelector({ currentStrategy, onStrategyChange, contrastColors }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-baseline" style={{ color: contrastColors?.textColorAlpha }}>
         <span>Randomization Strategy</span>
       </div>
       <div className="flex flex-col gap-1.5">
-        {strategies.map(strategy => (
+        {STRATEGY_REGISTRY.map(({ metadata }) => (
           <label
-            key={strategy.value}
+            key={metadata.id}
             className="flex items-start gap-2 cursor-pointer select-none group"
           >
             <input
               type="radio"
               name="strategy"
-              value={strategy.value}
-              checked={currentStrategy === strategy.value}
+              value={metadata.id}
+              checked={currentStrategy === metadata.id}
               onChange={(e) => onStrategyChange(e.target.value)}
               className="mt-0.5 cursor-pointer"
               style={{
@@ -49,13 +28,13 @@ export default function StrategySelector({ currentStrategy, onStrategyChange, co
                 className="text-[11px] tracking-wide uppercase transition-colors group-hover:opacity-80"
                 style={{ color: contrastColors?.textColor }}
               >
-                {strategy.label}
+                {metadata.name}
               </span>
               <span
                 className="text-[10px] leading-tight"
                 style={{ color: contrastColors?.textColorFaded }}
               >
-                {strategy.description}
+                {metadata.description}
               </span>
             </div>
           </label>

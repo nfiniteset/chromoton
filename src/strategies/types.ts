@@ -1,6 +1,15 @@
 import type { ColorState, RandomAction } from '../models/colorModel';
 
 /**
+ * Strategy metadata for UI display and registration
+ */
+export interface StrategyMetadata {
+  id: string;
+  name: string;
+  description: string;
+}
+
+/**
  * Strategy interface for active randomization
  *
  * Strategies manage their own timing and trigger actions when they decide to.
@@ -24,4 +33,12 @@ export interface RandomizationStrategy {
    * Stop the strategy and cleanup any timers/resources
    */
   stop(): void;
+}
+
+/**
+ * Strategy registry entry combining class and metadata
+ */
+export interface StrategyRegistryEntry {
+  metadata: StrategyMetadata;
+  Strategy: new () => RandomizationStrategy;
 }

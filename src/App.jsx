@@ -7,14 +7,14 @@ import { getColorSuccessCounts } from './utils/colorUtils';
 import { useColorModel } from './hooks/useColorModel';
 import { useColorRandomizer } from './hooks/useColorRandomizer';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { PopulationBasedStrategy, SimpleRandomStrategy, NoOpStrategy, ThreeTargetStrategy } from './strategies';
+import { createStrategyById } from './strategies';
 
 function App() {
   // Persisted settings with defaults
   const [clarity, setClarity] = useLocalStorage('chromoton-clarity', 240);
   const [mutationRate, setMutationRate] = useLocalStorage('chromoton-mutationRate', 0.002);
-  const [strategyType, setStrategyType] = useLocalStorage('chromoton-strategyType', 'none');
-  const [showPopulation, setShowPopulation] = useLocalStorage('chromoton-showPopulation', true);
+  const [strategyType, setStrategyType] = useLocalStorage('chromoton-strategyType', 'three-target');
+  const [showPopulation, setShowPopulation] = useLocalStorage('chromoton-showPopulation', false);
   const [populationPercentages, setPopulationPercentages] = useState([]);
 
   // Initialize palette and colors from localStorage or random defaults
@@ -50,17 +50,7 @@ function App() {
 
   // Create randomization strategy based on selected type
   const randomizationStrategy = useMemo(() => {
-    switch (strategyType) {
-      case 'none':
-        return new NoOpStrategy();
-      case 'simple':
-        return new SimpleRandomStrategy();
-      case 'three-target':
-        return new ThreeTargetStrategy();
-      case 'population':
-      default:
-        return new PopulationBasedStrategy();
-    }
+    return createStrategyById(strategyType);
   }, [strategyType]);
 
   // Memoize colorState to prevent unnecessary re-renders of useColorRandomizer

@@ -1,7 +1,13 @@
 import type { Color, ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy } from './types';
+import type { RandomizationStrategy, StrategyMetadata } from './types';
 import { PALETTES } from '../palettes';
 import { getRandomColor, getUniqueRandomColor, getColorSuccessCounts } from '../utils/colorUtils';
+
+export const metadata: StrategyMetadata = {
+  id: 'population',
+  name: 'Population-Based',
+  description: 'Analyzes simulation to make smart decisions'
+};
 
 const MIN_COLORS = 1;
 const MAX_COLORS = 5;

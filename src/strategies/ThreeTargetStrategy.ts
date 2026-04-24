@@ -1,7 +1,13 @@
 import type { Color, ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy } from './types';
+import type { RandomizationStrategy, StrategyMetadata } from './types';
 import { getColorSuccessCounts } from '../utils/colorUtils';
 import { getUniqueRandomColor } from '../utils/colorUtils';
+
+export const metadata: StrategyMetadata = {
+  id: 'three-target',
+  name: 'Three-Target',
+  description: 'Maintains 3 colors, replaces any reaching 40%+'
+};
 
 const TARGET_COUNT = 3;
 const REPLACEMENT_THRESHOLD = 0.4; // 40%

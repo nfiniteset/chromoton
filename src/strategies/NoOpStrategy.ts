@@ -1,5 +1,11 @@
 import type { ColorState, RandomAction } from '../models/colorModel';
-import type { RandomizationStrategy } from './types';
+import type { RandomizationStrategy, StrategyMetadata } from './types';
+
+export const metadata: StrategyMetadata = {
+  id: 'none',
+  name: 'None',
+  description: 'Manual control only, no auto-randomization'
+};
 
 /**
  * No-Op Strategy
