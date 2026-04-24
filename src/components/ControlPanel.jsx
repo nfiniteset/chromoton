@@ -188,7 +188,7 @@ export default function ControlPanel({
           color: contrastColors.textColor,
           borderColor: contrastColors.borderColor,
           transform: isHidden ? 'translateX(calc(100% + 20px))' : 'translateX(0)',
-          transition: `transform 300ms ${isHiding ? 'ease-in' : 'ease-out'} ${hideDelay}ms`,
+          transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms`,
         }}
       >
       <h2
@@ -226,7 +226,7 @@ export default function ControlPanel({
           className="-mx-5 -mb-6 -mt-7 relative overflow-hidden"
           style={{
             maxHeight: !showAdvanced ? '48px' : '2000px',
-            transition: 'max-height 300ms ease-in-out'
+            transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)'
           }}
         >
           <div className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
