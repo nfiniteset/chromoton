@@ -5,7 +5,7 @@ import type { Color } from '../models/colorModel'
 interface ContrastColors {
   textColor: string
   textColorAlpha: string
-  textColorFaded: string
+  textColorWeak: string
   textColorHeader: string
   borderColor: string
   borderColorHover: string
@@ -50,7 +50,7 @@ function getDefaultColors(): ContrastColors {
   return {
     textColor: '#ffffff',
     textColorAlpha: 'rgba(255, 255, 255, 0.75)',
-    textColorFaded: 'rgba(255, 255, 255, 0.45)',
+    textColorWeak: 'rgba(255, 255, 255, 0.45)',
     textColorHeader: 'rgba(255, 255, 255, 0.35)',
     borderColor: 'rgba(255, 255, 255, 0.18)',
     borderColorHover: 'rgba(255, 255, 255, 0.4)',
@@ -178,15 +178,15 @@ function calculateContrastColors(
 
   // Apply hysteresis to prevent flashing between themes
   // Require 55% better contrast before switching themes
-  const hysteresisThreshold = 1.55
+  const hysteresisThreshold = 1.25
   const currentlyLight = isLightThemeRef.current ?? true
 
   let useWhite: boolean
   if (currentlyLight) {
-    // Currently light theme - only switch to dark if black contrast is 55% better
+    // Currently light theme - only switch to dark if black contrast is better enough
     useWhite = contrastWithWhite * hysteresisThreshold > contrastWithBlack
   } else {
-    // Currently dark theme - only switch to light if white contrast is 55% better
+    // Currently dark theme - only switch to light if white contrast is better enough
     useWhite = contrastWithWhite > contrastWithBlack * hysteresisThreshold
   }
 
@@ -202,15 +202,9 @@ function calculateContrastColors(
   if (useWhite) {
     // Light scheme with sampled hue
     const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
-    const textColorAlpha = hasHue
-      ? chroma.hsl(hue, 0.75, 0.9).alpha(0.9).css()
-      : 'rgba(255, 255, 255, 0.75)'
-    const textColorFaded = hasHue
+    const textColorWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
       : 'rgba(255, 255, 255, 0.45)'
-    const textColorHeader = hasHue
-      ? chroma.hsl(hue, 0.65, 0.85).alpha(0.55).css()
-      : 'rgba(255, 255, 255, 0.35)'
     const borderColor = hasHue
       ? chroma.hsl(hue, 0.85, 0.86).alpha(0.4).css()
       : 'rgba(255, 255, 255, 0.15)'
@@ -221,9 +215,7 @@ function calculateContrastColors(
 
     return {
       textColor,
-      textColorAlpha,
-      textColorFaded,
-      textColorHeader,
+      textColorWeak,
       borderColor,
       borderColorHover,
       sliderThumb,
@@ -231,15 +223,9 @@ function calculateContrastColors(
   } else {
     // Dark scheme with sampled hue
     const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
-    const textColorAlpha = hasHue
-      ? chroma.hsl(hue, 0.75, 0.2).alpha(0.9).css()
-      : 'rgba(0, 0, 0, 0.75)'
-    const textColorFaded = hasHue
+    const textColorWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
       : 'rgba(0, 0, 0, 0.45)'
-    const textColorHeader = hasHue
-      ? chroma.hsl(hue, 0.65, 0.28).alpha(0.55).css()
-      : 'rgba(0, 0, 0, 0.35)'
     const borderColor = hasHue
       ? chroma.hsl(hue, 0.85, 0.22).alpha(0.4).css()
       : 'rgba(0, 0, 0, 0.15)'
@@ -250,9 +236,7 @@ function calculateContrastColors(
 
     return {
       textColor,
-      textColorAlpha,
-      textColorFaded,
-      textColorHeader,
+      textColorWeak,
       borderColor,
       borderColorHover,
       sliderThumb,

@@ -1,4 +1,5 @@
 import { useTheme } from '../contexts/ThemeContext'
+import Typography from './Typography'
 
 export default function Checkbox({ checked, onChange, label }) {
   const { contrastColors } = useTheme()
@@ -6,10 +7,6 @@ export default function Checkbox({ checked, onChange, label }) {
   return (
     <label
       className="flex cursor-pointer items-center gap-1.5 text-[11px] select-none"
-      style={{
-        color: contrastColors.textColorFaded,
-        transition: 'color 300ms ease-out',
-      }}
     >
       <input
         type="checkbox"
@@ -25,7 +22,7 @@ export default function Checkbox({ checked, onChange, label }) {
             'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out',
         }}
       />
-      {label}
+      <Typography as="span">{label}</Typography>
     </label>
   )
 }

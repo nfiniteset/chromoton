@@ -29,7 +29,7 @@ export default function PalettePicker({
     <div className="flex flex-col pb-7">
       <SubtleButton
         onClick={onBack}
-        className="pl-1"
+        className="pl-1 border-y"
       >
         <span className="flex justify-center items-center">
           <BsChevronLeft size="1em" />

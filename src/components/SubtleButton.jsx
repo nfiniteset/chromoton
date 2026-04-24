@@ -6,7 +6,7 @@ export default function SubtleButton({ onClick, children, className }) {
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center justify-between border-none px-5 py-4 text-[11px] tracking-wider uppercase hover:bg-white/10 cursor-pointer ${className}`}
+      className={`flex w-full items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase hover:bg-white/10 cursor-pointer ${className}`}
       style={{
         borderColor: contrastColors.borderColor,
         color: contrastColors.textColor,

@@ -192,8 +192,8 @@ export default function ControlPanel({
       >
         <Typography
           as="h2"
-          contrast="strong"
-          className="relative z-[1] m-0 mb-0 px-5 pt-6 text-xs font-medium tracking-[0.12em]"
+          intent="strong"
+          className="relative z-[1] m-0 mb-2 px-5 pt-6 text-xs font-medium tracking-[0.12em]"
         >
           Chromoton
         </Typography>
@@ -211,12 +211,15 @@ export default function ControlPanel({
         >
           {!showPalettePicker ? (
             <div className="flex flex-col gap-7">
-              <div className="flex flex-col gap-4">
-                <SubtleButton onClick={handlePalettePickerLink}>
-                  <span>{currentPalette}</span>
+              <div className="flex flex-col gap-2">
+                <SubtleButton onClick={handlePalettePickerLink} className="border-y">
+                  <div className='text-left gap-0'>
+                    <Typography as="p">Color palette</Typography>
+                    <Typography intent="weak" as="p">{currentPalette}</Typography>
+                  </div>
                   <BsChevronRight size="1.5em" />
                 </SubtleButton>
-                <div className=' px-5'>
+                <div className='px-5'>
                   <ColorList
                     colors={colors}
                     onColorChange={onColorChange}

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
+import Typography from './Typography'
 
 export default function SteppedSlider({
   label,
@@ -45,21 +46,14 @@ export default function SteppedSlider({
     <div className="flex flex-col gap-2">
       <div
         className="flex items-baseline justify-between"
-        style={{
-          color: contrastColors?.textColorAlpha,
-          transition: 'color 300ms ease-out',
-        }}
       >
-        <span>{label}</span>
-        <span
+        <Typography intent="strong">{label}</Typography>
+        <Typography
           className="text-[11px] tabular-nums"
-          style={{
-            color: contrastColors?.textColorFaded,
-            transition: 'color 300ms ease-out',
-          }}
+          intent="weak"
         >
           {displayValue}
-        </span>
+        </Typography>
       </div>
       <input
         type="range"
