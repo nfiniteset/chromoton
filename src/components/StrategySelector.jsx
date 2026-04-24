@@ -13,7 +13,6 @@ const STRATEGY_MAP = [
 export default function StrategySelector({
   currentStrategy,
   onStrategyChange,
-  contrastColors,
 }) {
   // Get current slider position from strategy ID
   const currentPosition = STRATEGY_MAP.indexOf(currentStrategy)
@@ -36,7 +35,6 @@ export default function StrategySelector({
       displayValue={currentMetadata?.name || 'None'}
       steps={STRATEGY_MAP}
       onChange={handleSliderChange}
-      contrastColors={contrastColors}
     />
   )
 }

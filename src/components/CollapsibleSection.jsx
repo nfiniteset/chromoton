@@ -1,10 +1,13 @@
+import { useTheme } from '../contexts/ThemeContext'
+
 export default function CollapsibleSection({
   title,
   isExpanded,
   onToggle,
   children,
-  contrastColors,
 }) {
+  const { contrastColors } = useTheme()
+
   return (
     <div className="flex flex-col gap-7">
       <button
@@ -15,6 +18,8 @@ export default function CollapsibleSection({
           borderColor: contrastColors?.borderColorHover,
           borderWidth: '1px',
           borderStyle: 'solid',
+          transition:
+            'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out',
         }}
       >
         <span>{title}</span>

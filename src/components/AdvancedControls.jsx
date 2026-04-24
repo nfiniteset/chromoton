@@ -9,7 +9,6 @@ export default function AdvancedControls({
   showPopulation,
   onClarityChange,
   onShowPopulationChange,
-  contrastColors,
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]
   const currentStepIndex = resolutionSteps.findIndex((val) => val >= clarity)
@@ -22,7 +21,6 @@ export default function AdvancedControls({
         <StrategySelector
           currentStrategy={currentStrategy}
           onStrategyChange={onStrategyChange}
-          contrastColors={contrastColors}
         />
       </div>
 
@@ -34,7 +32,6 @@ export default function AdvancedControls({
         onChange={(e) =>
           onClarityChange(resolutionSteps[parseInt(e.target.value)])
         }
-        contrastColors={contrastColors}
       />
 
       <div className="flex flex-col gap-2">
@@ -42,7 +39,6 @@ export default function AdvancedControls({
           checked={showPopulation}
           onChange={onShowPopulationChange}
           label="Show Population"
-          contrastColors={contrastColors}
         />
       </div>
     </div>

@@ -8,6 +8,7 @@ import { useColorModel } from './hooks/useColorModel'
 import { useColorRandomizer } from './hooks/useColorRandomizer'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { createStrategyById } from './strategies'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 function App() {
   // Persisted settings with defaults
@@ -142,7 +143,7 @@ function App() {
   }
 
   return (
-    <>
+    <ThemeProvider>
       <Chromoton width={clarity} autoStart={true} />
 
       <ControlPanel
@@ -161,7 +162,7 @@ function App() {
         onClarityChange={setClarity}
         onShowPopulationChange={setShowPopulation}
       />
-    </>
+    </ThemeProvider>
   )
 }
 

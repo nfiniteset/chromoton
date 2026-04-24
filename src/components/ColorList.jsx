@@ -1,4 +1,5 @@
 import ColorSwatch from './ColorSwatch'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function ColorList({
   colors,
@@ -7,8 +8,8 @@ export default function ColorList({
   onAddColor,
   showPopulation,
   populationPercentages,
-  contrastColors,
 }) {
+  const { contrastColors } = useTheme()
   const handleColorChange = (index, hex) => {
     if (!hex || hex.length !== 7) return
 
@@ -33,7 +34,6 @@ export default function ColorList({
               ? populationPercentages[index]
               : null
           }
-          contrastColors={contrastColors}
         />
       ))}
       <button

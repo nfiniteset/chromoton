@@ -1,12 +1,16 @@
 import { PALETTES } from '../palettes'
+import SubtleButton from './SubtleButton'
+import { useTheme } from '../contexts/ThemeContext'
+
+import { BsChevronLeft } from 'react-icons/bs'
 
 export default function PalettePicker({
   palettes,
   currentPalette,
   onPaletteChange,
   onBack,
-  contrastColors,
 }) {
+  const { contrastColors } = useTheme()
   const formatPaletteName = (name) => {
     if (name === 'none') {
       return 'None'
@@ -23,17 +27,15 @@ export default function PalettePicker({
 
   return (
     <div className="flex flex-col pb-7">
-      <button
+      <SubtleButton
         onClick={onBack}
-        className="-mx-5 flex cursor-pointer items-center gap-2 border-none bg-transparent px-5 pt-4 pb-4 text-left transition-colors hover:bg-white/30"
-        style={{
-          color: contrastColors?.textColorAlpha,
-          transition: 'color 300ms ease-out',
-        }}
+        className="pl-1"
       >
-        <span className="text-[10px]">◀</span>
-        <span className="text-xs tracking-wider uppercase">Back</span>
-      </button>
+        <span className="flex justify-center items-center">
+          <BsChevronLeft size="1em" />
+          <span className="pl-1 text-xs tracking-wider uppercase">Back</span>
+        </span>
+      </SubtleButton>
 
       <div className="flex flex-col">
         {palettes.map((paletteName) => {
@@ -101,6 +103,7 @@ export default function PalettePicker({
                     style={{
                       borderColor: contrastColors?.borderColor,
                       borderStyle: 'dashed',
+                      transition: 'border-color 300ms ease-out',
                     }}
                   />
                 </div>

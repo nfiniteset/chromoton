@@ -3,7 +3,10 @@ import PalettePicker from './PalettePicker'
 import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
 import SubtleButton from './SubtleButton'
-import { useCanvasContrast } from '../hooks/useCanvasContrast'
+import Typography from './Typography'
+import { useTheme } from '../contexts/ThemeContext'
+
+import { BsChevronRight, BsChevronCompactDown } from "react-icons/bs";
 
 export default function ControlPanel({
   palettes,
@@ -21,15 +24,14 @@ export default function ControlPanel({
   onClarityChange,
   onShowPopulationChange,
 }) {
+  const { contrastColors, panelRef } = useTheme()
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [isHiding, setIsHiding] = useState(false)
   const [hideDelay, setHideDelay] = useState(0)
   const hideTimerRef = useRef(null)
-  const panelRef = useRef(null)
   const isHoveringRef = useRef(false)
-  const contrastColors = useCanvasContrast(panelRef)
 
   const HIDE_DELAY = 500 // half second
   const EDGE_THRESHOLD = 220 // pixels from right edge to trigger show
@@ -165,9 +167,11 @@ export default function ControlPanel({
     style.textContent = `
       input[type="range"]::-webkit-slider-thumb {
         background: ${contrastColors.sliderThumb} !important;
+        transition: background 300ms ease-out !important;
       }
       input[type="range"]::-moz-range-thumb {
         background: ${contrastColors.sliderThumb} !important;
+        transition: background 300ms ease-out !important;
       }
     `
     document.head.appendChild(style)
@@ -218,15 +222,13 @@ export default function ControlPanel({
           transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms, color 300ms ease-out, border-color 300ms ease-out`,
         }}
       >
-        <h2
+        <Typography
+          as="h2"
+          contrast="strong"
           className="relative z-[1] m-0 mb-0 px-5 pt-6 text-xs font-medium tracking-[0.12em]"
-          style={{
-            color: contrastColors.textColor,
-            transition: 'color 300ms ease-out',
-          }}
         >
           Chromoton
-        </h2>
+        </Typography>
 
         <div
           className="relative z-[1] overflow-x-hidden overflow-y-auto"
@@ -242,9 +244,9 @@ export default function ControlPanel({
           {!showPalettePicker ? (
             <div className="flex flex-col gap-7">
               <div className="flex flex-col gap-4">
-                <SubtleButton onClick={handlePalettePickerLink} contrastColors={contrastColors}>
+                <SubtleButton onClick={handlePalettePickerLink}>
                   <span>{currentPalette}</span>
-                  <span className="text-[10px]">▶</span>
+                  <BsChevronRight size="1.5em" />
                 </SubtleButton>
                 <div className=' px-5'>
                   <ColorList
@@ -254,7 +256,6 @@ export default function ControlPanel({
                     onAddColor={onAddColor}
                     showPopulation={showPopulation}
                     populationPercentages={populationPercentages}
-                    contrastColors={contrastColors}
                   />
                 </div>
               </div>
@@ -280,9 +281,9 @@ export default function ControlPanel({
                 >
                   <SubtleButton
                     onClick={() => setShowAdvanced(true)}
-                    contrastColors={contrastColors}
+                    className="flex justify-center items-center py-1"
                   >
-                    <span>More</span>
+                    <BsChevronCompactDown size="2em" />
                   </SubtleButton>
                 </div>
 
@@ -296,7 +297,6 @@ export default function ControlPanel({
                     showPopulation={showPopulation}
                     onClarityChange={onClarityChange}
                     onShowPopulationChange={onShowPopulationChange}
-                    contrastColors={contrastColors}
                   />
                 </div>
               </div>
@@ -309,7 +309,6 @@ export default function ControlPanel({
               onBack={() =>
                 withViewTransition(() => setShowPalettePicker(false))
               }
-              contrastColors={contrastColors}
             />
           )}
         </div>

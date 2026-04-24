@@ -1,11 +1,14 @@
+import { useTheme } from '../contexts/ThemeContext'
+
 export default function SteppedSlider({
   label,
   value,
   displayValue,
   steps,
   onChange,
-  contrastColors,
 }) {
+  const { contrastColors } = useTheme()
+
   return (
     <div className="flex flex-col gap-2">
       <div

@@ -1,11 +1,13 @@
+import { useTheme } from '../contexts/ThemeContext'
+
 export default function ColorSwatch({
   color,
   onColorChange,
   onRemove,
   canRemove,
   percentage,
-  contrastColors,
 }) {
+  const { contrastColors } = useTheme()
   const rgbToHex = (r, g, b) => {
     const hexValues = [r, g, b].map((v) => v.toString(16).padStart(2, '0'))
     const hexString = '#' + hexValues.join('')

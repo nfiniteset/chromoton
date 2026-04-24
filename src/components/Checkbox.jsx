@@ -1,4 +1,8 @@
-export default function Checkbox({ checked, onChange, label, contrastColors }) {
+import { useTheme } from '../contexts/ThemeContext'
+
+export default function Checkbox({ checked, onChange, label }) {
+  const { contrastColors } = useTheme()
+
   return (
     <label
       className="flex cursor-pointer items-center gap-1.5 text-[11px] select-none"
