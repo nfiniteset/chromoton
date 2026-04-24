@@ -6,24 +6,47 @@ import { getUniqueRandomColorsFromPalette } from './utils/colorUtils';
 import { getColorSuccessCounts } from './utils/colorUtils';
 import { useColorModel } from './hooks/useColorModel';
 import { useColorRandomizer } from './hooks/useColorRandomizer';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import { PopulationBasedStrategy, SimpleRandomStrategy, NoOpStrategy, ThreeTargetStrategy } from './strategies';
 
 function App() {
-  const [clarity, setClarity] = useState(240);
-  const [mutationRate, setMutationRate] = useState(0.002);
-  const [strategyType, setStrategyType] = useState('none');
-  const [showPopulation, setShowPopulation] = useState(true);
+  // Persisted settings with defaults
+  const [clarity, setClarity] = useLocalStorage('chromoton-clarity', 240);
+  const [mutationRate, setMutationRate] = useLocalStorage('chromoton-mutationRate', 0.002);
+  const [strategyType, setStrategyType] = useLocalStorage('chromoton-strategyType', 'none');
+  const [showPopulation, setShowPopulation] = useLocalStorage('chromoton-showPopulation', true);
   const [populationPercentages, setPopulationPercentages] = useState([]);
 
-  // Initialize palette and colors once
-  const initialPaletteName = useMemo(() => getRandomPaletteName(), []);
-  const initialColors = useMemo(
-    () => getUniqueRandomColorsFromPalette(initialPaletteName, 3),
-    [initialPaletteName]
-  );
+  // Initialize palette and colors from localStorage or random defaults
+  const initialPaletteName = useMemo(() => {
+    try {
+      const stored = window.localStorage.getItem('chromoton-palette');
+      return stored ? JSON.parse(stored) : getRandomPaletteName();
+    } catch {
+      return getRandomPaletteName();
+    }
+  }, []);
+
+  const initialColors = useMemo(() => {
+    try {
+      const stored = window.localStorage.getItem('chromoton-colors');
+      return stored ? JSON.parse(stored) : getUniqueRandomColorsFromPalette(initialPaletteName, 3);
+    } catch {
+      return getUniqueRandomColorsFromPalette(initialPaletteName, 3);
+    }
+  }, [initialPaletteName]);
 
   // Use the color model for all color/palette state management
   const colorModel = useColorModel(initialPaletteName, initialColors);
+
+  // Persist palette and colors to localStorage when they change
+  useEffect(() => {
+    window.localStorage.setItem('chromoton-palette', JSON.stringify(colorModel.currentPalette));
+  }, [colorModel.currentPalette]);
+
+  useEffect(() => {
+    window.localStorage.setItem('chromoton-colors', JSON.stringify(colorModel.colors));
+  }, [colorModel.colors]);
 
   // Create randomization strategy based on selected type
   const randomizationStrategy = useMemo(() => {

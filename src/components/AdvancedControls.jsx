@@ -19,8 +19,8 @@ export default function AdvancedControls({ clarity, mutationRate, showPopulation
         </div>
         <input
           type="range"
-          min="20"
-          max="300"
+          min="120"
+          max="640"
           step="1"
           value={clarity}
           onChange={(e) => onClarityChange(parseInt(e.target.value))}
