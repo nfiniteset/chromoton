@@ -127,18 +127,31 @@ export function changeColor(
  * Swap a color at the specified index with a random available color from the palette
  */
 export function swapColor(state: ColorState, index: number): ColorState {
-  if (index < 0 || index >= state.colors.length) {
-    return state
+  if (index < 0 || index >= state.colors.length) return state
+
+  const palette = PALETTES[state.currentPalette]
+
+  if (!palette) {
+    const randomColor = {
+      r: Math.floor(Math.random() * 256),
+      g: Math.floor(Math.random() * 256),
+      b: Math.floor(Math.random() * 256),
+    }
+    return changeColor(state, index, randomColor)
   }
 
-  const availableColors = getAvailableColors(state)
-  if (availableColors.length === 0) {
-    return state
+  const current = state.colors[index]
+
+  // Prefer palette colors not used anywhere; fall back to any color different from current
+  let candidates = getAvailableColors(state)
+  if (candidates.length === 0) {
+    candidates = palette.filter(
+      (c) => !(c.r === current.r && c.g === current.g && c.b === current.b)
+    )
   }
+  if (candidates.length === 0) return state
 
-  const randomColor =
-    availableColors[Math.floor(Math.random() * availableColors.length)]
-
+  const randomColor = candidates[Math.floor(Math.random() * candidates.length)]
   return changeColor(state, index, randomColor)
 }
 

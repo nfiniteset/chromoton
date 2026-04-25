@@ -5,6 +5,7 @@ interface ColorTheme {
   textColor: string
   textColorWeak: string
   iconColor: string
+  borderColor: string
   backgroundHover: string
 }
 
@@ -38,6 +39,9 @@ export function getThemeForColor(color: Color): ColorTheme {
     const iconColor = hasHue
       ? chroma.hsl(hue, 0.8, 0.15).alpha(0.85).css()
       : 'rgba(0, 0, 0, 0.85)'
+    const borderColor = hasHue
+      ? chroma.hsl(hue, 0.7, 0.35).alpha(0.6).css()
+      : 'rgba(0, 0, 0, 0.5)'
     const backgroundHover = hasHue
       ? chroma.hsl(hue, 0.75, 0.2).alpha(0.15).css()
       : 'rgba(0, 0, 0, 0.1)'
@@ -46,6 +50,7 @@ export function getThemeForColor(color: Color): ColorTheme {
       textColor,
       textColorWeak,
       iconColor,
+      borderColor,
       backgroundHover,
     }
   } else {
@@ -57,6 +62,9 @@ export function getThemeForColor(color: Color): ColorTheme {
     const iconColor = hasHue
       ? chroma.hsl(hue, 0.8, 0.95).alpha(0.85).css()
       : 'rgba(255, 255, 255, 0.85)'
+    const borderColor = hasHue
+      ? chroma.hsl(hue, 0.7, 0.75).alpha(0.6).css()
+      : 'rgba(255, 255, 255, 0.5)'
     const backgroundHover = hasHue
       ? chroma.hsl(hue, 0.75, 0.9).alpha(0.15).css()
       : 'rgba(255, 255, 255, 0.1)'
@@ -65,6 +73,7 @@ export function getThemeForColor(color: Color): ColorTheme {
       textColor,
       textColorWeak,
       iconColor,
+      borderColor,
       backgroundHover,
     }
   }

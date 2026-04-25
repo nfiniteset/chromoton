@@ -226,7 +226,6 @@ export default function ControlPanel({
                 <div className="flex flex-col">
                   <SubtleButton
                     onClick={handlePalettePickerLink}
-                    className="border-b"
                   >
                     <div className="gap-0 text-left">
                       <Typography as="p">Color palette</Typography>

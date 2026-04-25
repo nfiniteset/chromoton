@@ -1,6 +1,6 @@
 import { PALETTES, PALETTE_DISPLAY_NAMES } from '../palettes'
 import SubtleButton from './SubtleButton'
-import { useTheme } from '../contexts/ThemeContext'
+import ColorSwatch from './ColorSwatch'
 
 import { FaChevronLeft } from 'react-icons/fa6'
 
@@ -10,8 +10,6 @@ export default function PalettePicker({
   onPaletteChange,
   onBack,
 }) {
-  const { contrastColors } = useTheme()
-
   const handlePaletteClick = (paletteName) => {
     onPaletteChange(paletteName)
     onBack()
@@ -50,67 +48,16 @@ export default function PalettePicker({
                 {palette && (
                   <div className="flex gap-1.5">
                     {palette.map((color, index) => (
-                      <div
-                        key={index}
-                        className="h-6 w-6 rounded-sm"
-                        style={{
-                          backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
-                        }}
-                      />
+                      <ColorSwatch key={index} color={color} />
                     ))}
                   </div>
                 )}
 
                 {!palette && (
                   <div className="flex gap-1.5">
-                    <div
-                      className="h-6 w-6 rounded-sm border"
-                      style={{
-                        borderColor: contrastColors?.iconColor,
-                        borderStyle: 'dashed',
-                        transition: 'border-color 300ms ease-out',
-                      }}
-                    />
-                    <div
-                      className="h-6 w-6 rounded-sm border"
-                      style={{
-                        borderColor: contrastColors?.iconColor,
-                        borderStyle: 'dashed',
-                        transition: 'border-color 300ms ease-out',
-                      }}
-                    />
-                    <div
-                      className="h-6 w-6 rounded-sm border"
-                      style={{
-                        borderColor: contrastColors?.iconColor,
-                        borderStyle: 'dashed',
-                        transition: 'border-color 300ms ease-out',
-                      }}
-                    />
-                    <div
-                      className="h-6 w-6 rounded-sm border"
-                      style={{
-                        borderColor: contrastColors?.iconColor,
-                        borderStyle: 'dashed',
-                        transition: 'border-color 300ms ease-out',
-                      }}
-                    />
-                    <div
-                      className="h-6 w-6 rounded-sm border"
-                      style={{
-                        borderColor: contrastColors?.iconColor,
-                        borderStyle: 'dashed',
-                        transition: 'border-color 300ms ease-out',
-                      }}
-                    />
-                    <div
-                      className="h-6 w-6 rounded-sm border"
-                      style={{
-                        borderColor: contrastColors?.iconColor,
-                        borderStyle: 'dashed',
-                        transition: 'border-color 300ms ease-out',
-                      }}
-                    />
+                    {[...Array(6)].map((_, index) => (
+                      <ColorSwatch key={index} placeholder />
+                    ))}
                   </div>
                 )}
               </div>
