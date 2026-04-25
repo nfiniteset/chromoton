@@ -31,6 +31,8 @@ export default function ControlPanel({
   const [isHidden, setIsHidden] = useState(false)
   const [isHiding, setIsHiding] = useState(false)
   const [hideDelay, setHideDelay] = useState(0)
+  const [contentHeight, setContentHeight] = useState(null)
+  const [isPinned, setIsPinned] = useState(false)
   const hideTimerRef = useRef(null)
   const isHoveringRef = useRef(false)
 
@@ -61,6 +63,11 @@ export default function ControlPanel({
   }
 
   const scheduleSidebarHide = () => {
+    // Don't hide if panel is pinned
+    if (isPinned) {
+      return
+    }
+
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current)
     }
@@ -101,8 +108,12 @@ export default function ControlPanel({
     scheduleSidebarHide()
   }
 
-  // Initial auto-hide after 3 seconds
+  // Initial auto-hide after 3 seconds (unless pinned)
   useEffect(() => {
+    if (isPinned) {
+      return
+    }
+
     hideTimerRef.current = setTimeout(() => {
       setIsHiding(true)
       setHideDelay(0) // No advanced panel on initial load
@@ -116,12 +127,17 @@ export default function ControlPanel({
         clearTimeout(hideTimerRef.current)
       }
     }
-  }, [])
+  }, [isPinned])
 
   // Event listeners for mouse movement and color picker
   useEffect(() => {
     // Handle mouse movement to show sidebar when approaching right edge
     const handleMouseMove = (e) => {
+      // Don't trigger show on mouse movement if panel is pinned
+      if (isPinned) {
+        return
+      }
+
       const distanceFromRight = window.innerWidth - e.clientX
       const isNearRightEdge = distanceFromRight <= EDGE_THRESHOLD
 
@@ -152,7 +168,7 @@ export default function ControlPanel({
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('blur', handleColorPickerBlur, true)
     }
-  }, [isHidden])
+  }, [isHidden, isPinned])
 
   // Reset showAdvanced when sidebar closes
   useEffect(() => {
@@ -160,6 +176,13 @@ export default function ControlPanel({
       setShowAdvanced(false)
     }
   }, [isHidden])
+
+  // When pinned, ensure panel is visible
+  useEffect(() => {
+    if (isPinned && isHidden) {
+      showSidebar()
+    }
+  }, [isPinned, isHidden])
 
   // Handle transition end to reset isHiding state
   const handleTransitionEnd = (e) => {
@@ -264,8 +287,10 @@ export default function ControlPanel({
                     onStrategyChange={onStrategyChange}
                     clarity={clarity}
                     showPopulation={showPopulation}
+                      isPinned={isPinned}
                     onClarityChange={onClarityChange}
                     onShowPopulationChange={onShowPopulationChange}
+                      onPinChange={setIsPinned}
                   />
                 </div>
               </div>

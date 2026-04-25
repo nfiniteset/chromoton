@@ -7,8 +7,10 @@ export default function AdvancedControls({
   onStrategyChange,
   clarity,
   showPopulation,
+  isPinned,
   onClarityChange,
   onShowPopulationChange,
+  onPinChange,
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]
   const currentStepIndex = resolutionSteps.findIndex((val) => val >= clarity)
@@ -39,6 +41,11 @@ export default function AdvancedControls({
           checked={showPopulation}
           onChange={onShowPopulationChange}
           label="Show Population"
+        />
+        <Checkbox
+          checked={isPinned}
+          onChange={onPinChange}
+          label="Pin Panel"
         />
       </div>
     </div>
