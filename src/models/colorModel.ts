@@ -124,6 +124,25 @@ export function changeColor(
 }
 
 /**
+ * Swap a color at the specified index with a random available color from the palette
+ */
+export function swapColor(state: ColorState, index: number): ColorState {
+  if (index < 0 || index >= state.colors.length) {
+    return state
+  }
+
+  const availableColors = getAvailableColors(state)
+  if (availableColors.length === 0) {
+    return state
+  }
+
+  const randomColor =
+    availableColors[Math.floor(Math.random() * availableColors.length)]
+
+  return changeColor(state, index, randomColor)
+}
+
+/**
  * Get colors in the format expected by the simulation
  */
 export function getColorsForSimulation(state: ColorState): Color[] {

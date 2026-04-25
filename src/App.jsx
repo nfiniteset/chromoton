@@ -147,6 +147,7 @@ function App() {
       <Chromoton width={clarity} autoStart={true} />
 
       <ControlPanel
+        debug={true}
         palettes={Object.keys(PALETTES)}
         currentPalette={colorModel.currentPalette}
         colors={colorModel.colors}
@@ -158,6 +159,7 @@ function App() {
         onStrategyChange={setStrategyType}
         onColorChange={handleColorChange}
         onRemoveColor={colorModel.removeColor}
+        onSwapColor={colorModel.swapColor}
         onAddColor={colorModel.addColor}
         onClarityChange={setClarity}
         onShowPopulationChange={setShowPopulation}

@@ -45,3 +45,8 @@ body {
   /* Instant transition when entering hover state */
   transition: color 0ms, background-color 0ms, border-color 300ms ease-out;
 }
+
+/* IconButton hover states - pure CSS */
+.icon-button:hover {
+  background-color: var(--bg-hover) !important;
+}

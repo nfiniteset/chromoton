@@ -6,25 +6,22 @@ import { getUniqueRandomColor } from '../utils/colorUtils'
 export const metadata: StrategyMetadata = {
   id: 'three-target',
   name: 'Drama',
-  description: 'Maintains 3 colors, replaces any reaching 40%+',
+  description: 'Replaces any color reaching 40%+',
 }
 
-const TARGET_COUNT = 3
 const REPLACEMENT_THRESHOLD = 0.4 // 40%
 const CHECK_INTERVAL_MS = 2000 // Check every 2 seconds
 
 /**
  * Three-Target Strategy
  *
- * Maintains exactly three target colors at all times.
  * Checks every 2 seconds and immediately replaces any color
  * that reaches 40% or more of the population.
  *
  * Algorithm:
- * 1. Ensure exactly 3 colors are present (add/remove if needed)
- * 2. Calculate population percentages for each color
- * 3. If any color reaches 40%+, replace it immediately
- * 4. If multiple colors reach threshold, replace one randomly
+ * 1. Calculate population percentages for each color
+ * 2. If any color reaches 40%+, replace it immediately
+ * 3. If multiple colors reach threshold, replace one randomly
  */
 export class ThreeTargetStrategy implements RandomizationStrategy {
   private intervalId: NodeJS.Timeout | null = null
@@ -78,21 +75,18 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
     xDim: number,
     yDim: number
   ): RandomAction | null {
-    // Guard: Ensure we have exactly 3 colors
-    if (state.colors.length < TARGET_COUNT) {
-      return this.createAddAction(state)
+    // Guard: Check if we have any colors
+    if (state.colors.length === 0) {
+      return null
     }
 
-    if (state.colors.length > TARGET_COUNT) {
-      return this.createRemoveAction(state)
-    }
-
-    // Process: Check for dominant colors and replace if needed
+    // Guard: Check for valid population
     const totalCells = xDim * yDim
     if (totalCells === 0) {
       return null
     }
 
+    // Process: Check for dominant colors and replace if needed
     const counts = getColorSuccessCounts(population, state.colors, xDim, yDim)
     const dominantIndices = this.findDominantColors(counts, totalCells)
 
@@ -109,16 +103,6 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
       targetIndex,
       newColor,
     }
-  }
-
-  private createAddAction(state: ColorState): RandomAction {
-    const newColor = getUniqueRandomColor(state.currentPalette, state.colors)
-    return { action: 'add', newColor }
-  }
-
-  private createRemoveAction(state: ColorState): RandomAction {
-    const randomIndex = Math.floor(Math.random() * state.colors.length)
-    return { action: 'remove', targetIndex: randomIndex }
   }
 
   private findDominantColors(counts: number[], totalCells: number): number[] {

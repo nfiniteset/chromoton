@@ -8,6 +8,7 @@ export type ColorAction =
   | { type: 'ADD_COLOR' }
   | { type: 'REMOVE_COLOR'; index: number }
   | { type: 'CHANGE_COLOR'; index: number; color: Color }
+  | { type: 'SWAP_COLOR'; index: number }
   | { type: 'APPLY_RANDOM_ACTION'; action: RandomAction }
 
 interface ColorModelHook {
@@ -20,6 +21,7 @@ interface ColorModelHook {
   addColor: () => void
   removeColor: (index: number) => void
   changeColor: (index: number, color: Color) => void
+  swapColor: (index: number) => void
   applyRandomAction: (action: RandomAction) => void
 
   // Queries
@@ -40,6 +42,8 @@ function colorReducer(state: ColorState, action: ColorAction): ColorState {
       return ColorModel.removeColor(state, action.index)
     case 'CHANGE_COLOR':
       return ColorModel.changeColor(state, action.index, action.color)
+    case 'SWAP_COLOR':
+      return ColorModel.swapColor(state, action.index)
     case 'APPLY_RANDOM_ACTION':
       return ColorModel.applyRandomAction(state, action.action)
     default:
@@ -73,6 +77,10 @@ export function useColorModel(
 
   const changeColor = useCallback((index: number, color: Color) => {
     dispatch({ type: 'CHANGE_COLOR', index, color })
+  }, [])
+
+  const swapColor = useCallback((index: number) => {
+    dispatch({ type: 'SWAP_COLOR', index })
   }, [])
 
   const applyRandomAction = useCallback((action: RandomAction) => {
@@ -113,6 +121,7 @@ export function useColorModel(
     addColor,
     removeColor,
     changeColor,
+    swapColor,
     applyRandomAction,
 
     // Queries

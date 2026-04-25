@@ -13,8 +13,6 @@ export const metadata: StrategyMetadata = {
   description: 'Analyzes simulation to make smart decisions',
 }
 
-const MIN_COLORS = 1
-const MAX_COLORS = 5
 const MIN_CHANGE_TIME_MS = 8000 // 8 seconds
 const MAX_CHANGE_TIME_MS = 15000 // 15 seconds
 
@@ -22,14 +20,12 @@ const MAX_CHANGE_TIME_MS = 15000 // 15 seconds
  * Population-Based Randomization Strategy
  *
  * Analyzes the simulation population at random intervals (8-15 seconds)
- * to make intelligent decisions about which colors to add, remove, or change.
+ * to make intelligent decisions about which colors to change.
  *
  * Algorithm:
  * 1. Count how many cells have successfully matched each target color
  * 2. Identify the most successful color
- * 3. Pick a random action (add/remove/change) based on constraints
- * 4. For remove: target the most successful color
- * 5. For add/change: pick colors not currently in use
+ * 3. Replace the most successful color with a new one
  */
 export class PopulationBasedStrategy implements RandomizationStrategy {
   private timeoutId: NodeJS.Timeout | null = null
@@ -86,13 +82,22 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
     xDim: number,
     yDim: number
   ): RandomAction | null {
+    // Guard: Check if we have any colors
+    if (state.colors.length === 0) {
+      return null
+    }
+
+    // Process: Find most successful color and replace it
     const counts = getColorSuccessCounts(population, state.colors, xDim, yDim)
     const mostSuccessfulIndex = this.findMaxIndex(counts)
+    const newColor = this.getColorForChange(state, mostSuccessfulIndex)
 
-    const availableActions = this.getAvailableActions(state.colors.length)
-    const action = this.pickRandomAction(availableActions)
-
-    return this.createActionResult(action, state, mostSuccessfulIndex)
+    // Return: Change the most successful color
+    return {
+      action: 'change',
+      targetIndex: mostSuccessfulIndex,
+      newColor,
+    }
   }
 
   private findMaxIndex(counts: number[]): number {
@@ -111,55 +116,6 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
     }
 
     return maxIndex
-  }
-
-  private getAvailableActions(
-    currentCount: number
-  ): Array<'add' | 'remove' | 'change'> {
-    const availableActions: Array<'add' | 'remove' | 'change'> = []
-
-    if (currentCount > MIN_COLORS) {
-      availableActions.push('remove')
-    }
-    if (currentCount < MAX_COLORS) {
-      availableActions.push('add')
-    }
-    availableActions.push('change')
-
-    return availableActions
-  }
-
-  private pickRandomAction(
-    availableActions: Array<'add' | 'remove' | 'change'>
-  ): 'add' | 'remove' | 'change' {
-    if (availableActions.length === 0) {
-      return 'change'
-    }
-
-    const actionIndex = Math.floor(Math.random() * availableActions.length)
-    return availableActions[actionIndex]
-  }
-
-  private createActionResult(
-    action: 'add' | 'remove' | 'change',
-    state: ColorState,
-    mostSuccessfulIndex: number
-  ): RandomAction | null {
-    if (action === 'remove') {
-      return { action: 'remove', targetIndex: mostSuccessfulIndex }
-    }
-
-    if (action === 'add') {
-      const newColor = getUniqueRandomColor(state.currentPalette, state.colors)
-      return { action: 'add', newColor }
-    }
-
-    if (action === 'change') {
-      const newColor = this.getColorForChange(state, mostSuccessfulIndex)
-      return { action: 'change', targetIndex: mostSuccessfulIndex, newColor }
-    }
-
-    return null
   }
 
   private getColorForChange(state: ColorState, excludeIndex: number): Color {

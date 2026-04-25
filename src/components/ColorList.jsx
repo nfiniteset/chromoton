@@ -1,11 +1,15 @@
 import ColorSwatch from './ColorSwatch'
+import SubtleButton from './SubtleButton'
 import { useTheme } from '../contexts/ThemeContext'
+
+import { BsPlus } from "react-icons/bs";
 
 export default function ColorList({
   colors,
   onColorChange,
   onRemoveColor,
   onAddColor,
+  onSwapColor,
   showPopulation,
   populationPercentages,
 }) {
@@ -21,13 +25,14 @@ export default function ColorList({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col">
       {colors.map((color, index) => (
         <ColorSwatch
           key={index}
           color={color}
           onColorChange={(hex) => handleColorChange(index, hex)}
           onRemove={() => onRemoveColor(index)}
+          onSwap={onSwapColor ? () => onSwapColor(index) : null}
           canRemove={colors.length > 1}
           percentage={
             showPopulation && populationPercentages[index] !== undefined
@@ -36,21 +41,12 @@ export default function ColorList({
           }
         />
       ))}
-      <button
+      {colors.length <= 4 ? (<SubtleButton
         onClick={onAddColor}
-        disabled={colors.length >= 5}
-        className="mt-0 w-full rounded-sm bg-white/10 py-1.5 text-[11px] tracking-wider uppercase hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
-        style={{
-          color: contrastColors?.textColor,
-          borderColor: contrastColors?.borderColorHover,
-          borderWidth: '1px',
-          borderStyle: 'solid',
-          transition:
-            'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out, opacity 300ms ease-out',
-        }}
+        className="border-t-1 flex justify-center items-center"
       >
-        + Add Color
-      </button>
+        <BsPlus size="1.5em" />
+      </SubtleButton>) : undefined}
     </div>
   )
 }

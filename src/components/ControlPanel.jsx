@@ -24,6 +24,7 @@ export default function ControlPanel({
   onStrategyChange,
   onColorChange,
   onRemoveColor,
+  onSwapColor,
   onAddColor,
   onClarityChange,
   onShowPopulationChange,
@@ -228,8 +229,8 @@ export default function ControlPanel({
         <div className="relative z-[1] overflow-x-hidden overflow-y-auto">
           <NavStack activeView={showPalettePicker ? 'palette-picker' : 'main'}>
             <NavStackView id="main">
-              <div className="flex flex-col gap-7">
-                <div className="flex flex-col gap-2">
+              <div className="flex flex-col">
+                <div className="flex flex-col">
                   <SubtleButton
                     onClick={handlePalettePickerLink}
                     className="border-y"
@@ -242,21 +243,20 @@ export default function ControlPanel({
                     </div>
                     <BsChevronRight size="1.5em" />
                   </SubtleButton>
-                  <div className="px-5">
-                    <ColorList
-                      colors={colors}
-                      onColorChange={onColorChange}
-                      onRemoveColor={onRemoveColor}
-                      onAddColor={onAddColor}
-                      showPopulation={showPopulation}
-                      populationPercentages={populationPercentages}
-                    />
-                  </div>
+                  <ColorList
+                    colors={colors}
+                    onColorChange={onColorChange}
+                    onRemoveColor={onRemoveColor}
+                    onSwapColor={onSwapColor}
+                    onAddColor={onAddColor}
+                    showPopulation={showPopulation}
+                    populationPercentages={populationPercentages}
+                  />
                 </div>
 
                 <Divider />
 
-                <div className="-mt-7">
+                <div>
                   {!showAdvanced && (
                     <SubtleButton
                       onClick={() => setShowAdvanced(true)}
