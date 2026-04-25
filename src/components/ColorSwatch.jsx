@@ -1,5 +1,5 @@
 import { useTheme } from '../contexts/ThemeContext'
-import { BsEyedropper, BsArrowClockwise, BsX } from 'react-icons/bs'
+import { FaXmark, FaEyeDropper, FaArrowRotateRight } from 'react-icons/fa6'
 import IconButton from './IconButton'
 
 export default function ColorSwatch({
@@ -11,6 +11,9 @@ export default function ColorSwatch({
   percentage,
 }) {
   const { contrastColors, getThemeForColor } = useTheme()
+
+  // Get theme colors for this specific color
+  const theme = getThemeForColor(color)
 
   const rgbToHex = (r, g, b) => {
     const hexValues = [r, g, b].map((v) => v.toString(16).padStart(2, '0'))
@@ -25,10 +28,6 @@ export default function ColorSwatch({
     const b = parseInt(hex.slice(5, 7), 16)
     onColorChange({ r, g, b })
   }
-
-  // Get theme colors for this specific color
-  const theme = getThemeForColor(color)
-  const textColor = theme.textColor
 
   return (
     <div
@@ -48,8 +47,8 @@ export default function ColorSwatch({
 
       {percentage !== null && (
         <div
-          className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center text-xs font-semibold tracking-wide transition-opacity group-hover:opacity-0"
-          style={{ color: textColor }}
+          className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-start pl-5 text-xs font-normal tracking-wide transition-opacity group-hover:opacity-0"
+          style={{ color: theme.textColorWeak }}
         >
           {percentage.toFixed(1)}%
         </div>
@@ -58,8 +57,8 @@ export default function ColorSwatch({
       <div className="relative z-[10] flex h-12 w-full items-fill gap-0 opacity-0 transition-opacity group-hover:opacity-100">
         <div className="relative flex-1">
           <label htmlFor={`color-picker-${color.r}-${color.g}-${color.b}`} className="flex h-full w-full">
-            <IconButton color={color}>
-              <BsEyedropper size="1.2em" />
+            <IconButton theme={theme}>
+              <FaEyeDropper size="1.2em" />
             </IconButton>
           </label>
           <input
@@ -72,14 +71,14 @@ export default function ColorSwatch({
         </div>
 
         <div className="flex-1">
-          <IconButton color={color} onClick={onSwap}>
-            <BsArrowClockwise size="1.3em" />
+          <IconButton theme={theme} onClick={onSwap}>
+            <FaArrowRotateRight size="1.2em" />
           </IconButton>
         </div>
 
         <div className="flex-1">
-          <IconButton color={color} disabled={!canRemove} onClick={onRemove}>
-            <BsX size="1.5em" />
+          <IconButton theme={theme} disabled={!canRemove} onClick={onRemove}>
+            <FaXmark size="1.5em" />
           </IconButton>
         </div>
       </div>

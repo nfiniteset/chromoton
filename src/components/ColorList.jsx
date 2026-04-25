@@ -2,7 +2,7 @@ import ColorSwatch from './ColorSwatch'
 import SubtleButton from './SubtleButton'
 import { useTheme } from '../contexts/ThemeContext'
 
-import { BsPlus } from "react-icons/bs";
+import { FaPlus } from "react-icons/fa6";
 
 export default function ColorList({
   colors,
@@ -45,7 +45,7 @@ export default function ColorList({
         onClick={onAddColor}
         className="border-t-1 flex justify-center items-center"
       >
-        <BsPlus size="1.5em" />
+        <FaPlus size="1.5em" />
       </SubtleButton>) : undefined}
     </div>
   )

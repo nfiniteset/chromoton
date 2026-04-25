@@ -1,11 +1,10 @@
 import { useTheme } from '../contexts/ThemeContext'
 
-export default function IconButton({ onClick, children, className = '', color, disabled = false }) {
-  const { contrastColors, getThemeForColor } = useTheme()
+export default function IconButton({ onClick, children, className = '', theme, disabled = false }) {
+  const { contrastColors } = useTheme()
 
-  // If a specific color is provided, get theme colors for that color
+  // If a specific theme is provided, use it
   // Otherwise, use the default contrast colors from the canvas
-  const theme = color ? getThemeForColor(color) : null
   const bgHover = theme?.backgroundHover || contrastColors?.backgroundHover
   const iconColor = theme?.iconColor
 

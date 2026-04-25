@@ -3,6 +3,7 @@ import type { Color } from '../models/colorModel'
 
 interface ColorTheme {
   textColor: string
+  textColorWeak: string
   iconColor: string
   backgroundHover: string
 }
@@ -31,30 +32,38 @@ export function getThemeForColor(color: Color): ColorTheme {
   if (luminance > 0.5) {
     // Light background - use dark theme
     const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
+    const textColorWeak = hasHue
+      ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
+      : 'rgba(0, 0, 0, 0.45)'
     const iconColor = hasHue
-      ? chroma.hsl(hue, 0.75, 0.2).alpha(0.7).css()
-      : 'rgba(0, 0, 0, 0.7)'
+      ? chroma.hsl(hue, 0.8, 0.15).alpha(0.85).css()
+      : 'rgba(0, 0, 0, 0.85)'
     const backgroundHover = hasHue
       ? chroma.hsl(hue, 0.75, 0.2).alpha(0.15).css()
       : 'rgba(0, 0, 0, 0.1)'
 
     return {
       textColor,
+      textColorWeak,
       iconColor,
       backgroundHover,
     }
   } else {
     // Dark background - use light theme
     const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
+    const textColorWeak = hasHue
+      ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
+      : 'rgba(255, 255, 255, 0.45)'
     const iconColor = hasHue
-      ? chroma.hsl(hue, 0.75, 0.9).alpha(0.7).css()
-      : 'rgba(255, 255, 255, 0.7)'
+      ? chroma.hsl(hue, 0.8, 0.95).alpha(0.85).css()
+      : 'rgba(255, 255, 255, 0.85)'
     const backgroundHover = hasHue
       ? chroma.hsl(hue, 0.75, 0.9).alpha(0.15).css()
       : 'rgba(255, 255, 255, 0.1)'
 
     return {
       textColor,
+      textColorWeak,
       iconColor,
       backgroundHover,
     }

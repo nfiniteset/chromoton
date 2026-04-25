@@ -9,8 +9,9 @@ import NavStack from './NavStack'
 import NavStackView from './NavStackView'
 import Debugger from './Debugger'
 import { useTheme } from '../contexts/ThemeContext'
+import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
-import { BsChevronRight, BsChevronCompactDown } from 'react-icons/bs'
+import { FaChevronRight, FaAnglesDown } from 'react-icons/fa6'
 
 export default function ControlPanel({
   palettes,
@@ -218,14 +219,6 @@ export default function ControlPanel({
           transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms, color 300ms ease-out, border-color 300ms ease-out`,
         }}
       >
-        <Typography
-          as="h2"
-          intent="strong"
-          className="relative z-[1] m-0 mb-2 px-5 pt-6 text-xs font-medium tracking-[0.12em]"
-        >
-          Chromoton
-        </Typography>
-
         <div className="relative z-[1] overflow-x-hidden overflow-y-auto">
           <NavStack activeView={showPalettePicker ? 'palette-picker' : 'main'}>
             <NavStackView id="main">
@@ -233,15 +226,15 @@ export default function ControlPanel({
                 <div className="flex flex-col">
                   <SubtleButton
                     onClick={handlePalettePickerLink}
-                    className="border-y"
+                    className="border-b"
                   >
                     <div className="gap-0 text-left">
                       <Typography as="p">Color palette</Typography>
                       <Typography intent="weak" as="p">
-                        {currentPalette}
+                        {PALETTE_DISPLAY_NAMES[currentPalette]}
                       </Typography>
                     </div>
-                    <BsChevronRight size="1.5em" />
+                    <FaChevronRight size="1.5em" />
                   </SubtleButton>
                   <ColorList
                     colors={colors}
@@ -262,7 +255,7 @@ export default function ControlPanel({
                       onClick={() => setShowAdvanced(true)}
                       className="flex items-center justify-center pt-1 pb-1"
                     >
-                      <BsChevronCompactDown size="2em" />
+                      <FaAnglesDown size="1.5em" />
                     </SubtleButton>
                   )}
 

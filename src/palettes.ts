@@ -14,6 +14,21 @@ export type PaletteName =
   | 'queenOfHearts'
   | 'verdant'
 
+// Display names for each palette
+export const PALETTE_DISPLAY_NAMES: Record<PaletteName, string> = {
+  none: 'Any color',
+  forest: 'Forest',
+  ocean: 'Ocean',
+  sunset: 'Sunset',
+  neon: 'Neon',
+  pastel: 'Pastel',
+  monochrome: 'Monochrome',
+  fire: 'Fire',
+  cyberpunk: 'Cyberpunk',
+  queenOfHearts: 'Queen of Hearts',
+  verdant: 'Verdant',
+}
+
 // Color palettes - each palette is an array of Color objects, except 'none' which is null
 export const PALETTES: Record<PaletteName, Color[] | null> = {
   none: null, // null means use manual color selection

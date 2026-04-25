@@ -5,6 +5,8 @@ export default function SubtleButton({
   children,
   className,
   active = false,
+  style = {},
+  ...props
 }) {
   const { contrastColors } = useTheme()
 
@@ -27,7 +29,9 @@ export default function SubtleButton({
         backgroundColor: active ? 'var(--bg-active)' : 'var(--bg-normal)',
         borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
         color: active ? 'var(--text-active)' : 'var(--text-normal)',
+        ...style
       }}
+      {...props}
     >
       {children}
     </button>
