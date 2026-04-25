@@ -27,8 +27,16 @@ export default function NavStackView({ id, isActive, onHeightChange, children })
     const resizeObserver = new ResizeObserver(measureHeight)
     resizeObserver.observe(contentRef.current)
 
+    // Also listen for transitionend events to catch CSS transitions completing
+    const handleTransitionEnd = () => {
+      measureHeight()
+    }
+
+    contentRef.current.addEventListener('transitionend', handleTransitionEnd)
+
     return () => {
       resizeObserver.disconnect()
+      contentRef.current?.removeEventListener('transitionend', handleTransitionEnd)
     }
   }, [id, onHeightChange, children, hasMeasured])
 

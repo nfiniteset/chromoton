@@ -254,38 +254,30 @@ export default function ControlPanel({
 
                 <Divider />
 
-                <div
-                  className="relative -mt-7 overflow-hidden"
-                  style={{
-                    maxHeight: !showAdvanced ? '48px' : '2000px',
-                    transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)',
-                  }}
-                >
-                  <div
-                    className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-                  >
+                <div className="-mt-7">
+                  {!showAdvanced && (
                     <SubtleButton
                       onClick={() => setShowAdvanced(true)}
                       className="flex items-center justify-center py-1"
                     >
                       <BsChevronCompactDown size="2em" />
                     </SubtleButton>
-                  </div>
+                  )}
 
-                  <div
-                    className={`px-5 pt-7 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-                  >
-                    <AdvancedControls
-                      currentStrategy={strategyType}
-                      onStrategyChange={onStrategyChange}
-                      clarity={clarity}
-                      showPopulation={showPopulation}
-                      isPinned={isPinned}
-                      onClarityChange={onClarityChange}
-                      onShowPopulationChange={onShowPopulationChange}
-                      onPinChange={setIsPinned}
-                    />
-                  </div>
+                  {showAdvanced && (
+                    <div className="px-5 pt-7">
+                      <AdvancedControls
+                        currentStrategy={strategyType}
+                        onStrategyChange={onStrategyChange}
+                        clarity={clarity}
+                        showPopulation={showPopulation}
+                        isPinned={isPinned}
+                        onClarityChange={onClarityChange}
+                        onShowPopulationChange={onShowPopulationChange}
+                        onPinChange={setIsPinned}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </NavStackView>
