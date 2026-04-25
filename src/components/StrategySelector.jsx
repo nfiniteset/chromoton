@@ -30,7 +30,7 @@ export default function StrategySelector({
 
   return (
     <SteppedSlider
-      label="Spice"
+      label="Spiciness"
       value={currentPosition}
       displayValue={currentMetadata?.name || 'None'}
       steps={STRATEGY_MAP}

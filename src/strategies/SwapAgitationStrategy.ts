@@ -7,7 +7,7 @@ import {
 
 export const metadata: StrategyMetadata = {
   id: 'swap-agitation',
-  name: 'Chaos',
+  name: 'Chaotic',
   description:
     'High-energy chaos - swaps most successful color every 2 seconds',
 }
