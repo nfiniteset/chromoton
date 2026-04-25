@@ -5,6 +5,8 @@ import AdvancedControls from './AdvancedControls'
 import SubtleButton from './SubtleButton'
 import Typography from './Typography'
 import Divider from './Divider'
+import NavStack from './NavStack'
+import NavStackView from './NavStackView'
 import { useTheme } from '../contexts/ThemeContext'
 
 import { BsChevronRight, BsChevronCompactDown } from 'react-icons/bs'
@@ -221,90 +223,84 @@ export default function ControlPanel({
           Chromoton
         </Typography>
 
-        <div
-          className="relative z-[1] overflow-x-hidden overflow-y-auto"
-          style={{
-            maxHeight: showPalettePicker
-              ? '2000px'
-              : showAdvanced
-                ? '2000px'
-                : '600px',
-            transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)',
-          }}
-        >
-          {!showPalettePicker ? (
-            <div className="flex flex-col gap-7">
-              <div className="flex flex-col gap-2">
-                <SubtleButton
-                  onClick={handlePalettePickerLink}
-                  className="border-y"
-                >
-                  <div className="gap-0 text-left">
-                    <Typography as="p">Color palette</Typography>
-                    <Typography intent="weak" as="p">
-                      {currentPalette}
-                    </Typography>
-                  </div>
-                  <BsChevronRight size="1.5em" />
-                </SubtleButton>
-                <div className="px-5">
-                  <ColorList
-                    colors={colors}
-                    onColorChange={onColorChange}
-                    onRemoveColor={onRemoveColor}
-                    onAddColor={onAddColor}
-                    showPopulation={showPopulation}
-                    populationPercentages={populationPercentages}
-                  />
-                </div>
-              </div>
-
-              <Divider />
-
-              <div
-                className="relative -mt-7 overflow-hidden"
-                style={{
-                  maxHeight: !showAdvanced ? '48px' : '2000px',
-                  transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)',
-                }}
-              >
-                <div
-                  className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
-                >
+        <div className="relative z-[1] overflow-x-hidden overflow-y-auto">
+          <NavStack activeView={showPalettePicker ? 'palette-picker' : 'main'}>
+            <NavStackView id="main">
+              <div className="flex flex-col gap-7">
+                <div className="flex flex-col gap-2">
                   <SubtleButton
-                    onClick={() => setShowAdvanced(true)}
-                    className="flex items-center justify-center py-1"
+                    onClick={handlePalettePickerLink}
+                    className="border-y"
                   >
-                    <BsChevronCompactDown size="2em" />
+                    <div className="gap-0 text-left">
+                      <Typography as="p">Color palette</Typography>
+                      <Typography intent="weak" as="p">
+                        {currentPalette}
+                      </Typography>
+                    </div>
+                    <BsChevronRight size="1.5em" />
                   </SubtleButton>
+                  <div className="px-5">
+                    <ColorList
+                      colors={colors}
+                      onColorChange={onColorChange}
+                      onRemoveColor={onRemoveColor}
+                      onAddColor={onAddColor}
+                      showPopulation={showPopulation}
+                      populationPercentages={populationPercentages}
+                    />
+                  </div>
                 </div>
 
+                <Divider />
+
                 <div
-                  className={`px-5 pt-7 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                  className="relative -mt-7 overflow-hidden"
+                  style={{
+                    maxHeight: !showAdvanced ? '48px' : '2000px',
+                    transition: 'max-height 300ms cubic-bezier(0.86,0,0.07,1)',
+                  }}
                 >
-                  <AdvancedControls
-                    currentStrategy={strategyType}
-                    onStrategyChange={onStrategyChange}
-                    clarity={clarity}
-                    showPopulation={showPopulation}
+                  <div
+                    className={`absolute inset-0 transition-opacity duration-300 ${!showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                  >
+                    <SubtleButton
+                      onClick={() => setShowAdvanced(true)}
+                      className="flex items-center justify-center py-1"
+                    >
+                      <BsChevronCompactDown size="2em" />
+                    </SubtleButton>
+                  </div>
+
+                  <div
+                    className={`px-5 pt-7 transition-opacity duration-300 ${showAdvanced ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+                  >
+                    <AdvancedControls
+                      currentStrategy={strategyType}
+                      onStrategyChange={onStrategyChange}
+                      clarity={clarity}
+                      showPopulation={showPopulation}
                       isPinned={isPinned}
-                    onClarityChange={onClarityChange}
-                    onShowPopulationChange={onShowPopulationChange}
+                      onClarityChange={onClarityChange}
+                      onShowPopulationChange={onShowPopulationChange}
                       onPinChange={setIsPinned}
-                  />
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <PalettePicker
-              palettes={palettes}
-              currentPalette={currentPalette}
-              onPaletteChange={onPaletteChange}
-              onBack={() =>
-                withViewTransition(() => setShowPalettePicker(false))
-              }
-            />
-          )}
+            </NavStackView>
+
+            <NavStackView id="palette-picker">
+              <PalettePicker
+                palettes={palettes}
+                currentPalette={currentPalette}
+                onPaletteChange={onPaletteChange}
+                onBack={() =>
+                  withViewTransition(() => setShowPalettePicker(false))
+                }
+              />
+            </NavStackView>
+          </NavStack>
         </div>
       </div>
     </div>
