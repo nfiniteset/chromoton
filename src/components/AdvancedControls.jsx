@@ -42,11 +42,6 @@ export default function AdvancedControls({
           onChange={onShowPopulationChange}
           label="Show Population"
         />
-        <Checkbox
-          checked={isPinned}
-          onChange={onPinChange}
-          label="Pin Panel"
-        />
       </div>
     </div>
   )

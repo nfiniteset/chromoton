@@ -7,6 +7,7 @@ import Typography from './Typography'
 import Divider from './Divider'
 import NavStack from './NavStack'
 import NavStackView from './NavStackView'
+import Debugger from './Debugger'
 import { useTheme } from '../contexts/ThemeContext'
 
 import { BsChevronRight, BsChevronCompactDown } from 'react-icons/bs'
@@ -26,6 +27,7 @@ export default function ControlPanel({
   onAddColor,
   onClarityChange,
   onShowPopulationChange,
+  debug = false,
 }) {
   const { panelRef } = useTheme()
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -79,7 +81,7 @@ export default function ControlPanel({
       const needsDelay = showAdvanced
 
       setIsHiding(true)
-      setHideDelay(needsDelay ? 300 : 0)
+      setHideDelay(needsDelay ? 100 : 0)
 
       if (needsDelay) {
         setShowAdvanced(false)
@@ -258,7 +260,7 @@ export default function ControlPanel({
                   {!showAdvanced && (
                     <SubtleButton
                       onClick={() => setShowAdvanced(true)}
-                      className="flex items-center justify-center py-1"
+                      className="flex items-center justify-center pt-1 pb-1"
                     >
                       <BsChevronCompactDown size="2em" />
                     </SubtleButton>
@@ -295,6 +297,20 @@ export default function ControlPanel({
           </NavStack>
         </div>
       </div>
+
+      {debug && (
+        <Debugger
+          showAdvanced={showAdvanced}
+          setShowAdvanced={setShowAdvanced}
+          showPalettePicker={showPalettePicker}
+          setShowPalettePicker={setShowPalettePicker}
+          isHidden={isHidden}
+          showSidebar={showSidebar}
+          scheduleSidebarHide={scheduleSidebarHide}
+          isPinned={isPinned}
+          setIsPinned={setIsPinned}
+        />
+      )}
     </div>
   )
 }
