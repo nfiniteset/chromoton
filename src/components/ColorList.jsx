@@ -95,7 +95,9 @@ export default function ColorList({
           </div>
 
           <div className="flex-1">
-            <IconButton onClick={() => onSwapColor && onSwapColor(selectedIndex)}>
+            <IconButton
+              onClick={() => onSwapColor && onSwapColor(selectedIndex)}
+            >
               <FaArrowRotateRight size="1.2em" />
             </IconButton>
           </div>
