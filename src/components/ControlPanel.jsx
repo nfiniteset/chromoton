@@ -224,9 +224,7 @@ export default function ControlPanel({
             <NavStackView id="main">
               <div className="flex flex-col">
                 <div className="flex flex-col">
-                  <SubtleButton
-                    onClick={handlePalettePickerLink}
-                  >
+                  <SubtleButton onClick={handlePalettePickerLink}>
                     <div className="gap-0 text-left">
                       <Typography as="p">Color palette</Typography>
                       <Typography intent="weak" as="p">

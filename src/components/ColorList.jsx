@@ -3,7 +3,12 @@ import ColorSwatch from './ColorSwatch'
 import IconButton from './IconButton'
 import { useTheme } from '../contexts/ThemeContext'
 
-import { FaPlus, FaEyeDropper, FaArrowRotateRight, FaXmark } from 'react-icons/fa6'
+import {
+  FaPlus,
+  FaEyeDropper,
+  FaArrowRotateRight,
+  FaXmark,
+} from 'react-icons/fa6'
 
 const rgbToHex = ({ r, g, b }) =>
   '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
@@ -37,7 +42,9 @@ export default function ColorList({
     if (selectedIndex === null) return
     const newLength = colors.length - 1
     onRemoveColor(selectedIndex)
-    setSelectedIndex(newLength === 0 ? null : Math.min(selectedIndex, newLength - 1))
+    setSelectedIndex(
+      newLength === 0 ? null : Math.min(selectedIndex, newLength - 1)
+    )
   }
 
   const isExpanded = selectedIndex !== null && selectedIndex < colors.length
@@ -75,8 +82,7 @@ export default function ColorList({
           borderTop: isExpanded
             ? `1px solid ${contrastColors?.borderColor}`
             : '1px solid transparent',
-          transition:
-            'max-height 200ms ease-out, border-color 200ms ease-out',
+          transition: 'max-height 200ms ease-out, border-color 200ms ease-out',
         }}
       >
         <div className="relative flex-1">
@@ -86,9 +92,7 @@ export default function ColorList({
           <input
             ref={colorInputRef}
             type="color"
-            value={
-              isExpanded ? rgbToHex(colors[selectedIndex]) : '#000000'
-            }
+            value={isExpanded ? rgbToHex(colors[selectedIndex]) : '#000000'}
             onChange={(e) => handleColorChange(e.target.value)}
             className="pointer-events-none absolute opacity-0"
             style={{ width: '1px', height: '1px' }}
@@ -96,9 +100,7 @@ export default function ColorList({
         </div>
 
         <div className="flex-1">
-          <IconButton
-            onClick={() => onSwapColor && onSwapColor(selectedIndex)}
-          >
+          <IconButton onClick={() => onSwapColor && onSwapColor(selectedIndex)}>
             <FaArrowRotateRight size="1.2em" />
           </IconButton>
         </div>
