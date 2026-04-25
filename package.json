@@ -15,10 +15,10 @@
     "start:vanilla": "http-server ./",
     "deploy": "npm run build && node deploy.js",
     "deploy:only": "node deploy.js",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" && cd chromoton && eslint . --ext ts,tsx",
-    "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix && cd chromoton && eslint . --ext ts,tsx --fix",
-    "format": "prettier --write \"{src,chromoton}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{js,json,md}\"",
-    "format:check": "prettier --check \"{src,chromoton}/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{js,json,md}\""
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\" \"*.{js,json,md}\""
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1032.0",
