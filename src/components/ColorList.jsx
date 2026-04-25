@@ -2,7 +2,7 @@ import ColorSwatch from './ColorSwatch'
 import SubtleButton from './SubtleButton'
 import { useTheme } from '../contexts/ThemeContext'
 
-import { FaPlus } from "react-icons/fa6";
+import { FaPlus } from 'react-icons/fa6'
 
 export default function ColorList({
   colors,
@@ -41,12 +41,14 @@ export default function ColorList({
           }
         />
       ))}
-      {colors.length <= 4 ? (<SubtleButton
-        onClick={onAddColor}
-        className="border-t-1 flex justify-center items-center"
-      >
-        <FaPlus size="1.5em" />
-      </SubtleButton>) : undefined}
+      {colors.length <= 4 ? (
+        <SubtleButton
+          onClick={onAddColor}
+          className="flex items-center justify-center border-t-1"
+        >
+          <FaPlus size="1.5em" />
+        </SubtleButton>
+      ) : undefined}
     </div>
   )
 }

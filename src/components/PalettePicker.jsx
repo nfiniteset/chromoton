@@ -19,7 +19,11 @@ export default function PalettePicker({
 
   return (
     <div className="flex flex-col pb-7">
-      <SubtleButton onClick={onBack} className="border-b pl-1" style={{ height: "62px" }}>
+      <SubtleButton
+        onClick={onBack}
+        className="border-b pl-1"
+        style={{ height: '62px' }}
+      >
         <span className="flex items-center justify-center">
           <FaChevronLeft size="1em" />
           <span className="pl-1 text-xs tracking-wider uppercase">Back</span>

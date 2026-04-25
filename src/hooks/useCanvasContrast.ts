@@ -35,7 +35,12 @@ export function useCanvasContrast(
 
     // Update contrast every 100ms
     intervalRef.current = setInterval(() => {
-      updateContrast(panelRef.current, setColors, isLightThemeRef, lastColorsRef)
+      updateContrast(
+        panelRef.current,
+        setColors,
+        isLightThemeRef,
+        lastColorsRef
+      )
     }, 100)
 
     // Initial update

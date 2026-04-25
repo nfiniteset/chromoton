@@ -54,9 +54,12 @@ export default function ColorSwatch({
         </div>
       )}
 
-      <div className="relative z-[10] flex h-12 w-full items-fill gap-0 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="items-fill relative z-[10] flex h-12 w-full gap-0 opacity-0 transition-opacity group-hover:opacity-100">
         <div className="relative flex-1">
-          <label htmlFor={`color-picker-${color.r}-${color.g}-${color.b}`} className="flex h-full w-full">
+          <label
+            htmlFor={`color-picker-${color.r}-${color.g}-${color.b}`}
+            className="flex h-full w-full"
+          >
             <IconButton theme={theme}>
               <FaEyeDropper size="1.2em" />
             </IconButton>

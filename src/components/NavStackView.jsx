@@ -1,6 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 
-export default function NavStackView({ id, isActive, onHeightChange, children }) {
+export default function NavStackView({
+  id,
+  isActive,
+  onHeightChange,
+  children,
+}) {
   const contentRef = useRef(null)
   const [hasMeasured, setHasMeasured] = useState(false)
 
@@ -36,7 +41,10 @@ export default function NavStackView({ id, isActive, onHeightChange, children })
 
     return () => {
       resizeObserver.disconnect()
-      contentRef.current?.removeEventListener('transitionend', handleTransitionEnd)
+      contentRef.current?.removeEventListener(
+        'transitionend',
+        handleTransitionEnd
+      )
     }
   }, [id, onHeightChange, children, hasMeasured])
 

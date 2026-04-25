@@ -58,7 +58,8 @@ window.chromoton = (function () {
       var db = c.blue - target.blue
 
       // Use absolute difference without Math.abs (faster)
-      var deviation = (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db)
+      var deviation =
+        (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db)
 
       if (deviation < minDeviance) {
         minDeviance = deviation

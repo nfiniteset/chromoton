@@ -31,19 +31,28 @@ body {
 /* SubtleButton hover states - pure CSS, no JS re-renders */
 .subtle-button {
   /* Smooth transition when leaving hover state */
-  transition: color 300ms ease-out, background-color 300ms ease-out, border-color 300ms ease-out;
+  transition:
+    color 300ms ease-out,
+    background-color 300ms ease-out,
+    border-color 300ms ease-out;
 }
 
 .subtle-button:hover {
   background-color: var(--bg-hover) !important;
   /* Instant transition when entering hover state */
-  transition: color 0ms, background-color 0ms, border-color 300ms ease-out;
+  transition:
+    color 0ms,
+    background-color 0ms,
+    border-color 300ms ease-out;
 }
 
 .subtle-button.active:hover {
   background-color: var(--bg-active-hover) !important;
   /* Instant transition when entering hover state */
-  transition: color 0ms, background-color 0ms, border-color 300ms ease-out;
+  transition:
+    color 0ms,
+    background-color 0ms,
+    border-color 300ms ease-out;
 }
 
 /* IconButton hover states - pure CSS */

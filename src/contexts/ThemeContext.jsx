@@ -13,7 +13,9 @@ export function ThemeProvider({ children }) {
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ contrastColors, panelRef, getThemeForColor }}>
+    <ThemeContext.Provider
+      value={{ contrastColors, panelRef, getThemeForColor }}
+    >
       {children}
     </ThemeContext.Provider>
   )

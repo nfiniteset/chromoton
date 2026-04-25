@@ -29,7 +29,7 @@ export default function SubtleButton({
         backgroundColor: active ? 'var(--bg-active)' : 'var(--bg-normal)',
         borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
         color: active ? 'var(--text-active)' : 'var(--text-normal)',
-        ...style
+        ...style,
       }}
       {...props}
     >
