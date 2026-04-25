@@ -75,42 +75,38 @@ export default function ColorList({
         )}
       </div>
 
-      <div
-        className="flex h-12 overflow-hidden"
-        style={{
-          maxHeight: isExpanded ? '42px' : '0px',
-          borderTop: isExpanded
-            ? `1px solid ${contrastColors?.borderColor}`
-            : '1px solid transparent',
-          transition: 'max-height 200ms ease-out, border-color 200ms ease-out',
-        }}
-      >
-        <div className="relative flex-1">
-          <IconButton onClick={() => colorInputRef.current?.click()}>
-            <FaEyeDropper size="1.2em" />
-          </IconButton>
-          <input
-            ref={colorInputRef}
-            type="color"
-            value={isExpanded ? rgbToHex(colors[selectedIndex]) : '#000000'}
-            onChange={(e) => handleColorChange(e.target.value)}
-            className="pointer-events-none absolute opacity-0"
-            style={{ width: '1px', height: '1px' }}
-          />
-        </div>
+      {isExpanded && (
+        <div
+          className="flex h-12"
+          style={{ borderTop: `1px solid ${contrastColors?.borderColor}` }}
+        >
+          <div className="relative flex-1">
+            <IconButton onClick={() => colorInputRef.current?.click()}>
+              <FaEyeDropper size="1.2em" />
+            </IconButton>
+            <input
+              ref={colorInputRef}
+              type="color"
+              value={rgbToHex(colors[selectedIndex])}
+              onChange={(e) => handleColorChange(e.target.value)}
+              className="pointer-events-none absolute opacity-0"
+              style={{ width: '1px', height: '1px' }}
+            />
+          </div>
 
-        <div className="flex-1">
-          <IconButton onClick={() => onSwapColor && onSwapColor(selectedIndex)}>
-            <FaArrowRotateRight size="1.2em" />
-          </IconButton>
-        </div>
+          <div className="flex-1">
+            <IconButton onClick={() => onSwapColor && onSwapColor(selectedIndex)}>
+              <FaArrowRotateRight size="1.2em" />
+            </IconButton>
+          </div>
 
-        <div className="flex-1">
-          <IconButton disabled={colors.length <= 1} onClick={handleRemove}>
-            <FaXmark size="1.5em" />
-          </IconButton>
+          <div className="flex-1">
+            <IconButton disabled={colors.length <= 1} onClick={handleRemove}>
+              <FaXmark size="1.5em" />
+            </IconButton>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
