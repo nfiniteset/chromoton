@@ -26,6 +26,7 @@ export function useCanvasContrast(
   const [colors, setColors] = useState<ContrastColors>(getDefaultColors())
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const isLightThemeRef = useRef<boolean>(true) // Track current theme to prevent flashing
+  const lastColorsRef = useRef<ContrastColors>(getDefaultColors()) // Track last colors to prevent unnecessary updates
 
   useEffect(() => {
     if (!panelRef?.current) {
@@ -34,11 +35,11 @@ export function useCanvasContrast(
 
     // Update contrast every 100ms
     intervalRef.current = setInterval(() => {
-      updateContrast(panelRef.current, setColors, isLightThemeRef)
+      updateContrast(panelRef.current, setColors, isLightThemeRef, lastColorsRef)
     }, 100)
 
     // Initial update
-    updateContrast(panelRef.current, setColors, isLightThemeRef)
+    updateContrast(panelRef.current, setColors, isLightThemeRef, lastColorsRef)
 
     return () => {
       if (intervalRef.current) {
@@ -69,7 +70,8 @@ function getDefaultColors(): ContrastColors {
 function updateContrast(
   panel: HTMLElement,
   setColors: (colors: ContrastColors) => void,
-  isLightThemeRef: RefObject<boolean>
+  isLightThemeRef: RefObject<boolean>,
+  lastColorsRef: RefObject<ContrastColors>
 ): void {
   if (!panel) {
     return
@@ -81,7 +83,29 @@ function updateContrast(
   }
 
   const calculatedColors = calculateContrastColors(rawColor, isLightThemeRef)
-  setColors(calculatedColors)
+
+  // Only update if colors have changed significantly
+  if (!colorsAreEqual(calculatedColors, lastColorsRef.current)) {
+    lastColorsRef.current = calculatedColors
+    setColors(calculatedColors)
+  }
+}
+
+function colorsAreEqual(a: ContrastColors, b: ContrastColors): boolean {
+  // Compare all color properties for equality
+  return (
+    a.textColor === b.textColor &&
+    a.textColorAlpha === b.textColorAlpha &&
+    a.textColorWeak === b.textColorWeak &&
+    a.textColorHeader === b.textColorHeader &&
+    a.textActive === b.textActive &&
+    a.borderColor === b.borderColor &&
+    a.borderColorHover === b.borderColorHover &&
+    a.sliderThumb === b.sliderThumb &&
+    a.backgroundHover === b.backgroundHover &&
+    a.backgroundActive === b.backgroundActive &&
+    a.backgroundActiveHover === b.backgroundActiveHover
+  )
 }
 
 function sampleCanvasColorBehindPanel(panel: HTMLElement): Color | null {
@@ -210,9 +234,15 @@ function calculateContrastColors(
   if (useWhite) {
     // Light scheme with sampled hue
     const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
+    const textColorAlpha = hasHue
+      ? chroma.hsl(hue, 0.75, 0.9).alpha(0.75).css()
+      : 'rgba(255, 255, 255, 0.75)'
     const textColorWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
       : 'rgba(255, 255, 255, 0.45)'
+    const textColorHeader = hasHue
+      ? chroma.hsl(hue, 0.65, 0.86).alpha(0.35).css()
+      : 'rgba(255, 255, 255, 0.35)'
     const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
     const borderColor = hasHue
       ? chroma.hsl(hue, 0.85, 0.86).alpha(0.4).css()
@@ -233,7 +263,9 @@ function calculateContrastColors(
 
     return {
       textColor,
+      textColorAlpha,
       textColorWeak,
+      textColorHeader,
       textActive,
       borderColor,
       borderColorHover,
@@ -245,9 +277,15 @@ function calculateContrastColors(
   } else {
     // Dark scheme with sampled hue
     const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
+    const textColorAlpha = hasHue
+      ? chroma.hsl(hue, 0.75, 0.2).alpha(0.75).css()
+      : 'rgba(0, 0, 0, 0.75)'
     const textColorWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
       : 'rgba(0, 0, 0, 0.45)'
+    const textColorHeader = hasHue
+      ? chroma.hsl(hue, 0.65, 0.26).alpha(0.35).css()
+      : 'rgba(0, 0, 0, 0.35)'
     const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
     const borderColor = hasHue
       ? chroma.hsl(hue, 0.85, 0.22).alpha(0.4).css()
@@ -268,7 +306,9 @@ function calculateContrastColors(
 
     return {
       textColor,
+      textColorAlpha,
       textColorWeak,
+      textColorHeader,
       textActive,
       borderColor,
       borderColorHover,

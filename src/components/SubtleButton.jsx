@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function SubtleButton({
@@ -8,37 +7,26 @@ export default function SubtleButton({
   active = false,
 }) {
   const { contrastColors } = useTheme()
-  const [isHovered, setIsHovered] = useState(false)
-
-  const getBackgroundColor = () => {
-    if (active && isHovered) return contrastColors.backgroundActiveHover
-    if (active) return contrastColors.backgroundActive
-    if (isHovered) return contrastColors.backgroundHover
-    return 'transparent'
-  }
-
-  const getBorderColor = () => {
-    if (active) return contrastColors.borderColorHover
-    return contrastColors.borderColor
-  }
-
-  const getTextColor = () => {
-    if (active) return contrastColors.textActive
-    return contrastColors.textColor
-  }
 
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase ${className}`}
+      className={`subtle-button flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase ${active ? 'active' : ''} ${className}`}
       style={{
-        backgroundColor: getBackgroundColor(),
-        borderColor: getBorderColor(),
-        color: getTextColor(),
-        transition:
-          'color 300ms ease-out, background-color 300ms ease-out, border-color 300ms ease-out',
+        // CSS custom properties for theme colors
+        '--bg-normal': 'transparent',
+        '--bg-hover': contrastColors.backgroundHover,
+        '--bg-active': contrastColors.backgroundActive,
+        '--bg-active-hover': contrastColors.backgroundActiveHover,
+        '--border-normal': contrastColors.borderColor,
+        '--border-active': contrastColors.borderColorHover,
+        '--text-normal': contrastColors.textColor,
+        '--text-active': contrastColors.textActive,
+
+        // Apply colors using CSS variables
+        backgroundColor: active ? 'var(--bg-active)' : 'var(--bg-normal)',
+        borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
+        color: active ? 'var(--text-active)' : 'var(--text-normal)',
       }}
     >
       {children}

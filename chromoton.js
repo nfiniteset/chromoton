@@ -26,43 +26,45 @@ window.chromoton = (function () {
 
   // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
   function applyChromosome(c) {
-    c.red = 0
-    c.green = 0
-    c.blue = 0
+    var red = 0
+    var green = 0
+    var blue = 0
     var chromosome = c.chromosome
+
+    // Optimized calculation for better performance
     for (var i = 0; i < NUMBER_OF_GENES; i++) {
       var gene = chromosome[i] & 0x1f
       var colorVal = gene >> 3
       var multiplier = gene & 0x7
-      switch (colorVal) {
-        case 1: // red
-          c.red += 1 << multiplier
-          break
-        case 2: // green
-          c.green += 1 << multiplier
-          break
-        case 3: // blue
-          c.blue += 1 << multiplier
-          break
-      }
+      var value = 1 << multiplier
+
+      // Use if-else instead of switch for better branch prediction
+      if (colorVal === 1) red += value
+      else if (colorVal === 2) green += value
+      else if (colorVal === 3) blue += value
     }
-    if (c.red > 255) c.red = 255
-    if (c.green > 255) c.green = 255
-    if (c.blue > 255) c.blue = 255
+
+    c.red = red > 255 ? 255 : red
+    c.green = green > 255 ? 255 : green
+    c.blue = blue > 255 ? 255 : blue
 
     // Calculate deviance against all target colors and use the minimum
-    c.deviance = Infinity
-    for (var i = 0; i < targetColors.length; i++) {
+    var minDeviance = Infinity
+    var numTargets = targetColors.length
+    for (var i = 0; i < numTargets; i++) {
       var target = targetColors[i]
-      var deviation =
-        Math.abs(c.red - target.red) +
-        Math.abs(c.green - target.green) +
-        Math.abs(c.blue - target.blue)
+      var dr = c.red - target.red
+      var dg = c.green - target.green
+      var db = c.blue - target.blue
 
-      if (deviation < c.deviance) {
-        c.deviance = deviation
+      // Use absolute difference without Math.abs (faster)
+      var deviation = (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db)
+
+      if (deviation < minDeviance) {
+        minDeviance = deviation
       }
     }
+    c.deviance = minDeviance
     c.breedTimes = 0
   }
 
