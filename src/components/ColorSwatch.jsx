@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { FaXmark, FaEyeDropper, FaArrowRotateRight } from 'react-icons/fa6'
 import IconButton from './IconButton'
@@ -10,6 +11,7 @@ export default function ColorSwatch({
   canRemove,
   percentage,
 }) {
+  const colorInputRef = useRef(null)
   const { contrastColors, getThemeForColor } = useTheme()
 
   // Get theme colors for this specific color
@@ -21,12 +23,7 @@ export default function ColorSwatch({
   }
 
   const handleColorChange = (e) => {
-    const hex = e.target.value
-    // Convert hex to RGB
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    onColorChange({ r, g, b })
+    onColorChange(e.target.value)
   }
 
   return (
@@ -56,20 +53,16 @@ export default function ColorSwatch({
 
       <div className="items-fill relative z-[10] flex h-12 w-full gap-0 opacity-0 transition-opacity group-hover:opacity-100">
         <div className="relative flex-1">
-          <label
-            htmlFor={`color-picker-${color.r}-${color.g}-${color.b}`}
-            className="flex h-full w-full"
-          >
-            <IconButton theme={theme}>
-              <FaEyeDropper size="1.2em" />
-            </IconButton>
-          </label>
+          <IconButton theme={theme} onClick={() => colorInputRef.current?.click()}>
+            <FaEyeDropper size="1.2em" />
+          </IconButton>
           <input
-            id={`color-picker-${color.r}-${color.g}-${color.b}`}
+            ref={colorInputRef}
             type="color"
             value={rgbToHex(color.r, color.g, color.b)}
             onChange={handleColorChange}
-            className="absolute inset-0 h-0 w-0 cursor-pointer border-none opacity-0"
+            className="pointer-events-none absolute opacity-0"
+            style={{ width: '1px', height: '1px' }}
           />
         </div>
 

@@ -3,45 +3,39 @@ import type { Color } from './models/colorModel'
 // Define palette names as a union type
 export type PaletteName =
   | 'none'
-  | 'forest'
-  | 'ocean'
+  | 'aquatic'
   | 'sunset'
-  | 'neon'
+  | 'afterglow'
   | 'pastel'
   | 'monochrome'
-  | 'fire'
-  | 'cyberpunk'
   | 'queenOfHearts'
   | 'verdant'
+  | 'lichen'
+  | 'lickable'
+  | 'eames'
+  | 'baddie'
 
 // Display names for each palette
 export const PALETTE_DISPLAY_NAMES: Record<PaletteName, string> = {
   none: 'Any color',
-  forest: 'Forest',
-  ocean: 'Ocean',
+  aquatic: 'Aquatic',
   sunset: 'Sunset',
-  neon: 'Neon',
+  afterglow: 'Afterglow',
   pastel: 'Pastel',
   monochrome: 'Monochrome',
-  fire: 'Fire',
-  cyberpunk: 'Cyberpunk',
   queenOfHearts: 'Queen of Hearts',
   verdant: 'Verdant',
+  lichen: 'Lichen',
+  lickable: 'Lickable',
+  eames: 'Eames',
+  baddie: 'Baddie',
 }
 
 // Color palettes - each palette is an array of Color objects, except 'none' which is null
 export const PALETTES: Record<PaletteName, Color[] | null> = {
   none: null, // null means use manual color selection
-  forest: [
-    { r: 34, g: 139, b: 34 }, // forest green
-    { r: 85, g: 107, b: 47 }, // dark olive
-    { r: 107, g: 142, b: 35 }, // olive drab
-    { r: 46, g: 125, b: 50 }, // medium forest
-    { r: 139, g: 69, b: 19 }, // saddle brown
-    { r: 160, g: 82, b: 45 }, // sienna
-  ],
-  ocean: [
-    { r: 0, g: 105, b: 148 }, // deep ocean
+  aquatic: [
+    { r: 0, g: 105, b: 148 }, // deep aquatic
     { r: 64, g: 224, b: 208 }, // turquoise
     { r: 0, g: 139, b: 139 }, // dark cyan
     { r: 72, g: 209, b: 204 }, // medium turquoise
@@ -56,13 +50,13 @@ export const PALETTES: Record<PaletteName, Color[] | null> = {
     { r: 186, g: 85, b: 211 }, // medium orchid
     { r: 147, g: 112, b: 219 }, // medium purple
   ],
-  neon: [
-    { r: 255, g: 0, b: 255 }, // magenta
-    { r: 0, g: 255, b: 255 }, // cyan
-    { r: 255, g: 255, b: 0 }, // yellow
-    { r: 57, g: 255, b: 20 }, // neon green
-    { r: 255, g: 20, b: 147 }, // deep pink
-    { r: 138, g: 43, b: 226 }, // blue violet
+  afterglow: [
+    { r: 254, g: 77, b: 160 },  // hot pink
+    { r: 255, g: 157, b: 0 },   // orange
+    { r: 136, g: 224, b: 90 },  // lime green
+    { r: 174, g: 239, b: 50 },  // yellow-green
+    { r: 38, g: 184, b: 191 },  // cyan
+    { r: 216, g: 93, b: 218 },  // magenta
   ],
   pastel: [
     { r: 255, g: 182, b: 193 }, // light pink
@@ -73,28 +67,12 @@ export const PALETTES: Record<PaletteName, Color[] | null> = {
     { r: 216, g: 191, b: 216 }, // thistle
   ],
   monochrome: [
-    { r: 50, g: 50, b: 50 }, // dark gray
-    { r: 100, g: 100, b: 100 }, // gray
-    { r: 150, g: 150, b: 150 }, // light gray
-    { r: 75, g: 75, b: 75 }, // medium dark
-    { r: 125, g: 125, b: 125 }, // medium light
-    { r: 175, g: 175, b: 175 }, // very light
-  ],
-  fire: [
-    { r: 255, g: 0, b: 0 }, // red
-    { r: 255, g: 69, b: 0 }, // orange red
-    { r: 255, g: 140, b: 0 }, // dark orange
-    { r: 255, g: 165, b: 0 }, // orange
-    { r: 255, g: 215, b: 0 }, // gold
-    { r: 184, g: 134, b: 11 }, // dark goldenrod
-  ],
-  cyberpunk: [
-    { r: 255, g: 0, b: 110 }, // hot pink
-    { r: 0, g: 255, b: 255 }, // cyan
-    { r: 138, g: 43, b: 226 }, // blue violet
-    { r: 255, g: 20, b: 147 }, // deep pink
-    { r: 0, g: 191, b: 255 }, // deep sky blue
-    { r: 186, g: 85, b: 211 }, // medium orchid
+    { r: 0, g: 0, b: 0 },       // black
+    { r: 49, g: 49, b: 49 },    // near black
+    { r: 95, g: 95, b: 95 },    // dark gray
+    { r: 219, g: 219, b: 219 }, // light gray
+    { r: 233, g: 233, b: 233 }, // very light gray
+    { r: 255, g: 255, b: 255 }, // white
   ],
   queenOfHearts: [
     { r: 201, g: 0, b: 0 }, // Brick ember
@@ -112,20 +90,53 @@ export const PALETTES: Record<PaletteName, Color[] | null> = {
     { r: 60, g: 179, b: 113 }, // medium sea green
     { r: 46, g: 125, b: 50 }, // leafy green
   ],
+  baddie: [
+    { r: 134, g: 255, b: 58 },  // lime green
+    { r: 42, g: 30, b: 58 },    // dark purple
+    { r: 176, g: 122, b: 251 }, // violet
+    { r: 214, g: 184, b: 254 }, // light lavender
+    { r: 80, g: 80, b: 80 },    // dark gray
+    { r: 18, g: 18, b: 18 },    // near black
+  ],
+  eames: [
+    { r: 224, g: 67, b: 39 },   // red-orange
+    { r: 189, g: 168, b: 0 },   // gold
+    { r: 0, g: 145, b: 65 },    // kelly green
+    { r: 0, g: 63, b: 121 },    // navy
+    { r: 0, g: 0, b: 0 },       // black
+    { r: 250, g: 244, b: 214 }, // cream
+  ],
+  lickable: [
+    { r: 215, g: 190, b: 46 },  // golden yellow
+    { r: 64, g: 121, b: 71 },   // medium green
+    { r: 73, g: 102, b: 150 },  // slate blue
+    { r: 186, g: 67, b: 75 },   // crimson
+    { r: 89, g: 87, b: 142 },   // purple
+    { r: 215, g: 106, b: 54 },  // orange
+  ],
+  lichen: [
+    { r: 169, g: 161, b: 154 }, // stone gray
+    { r: 203, g: 205, b: 108 }, // olive
+    { r: 228, g: 233, b: 109 }, // yellow-green
+    { r: 247, g: 250, b: 179 }, // pale yellow
+    { r: 245, g: 195, b: 86 },  // amber
+    { r: 234, g: 233, b: 215 }, // cream
+  ],
 } as const
 
 // Non-custom palette names for random selection
 const NON_CUSTOM_PALETTES: Exclude<PaletteName, 'none'>[] = [
-  'forest',
-  'ocean',
+  'aquatic',
   'sunset',
-  'neon',
+  'afterglow',
   'pastel',
   'monochrome',
-  'fire',
-  'cyberpunk',
   'queenOfHearts',
   'verdant',
+  'lichen',
+  'lickable',
+  'eames',
+  'baddie',
 ]
 
 export function getRandomPaletteName(): Exclude<PaletteName, 'none'> {
