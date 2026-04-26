@@ -1,5 +1,4 @@
 import { cn } from '../lib/utils'
-import Checkbox from './Checkbox'
 import StrategySelector from './StrategySelector'
 import SteppedSlider from './SteppedSlider'
 
@@ -7,10 +6,8 @@ export default function AdvancedControls({
   currentStrategy,
   onStrategyChange,
   clarity,
-  showPopulation,
   isPinned,
   onClarityChange,
-  onShowPopulationChange,
   onPinChange,
   className,
 }) {
@@ -37,14 +34,6 @@ export default function AdvancedControls({
           onClarityChange(resolutionSteps[parseInt(e.target.value)])
         }
       />
-
-      <div className="flex flex-col gap-2">
-        <Checkbox
-          checked={showPopulation}
-          onChange={onShowPopulationChange}
-          label="Show Population"
-        />
-      </div>
     </div>
   )
 }

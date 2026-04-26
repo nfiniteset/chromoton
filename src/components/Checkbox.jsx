@@ -6,7 +6,12 @@ export default function Checkbox({ checked, onChange, label, className }) {
   const { contrastColors } = useTheme()
 
   return (
-    <label className={cn('flex cursor-pointer items-center gap-1.5 text-[11px] select-none', className)}>
+    <label
+      className={cn(
+        'flex cursor-pointer items-center gap-1.5 text-[11px] select-none',
+        className
+      )}
+    >
       <input
         type="checkbox"
         checked={checked}

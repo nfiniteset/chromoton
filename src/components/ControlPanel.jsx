@@ -208,7 +208,10 @@ export default function ControlPanel({
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={cn('pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]', className)}
+      className={cn(
+        'pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]',
+        className
+      )}
     >
       <div
         ref={panelRef}
@@ -264,10 +267,8 @@ export default function ControlPanel({
                         currentStrategy={strategyType}
                         onStrategyChange={onStrategyChange}
                         clarity={clarity}
-                        showPopulation={showPopulation}
                         isPinned={isPinned}
                         onClarityChange={onClarityChange}
-                        onShowPopulationChange={onShowPopulationChange}
                         onPinChange={setIsPinned}
                       />
                     </div>
@@ -301,6 +302,8 @@ export default function ControlPanel({
           scheduleSidebarHide={scheduleSidebarHide}
           isPinned={isPinned}
           setIsPinned={setIsPinned}
+          showPopulation={showPopulation}
+          onShowPopulationChange={onShowPopulationChange}
         />
       )}
     </div>

@@ -13,7 +13,10 @@ export default function IconButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={cn('icon-button flex h-full grow cursor-pointer items-center justify-center', className)}
+      className={cn(
+        'icon-button flex h-full grow cursor-pointer items-center justify-center',
+        className
+      )}
       style={{
         '--bg-hover': contrastColors.backgroundHover,
         backgroundColor: 'transparent',

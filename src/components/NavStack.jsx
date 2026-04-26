@@ -25,7 +25,10 @@ export default function NavStack({ activeView, children, className }) {
 
   return (
     <div
-      className={cn('relative overflow-hidden transition-all duration-300', className)}
+      className={cn(
+        'relative overflow-hidden transition-all duration-300',
+        className
+      )}
       style={{
         height: activeHeight ? `${activeHeight}px` : 'auto',
       }}

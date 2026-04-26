@@ -14,7 +14,11 @@ export default function SubtleButton({
   return (
     <button
       onClick={onClick}
-      className={cn('subtle-button flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase', active && 'active', className)}
+      className={cn(
+        'subtle-button flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase',
+        active && 'active',
+        className
+      )}
       style={{
         // CSS custom properties for theme colors
         '--bg-normal': 'transparent',
@@ -30,7 +34,8 @@ export default function SubtleButton({
         backgroundColor: active ? 'var(--bg-active)' : 'var(--bg-normal)',
         borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
         color: active ? 'var(--text-active)' : 'var(--text-normal)',
-        transition: 'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
+        transition:
+          'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
         ...style,
       }}
       {...props}

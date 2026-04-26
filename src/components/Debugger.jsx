@@ -9,6 +9,7 @@ import { useEffect } from 'react'
  * - 'p': Toggle between palette picker and main view
  * - '/': Toggle control panel visibility
  * - '.': Toggle pin state
+ * - 's': Toggle show population
  */
 export default function Debugger({
   showAdvanced,
@@ -20,6 +21,8 @@ export default function Debugger({
   scheduleSidebarHide,
   isPinned,
   setIsPinned,
+  onShowPopulationChange,
+  showPopulation,
 }) {
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -45,6 +48,9 @@ export default function Debugger({
         case '.':
           setIsPinned((prev) => !prev)
           break
+        case 's':
+          onShowPopulationChange(!showPopulation)
+          break
         default:
           break
       }
@@ -65,6 +71,8 @@ export default function Debugger({
     scheduleSidebarHide,
     isPinned,
     setIsPinned,
+    showPopulation,
+    onShowPopulationChange,
   ])
 
   return null // This component doesn't render anything

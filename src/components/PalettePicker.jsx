@@ -69,5 +69,4 @@ export default function PalettePicker({
       </div>
     </div>
   )
-
 }
