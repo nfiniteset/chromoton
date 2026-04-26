@@ -39,7 +39,7 @@ export default function ColorSwatch({
     >
       {text && (
         <span
-          className="absolute inset-0 flex items-center justify-center text-[7px] font-medium leading-none"
+          className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-medium"
           style={{ color: theme.textColor }}
         >
           {text}
