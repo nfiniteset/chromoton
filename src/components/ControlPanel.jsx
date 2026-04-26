@@ -28,6 +28,8 @@ export default function ControlPanel({
   onSwapColor,
   onAddColor,
   onClarityChange,
+  fps,
+  onFpsChange,
   onShowPopulationChange,
   debug = false,
   className,
@@ -236,8 +238,10 @@ export default function ControlPanel({
                     currentStrategy={strategyType}
                     onStrategyChange={onStrategyChange}
                     clarity={clarity}
+                    fps={fps}
                     isPinned={isPinned}
                     onClarityChange={onClarityChange}
+                    onFpsChange={onFpsChange}
                     onPinChange={setIsPinned}
                   />
                 </div>

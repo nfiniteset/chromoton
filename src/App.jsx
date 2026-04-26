@@ -21,6 +21,7 @@ function App() {
     'chromoton-showPopulation',
     false
   )
+  const [fps, setFps] = useLocalStorage('chromoton-fps', 10)
   const [populationPercentages, setPopulationPercentages] = useState([])
 
   // Initialize palette and colors from localStorage or random defaults
@@ -75,6 +76,13 @@ function App() {
     }),
     [colorModel.currentPalette, colorModel.colors]
   )
+
+  // Sync fps to chromoton engine whenever it changes
+  useEffect(() => {
+    if (window.chromoton) {
+      window.chromoton.setStepInterval(Math.round(1000 / fps))
+    }
+  }, [fps])
 
   // Sync colors to chromoton engine whenever they change
   useEffect(() => {
@@ -162,6 +170,8 @@ function App() {
         onSwapColor={colorModel.swapColor}
         onAddColor={colorModel.addColor}
         onClarityChange={setClarity}
+        fps={fps}
+        onFpsChange={setFps}
         onShowPopulationChange={setShowPopulation}
       />
     </ThemeProvider>

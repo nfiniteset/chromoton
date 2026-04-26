@@ -22,6 +22,7 @@ window.chromoton = (function () {
   var targetColors = [] // array of target colors
   var rafId
   var lastStepTime = 0
+  var stepInterval = 100 // ms between steps (~10fps)
   var imageData
 
   // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
@@ -141,7 +142,7 @@ window.chromoton = (function () {
   // Use requestAnimationFrame with a timestamp gate to maintain ~10fps cadence.
   // rAF automatically pauses when the tab is hidden, saving CPU.
   function loop(timestamp) {
-    if (timestamp - lastStepTime >= 100) {
+    if (timestamp - lastStepTime >= stepInterval) {
       step()
       lastStepTime = timestamp
     }
@@ -278,6 +279,14 @@ window.chromoton = (function () {
   }
 
   // Live setters — no reinit needed.
+  function setStepInterval(ms) {
+    stepInterval = Math.max(1, ms | 0)
+  }
+
+  function getStepInterval() {
+    return stepInterval
+  }
+
   function setMutationRate(rate) {
     MUTATION_RATE = rate
   }
@@ -320,6 +329,8 @@ window.chromoton = (function () {
     show: startSimulation,
     hide: stopSimulation,
     configure: configure,
+    setStepInterval: setStepInterval,
+    getStepInterval: getStepInterval,
     setMutationRate: setMutationRate,
     setTargetColors: setTargetColors,
     getTargetColors: getTargetColors,

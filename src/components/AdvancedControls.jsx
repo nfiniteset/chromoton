@@ -2,12 +2,16 @@ import { cn } from '../lib/utils'
 import StrategySelector from './StrategySelector'
 import SteppedSlider from './SteppedSlider'
 
+const FPS_STEPS = [5, 10, 15, 20, 25, 30]
+
 export default function AdvancedControls({
   currentStrategy,
   onStrategyChange,
   clarity,
+  fps,
   isPinned,
   onClarityChange,
+  onFpsChange,
   onPinChange,
   className,
 }) {
@@ -15,6 +19,8 @@ export default function AdvancedControls({
   const currentStepIndex = resolutionSteps.findIndex((val) => val >= clarity)
   const stepIndex =
     currentStepIndex === -1 ? resolutionSteps.length - 1 : currentStepIndex
+
+  const fpsStepIndex = FPS_STEPS.indexOf(fps) === -1 ? 1 : FPS_STEPS.indexOf(fps)
 
   return (
     <div className={cn('flex flex-col gap-7 pb-7', className)}>
@@ -24,6 +30,14 @@ export default function AdvancedControls({
           onStrategyChange={onStrategyChange}
         />
       </div>
+
+      <SteppedSlider
+        label="Speed"
+        value={fpsStepIndex}
+        displayValue={`${fps} fps`}
+        steps={FPS_STEPS}
+        onChange={(e) => onFpsChange(FPS_STEPS[parseInt(e.target.value)])}
+      />
 
       <SteppedSlider
         label="Resolution"
