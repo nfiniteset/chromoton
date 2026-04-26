@@ -16,10 +16,10 @@ export default function PalettePicker({
   }
 
   return (
-    <div className="flex flex-col pb-7">
+    <div className="flex max-h-[calc(100vh-40px)] flex-col">
       <SubtleButton
         onClick={onBack}
-        className="border-b pl-1"
+        className="shrink-0 border-b pl-1"
         style={{ height: '62px' }}
       >
         <span className="flex items-center justify-center">
@@ -28,7 +28,7 @@ export default function PalettePicker({
         </span>
       </SubtleButton>
 
-      <div className="flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-7">
         {palettes.map((paletteName) => {
           const palette = PALETTES[paletteName]
           const isSelected = paletteName === currentPalette
@@ -67,4 +67,5 @@ export default function PalettePicker({
       </div>
     </div>
   )
+
 }
