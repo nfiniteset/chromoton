@@ -5,6 +5,7 @@ export default function ColorSwatch({
   selected = false,
   onClick,
   placeholder = false,
+  text,
 }) {
   const { contrastColors, getThemeForColor } = useTheme()
 
@@ -25,7 +26,7 @@ export default function ColorSwatch({
   return (
     <div
       onClick={onClick}
-      className={`h-6 w-6 flex-shrink-0 rounded-sm border ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-sm border ${onClick ? 'cursor-pointer' : ''}`}
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
         outline: selected
@@ -35,6 +36,15 @@ export default function ColorSwatch({
         outlineOffset: '2px',
         transition: 'outline-color 150ms ease-out, border-color 300ms ease-out',
       }}
-    />
+    >
+      {text && (
+        <span
+          className="absolute inset-0 flex items-center justify-center text-[7px] font-medium leading-none"
+          style={{ color: theme.textColor }}
+        >
+          {text}
+        </span>
+      )}
+    </div>
   )
 }

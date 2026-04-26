@@ -61,6 +61,11 @@ export default function ColorList({
             color={color}
             selected={selectedIndex === index}
             onClick={() => handleSwatchClick(index)}
+            text={
+              showPopulation && populationPercentages?.[index] != null
+                ? `${Math.round(populationPercentages[index])}%`
+                : undefined
+            }
           />
         ))}
 
