@@ -14,6 +14,7 @@ export type PaletteName =
   | 'lickable'
   | 'eames'
   | 'baddie'
+  | 'rainbow'
 
 // Display names for each palette
 export const PALETTE_DISPLAY_NAMES: Record<PaletteName, string> = {
@@ -29,6 +30,7 @@ export const PALETTE_DISPLAY_NAMES: Record<PaletteName, string> = {
   lickable: 'Lickable',
   eames: 'Eames',
   baddie: 'Baddie',
+  rainbow: 'Rainbow',
 }
 
 // Color palettes - each palette is an array of Color objects, except 'none' which is null
@@ -122,6 +124,14 @@ export const PALETTES: Record<PaletteName, Color[] | null> = {
     { r: 245, g: 195, b: 86 }, // amber
     { r: 234, g: 233, b: 215 }, // cream
   ],
+  rainbow: [
+    { r: 255, g: 0, b: 0 }, // vivid red
+    { r: 255, g: 127, b: 0 }, // orange
+    { r: 255, g: 255, b: 0 }, // yellow
+    { r: 0, g: 200, b: 0 }, // green
+    { r: 0, g: 0, b: 255 }, // blue
+    { r: 148, g: 0, b: 211 }, // violet
+  ],
 } as const
 
 // Non-custom palette names for random selection
@@ -137,6 +147,7 @@ const NON_CUSTOM_PALETTES: Exclude<PaletteName, 'none'>[] = [
   'lickable',
   'eames',
   'baddie',
+  'rainbow',
 ]
 
 export function getRandomPaletteName(): Exclude<PaletteName, 'none'> {
