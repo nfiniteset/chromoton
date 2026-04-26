@@ -30,6 +30,7 @@ export default function SubtleButton({
         backgroundColor: active ? 'var(--bg-active)' : 'var(--bg-normal)',
         borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
         color: active ? 'var(--text-active)' : 'var(--text-normal)',
+        transition: 'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
         ...style,
       }}
       {...props}

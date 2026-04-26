@@ -248,8 +248,6 @@ export default function ControlPanel({
                   />
                 </div>
 
-                <Divider />
-
                 <div>
                   {!showAdvanced && (
                     <SubtleButton

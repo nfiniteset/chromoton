@@ -6,7 +6,6 @@ export default function ColorSwatch({
   selected = false,
   onClick,
   placeholder = false,
-  fill = false,
   text,
   className
 }) {
@@ -29,7 +28,7 @@ export default function ColorSwatch({
   return (
     <div
       onClick={onClick}
-      className={cn('relative overflow-hidden rounded-sm border', fill ? 'mr-3 h-6 w-full' : 'h-6 w-6 flex-shrink-0', onClick && 'cursor-pointer', className)}
+      className={cn('relative overflow-hidden rounded-sm border w-full h-6 w-6 flex-shrink-0', onClick && 'cursor-pointer', className)}
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
         outline: selected
@@ -43,7 +42,7 @@ export default function ColorSwatch({
       {text && (
         <span
           className="absolute inset-0 flex items-center justify-center text-xs leading-none font-medium"
-          style={{ color: theme.textColor }}
+          style={{ color: theme.textColor, transition: 'color 300ms ease-out' }}
         >
           {text}
         </span>

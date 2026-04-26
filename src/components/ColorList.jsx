@@ -53,7 +53,7 @@ export default function ColorList({
     return (
       <div
         className={cn('flex flex-col', className)}
-        style={{ borderTop: `1px solid ${contrastColors?.borderColor}` }}
+        style={{ borderTop: `1px solid ${contrastColors?.borderColor}`, transition: 'border-color 300ms ease-out' }}
       >
         <div className="relative">
           <input
@@ -69,49 +69,49 @@ export default function ColorList({
         {colors.map((color, index) => (
           <div
             key={index}
-            className="flex items-center pl-5 pr-2"
-            style={{ height: '48px', borderBottom: `1px solid ${contrastColors?.borderColor}` }}
+            className="flex items-center pl-5 pr-2 border-b-1"
+            style={{ 
+              height: '48px', 
+              borderColor: contrastColors?.borderColor, 
+              transition: 'border-color 300ms ease-out'
+            }}
           >
-            <div className="flex-1 flex items-center self-stretch">
-              <ColorSwatch
-                color={color}
-                fill
-                text={
-                  showPopulation && populationPercentages?.[index] != null
-                    ? `${Math.round(populationPercentages[index])}%`
-                    : undefined
-                }
-              />
-            </div>
+            <ColorSwatch
+              color={color}
+              className="mr-2 grow-2"
+              text={
+                showPopulation && populationPercentages?.[index] != null
+                  ? `${Math.round(populationPercentages[index])}%`
+                  : undefined
+              }
+            />
 
-            <div className="h-10 w-10 flex-shrink-0">
-              <IconButton onClick={() => openColorPickerFor(index)}>
-                <FaEyeDropper size="1.2em" />
-              </IconButton>
-            </div>
+            <IconButton onClick={() => openColorPickerFor(index)}>
+              <FaEyeDropper size="1em" />
+            </IconButton>
 
-            <div className="h-10 w-10 flex-shrink-0">
-              <IconButton onClick={() => onSwapColor && onSwapColor(index)}>
-                <FaArrowRotateRight size="1.2em" />
-              </IconButton>
-            </div>
+            <IconButton onClick={() => onSwapColor && onSwapColor(index)}>
+              <FaArrowRotateRight size="1em" />
+            </IconButton>
 
-            <div className="h-10 w-10 flex-shrink-0">
-              <IconButton
-                disabled={colors.length <= 1}
-                onClick={() => handleRemoveAt(index)}
-              >
-                <FaXmark size="1.5em" />
-              </IconButton>
-            </div>
+            <IconButton
+              disabled={colors.length <= 1}
+              onClick={() => handleRemoveAt(index)}
+            >
+              <FaXmark size="1.2em" />
+            </IconButton>
           </div>
         ))}
 
         {colors.length < MAX_COLORS && (
           <button
             onClick={onAddColor}
-            className="flex h-12 w-full cursor-pointer items-center gap-2 px-5"
-            style={{ color: contrastColors?.textColor }}
+            className="flex h-12 w-full cursor-pointer items-center gap-2 px-5 border-b-1"
+            style={{
+              color: contrastColors?.textColor,
+              borderColor: contrastColors?.borderColor,
+              transition: 'color 300ms ease-out'
+            }}
           >
             <FaPlus size="1em" />
             <span className="text-xs tracking-wider uppercase">Add target color</span>
@@ -125,7 +125,7 @@ export default function ColorList({
     <div className={cn('flex flex-col', className)}>
       <div
         className="flex flex-wrap items-center gap-1.5 px-5 py-3"
-        style={{ borderTop: `1px solid ${contrastColors?.borderColor}` }}
+        style={{ borderTop: `1px solid ${contrastColors?.borderColor}`, transition: 'border-color 300ms ease-out' }}
       >
         {colors.map((color, index) => (
           <ColorSwatch
