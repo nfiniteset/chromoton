@@ -5,15 +5,12 @@ import { useEffect } from 'react'
  * Only rendered when debug mode is enabled
  *
  * Keyboard shortcuts:
- * - 'a': Toggle advanced controls
  * - 'p': Toggle between palette picker and main view
  * - '/': Toggle control panel visibility
  * - '.': Toggle pin state
  * - 's': Toggle show population
  */
 export default function Debugger({
-  showAdvanced,
-  setShowAdvanced,
   showPalettePicker,
   setShowPalettePicker,
   isHidden,
@@ -32,9 +29,6 @@ export default function Debugger({
       }
 
       switch (e.key) {
-        case 'a':
-          setShowAdvanced((prev) => !prev)
-          break
         case 'p':
           setShowPalettePicker((prev) => !prev)
           break
@@ -62,8 +56,6 @@ export default function Debugger({
       document.removeEventListener('keydown', handleKeyPress)
     }
   }, [
-    showAdvanced,
-    setShowAdvanced,
     showPalettePicker,
     setShowPalettePicker,
     isHidden,

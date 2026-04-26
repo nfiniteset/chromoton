@@ -29,7 +29,7 @@ export default function ColorSwatch({
     <div
       onClick={onClick}
       className={cn(
-        'relative h-6 w-6 w-full flex-shrink-0 overflow-hidden rounded-sm border',
+        'relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-sm border',
         onClick && 'cursor-pointer',
         className
       )}

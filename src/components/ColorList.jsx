@@ -21,10 +21,8 @@ export default function ColorList({
   onRemoveColor,
   onAddColor,
   onSwapColor,
-  onOpenAdvanced,
   showPopulation,
   populationPercentages,
-  advancedMode = false,
   className,
 }) {
   const [pickerIndex, setPickerIndex] = useState(null)
@@ -49,100 +47,82 @@ export default function ColorList({
     requestAnimationFrame(() => colorInputRef.current?.click())
   }
 
-  if (advancedMode) {
-    return (
-      <div
-        className={cn('flex flex-col', className)}
-        style={{
-          borderTop: `1px solid ${contrastColors?.borderColor}`,
-          transition: 'border-color 300ms ease-out',
-        }}
-      >
-        <div className="relative">
-          <input
-            ref={colorInputRef}
-            type="color"
-            value={
-              pickerIndex !== null && colors[pickerIndex]
-                ? rgbToHex(colors[pickerIndex])
-                : '#000000'
-            }
-            onChange={(e) => handleColorChange(e.target.value)}
-            className="pointer-events-none absolute opacity-0"
-            style={{ width: '1px', height: '1px' }}
-          />
-        </div>
-
-        {colors.map((color, index) => (
-          <div
-            key={index}
-            className="flex items-center border-b-1 pr-2 pl-5"
-            style={{
-              height: '48px',
-              borderColor: contrastColors?.borderColor,
-              transition: 'border-color 300ms ease-out',
-            }}
-          >
-            <ColorSwatch
-              color={color}
-              className="mr-2 grow-2"
-              text={
-                showPopulation && populationPercentages?.[index] != null
-                  ? `${Math.round(populationPercentages[index])}%`
-                  : undefined
-              }
-            />
-
-            <IconButton onClick={() => openColorPickerFor(index)}>
-              <FaEyeDropper size="1em" />
-            </IconButton>
-
-            <IconButton onClick={() => onSwapColor && onSwapColor(index)}>
-              <FaArrowRotateRight size="1em" />
-            </IconButton>
-
-            <IconButton
-              disabled={colors.length <= 1}
-              onClick={() => handleRemoveAt(index)}
-            >
-              <FaXmark size="1.2em" />
-            </IconButton>
-          </div>
-        ))}
-
-        {colors.length < MAX_COLORS && (
-          <button
-            onClick={onAddColor}
-            className="flex h-12 w-full cursor-pointer items-center gap-2 border-b-1 px-5"
-            style={{
-              color: contrastColors?.textColor,
-              borderColor: contrastColors?.borderColor,
-              transition: 'color 300ms ease-out',
-            }}
-          >
-            <FaPlus size="1em" />
-            <span className="text-xs tracking-wider uppercase">
-              Add target color
-            </span>
-          </button>
-        )}
-      </div>
-    )
-  }
-
   return (
-    <div className={cn('flex flex-col', className)}>
-      <div
-        className="flex flex-wrap items-center gap-1.5 px-5 py-3"
-        style={{
-          borderTop: `1px solid ${contrastColors?.borderColor}`,
-          transition: 'border-color 300ms ease-out',
-        }}
-      >
-        {colors.map((color, index) => (
-          <ColorSwatch key={index} color={color} onClick={onOpenAdvanced} />
-        ))}
+    <div
+      className={cn('flex flex-col', className)}
+      style={{
+        borderTop: `1px solid ${contrastColors?.borderColor}`,
+        transition: 'border-color 300ms ease-out',
+      }}
+    >
+      <div className="relative">
+        <input
+          ref={colorInputRef}
+          type="color"
+          value={
+            pickerIndex !== null && colors[pickerIndex]
+              ? rgbToHex(colors[pickerIndex])
+              : '#000000'
+          }
+          onChange={(e) => handleColorChange(e.target.value)}
+          className="pointer-events-none absolute opacity-0"
+          style={{ width: '1px', height: '1px' }}
+        />
       </div>
+
+      {colors.map((color, index) => (
+        <div
+          key={index}
+          className="flex items-center border-b-1 pr-2 pl-5"
+          style={{
+            height: '48px',
+            borderColor: contrastColors?.borderColor,
+            transition: 'border-color 300ms ease-out',
+          }}
+        >
+          <ColorSwatch
+            color={color}
+            className="mr-2 grow-2"
+            text={
+              showPopulation && populationPercentages?.[index] != null
+                ? `${Math.round(populationPercentages[index])}%`
+                : undefined
+            }
+          />
+
+          <IconButton onClick={() => openColorPickerFor(index)}>
+            <FaEyeDropper size="1em" />
+          </IconButton>
+
+          <IconButton onClick={() => onSwapColor && onSwapColor(index)}>
+            <FaArrowRotateRight size="1em" />
+          </IconButton>
+
+          <IconButton
+            disabled={colors.length <= 1}
+            onClick={() => handleRemoveAt(index)}
+          >
+            <FaXmark size="1.2em" />
+          </IconButton>
+        </div>
+      ))}
+
+      {colors.length < MAX_COLORS && (
+        <button
+          onClick={onAddColor}
+          className="flex h-12 w-full cursor-pointer items-center gap-2 border-b-1 px-5"
+          style={{
+            color: contrastColors?.textColor,
+            borderColor: contrastColors?.borderColor,
+            transition: 'color 300ms ease-out',
+          }}
+        >
+          <FaPlus size="1em" />
+          <span className="text-xs tracking-wider uppercase">
+            Add target color
+          </span>
+        </button>
+      )}
     </div>
   )
 }

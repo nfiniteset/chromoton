@@ -5,14 +5,13 @@ import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
 import SubtleButton from './SubtleButton'
 import Typography from './Typography'
-import Divider from './Divider'
 import NavStack from './NavStack'
 import NavStackView from './NavStackView'
 import Debugger from './Debugger'
 import { useTheme } from '../contexts/ThemeContext'
 import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
-import { FaChevronRight, FaAnglesDown } from 'react-icons/fa6'
+import { FaChevronRight } from 'react-icons/fa6'
 
 export default function ControlPanel({
   palettes,
@@ -34,12 +33,10 @@ export default function ControlPanel({
   className,
 }) {
   const { panelRef } = useTheme()
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [isHiding, setIsHiding] = useState(false)
   const [hideDelay, setHideDelay] = useState(0)
-  const [contentHeight, setContentHeight] = useState(null)
   const [isPinned, setIsPinned] = useState(false)
   const hideTimerRef = useRef(null)
   const isHoveringRef = useRef(false)
@@ -81,16 +78,8 @@ export default function ControlPanel({
     }
 
     hideTimerRef.current = setTimeout(() => {
-      // If advanced panel is open, delay the slide-out to let height collapse first
-      const needsDelay = showAdvanced
-
       setIsHiding(true)
-      setHideDelay(needsDelay ? 100 : 0)
-
-      if (needsDelay) {
-        setShowAdvanced(false)
-      }
-
+      setHideDelay(0)
       requestAnimationFrame(() => {
         setIsHidden(true)
       })
@@ -178,13 +167,6 @@ export default function ControlPanel({
     }
   }, [isHidden, isPinned])
 
-  // Reset showAdvanced when sidebar closes
-  useEffect(() => {
-    if (isHidden) {
-      setShowAdvanced(false)
-    }
-  }, [isHidden])
-
   // When pinned, ensure panel is visible
   useEffect(() => {
     if (isPinned && isHidden) {
@@ -244,35 +226,20 @@ export default function ControlPanel({
                     onRemoveColor={onRemoveColor}
                     onSwapColor={onSwapColor}
                     onAddColor={onAddColor}
-                    onOpenAdvanced={() => setShowAdvanced(true)}
                     showPopulation={showPopulation}
                     populationPercentages={populationPercentages}
-                    advancedMode={showAdvanced}
                   />
                 </div>
 
-                <div>
-                  {!showAdvanced && (
-                    <SubtleButton
-                      onClick={() => setShowAdvanced(true)}
-                      className="flex items-center justify-center pt-1 pb-1"
-                    >
-                      <FaAnglesDown size="1.5em" />
-                    </SubtleButton>
-                  )}
-
-                  {showAdvanced && (
-                    <div className="px-5 pt-7">
-                      <AdvancedControls
-                        currentStrategy={strategyType}
-                        onStrategyChange={onStrategyChange}
-                        clarity={clarity}
-                        isPinned={isPinned}
-                        onClarityChange={onClarityChange}
-                        onPinChange={setIsPinned}
-                      />
-                    </div>
-                  )}
+                <div className="px-5 pt-7">
+                  <AdvancedControls
+                    currentStrategy={strategyType}
+                    onStrategyChange={onStrategyChange}
+                    clarity={clarity}
+                    isPinned={isPinned}
+                    onClarityChange={onClarityChange}
+                    onPinChange={setIsPinned}
+                  />
                 </div>
               </div>
             </NavStackView>
@@ -293,8 +260,6 @@ export default function ControlPanel({
 
       {debug && (
         <Debugger
-          showAdvanced={showAdvanced}
-          setShowAdvanced={setShowAdvanced}
           showPalettePicker={showPalettePicker}
           setShowPalettePicker={setShowPalettePicker}
           isHidden={isHidden}
