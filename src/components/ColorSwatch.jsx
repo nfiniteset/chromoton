@@ -35,12 +35,12 @@ export default function ColorSwatch({
           : `2px solid transparent`,
         borderColor: contrastColors.borderColor,
         outlineOffset: '2px',
-        transition: 'outline-color 150ms ease-out, border-color 300ms ease-out',
+        transition: 'background-color 300ms ease-out, outline-color 150ms ease-out, border-color 300ms ease-out',
       }}
     >
       {text && (
         <span
-          className="absolute inset-0 flex items-center justify-center text-[7px] leading-none font-medium"
+          className="absolute inset-0 flex items-center justify-center text-xs leading-none font-medium"
           style={{ color: theme.textColor }}
         >
           {text}
