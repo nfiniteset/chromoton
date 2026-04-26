@@ -239,8 +239,10 @@ export default function ControlPanel({
                     onRemoveColor={onRemoveColor}
                     onSwapColor={onSwapColor}
                     onAddColor={onAddColor}
+                    onOpenAdvanced={() => setShowAdvanced(true)}
                     showPopulation={showPopulation}
                     populationPercentages={populationPercentages}
+                    advancedMode={showAdvanced}
                   />
                 </div>
 

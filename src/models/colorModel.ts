@@ -27,7 +27,7 @@ export interface RandomAction {
 }
 
 const MIN_COLORS = 1
-const MAX_COLORS = 5
+export const MAX_COLORS = 5
 
 /**
  * Create initial color state

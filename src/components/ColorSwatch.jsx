@@ -6,6 +6,7 @@ export default function ColorSwatch({
   onClick,
   placeholder = false,
   text,
+  className
 }) {
   const { contrastColors, getThemeForColor } = useTheme()
 
@@ -26,7 +27,7 @@ export default function ColorSwatch({
   return (
     <div
       onClick={onClick}
-      className={`relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-sm border ${onClick ? 'cursor-pointer' : ''}`}
+      className={`relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-sm border ${onClick ? 'cursor-pointer' : ''} {className}`}
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
         outline: selected
