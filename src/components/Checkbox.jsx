@@ -1,11 +1,12 @@
+import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 import Typography from './Typography'
 
-export default function Checkbox({ checked, onChange, label }) {
+export default function Checkbox({ checked, onChange, label, className }) {
   const { contrastColors } = useTheme()
 
   return (
-    <label className="flex cursor-pointer items-center gap-1.5 text-[11px] select-none">
+    <label className={cn('flex cursor-pointer items-center gap-1.5 text-[11px] select-none', className)}>
       <input
         type="checkbox"
         checked={checked}

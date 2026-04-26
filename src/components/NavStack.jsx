@@ -1,6 +1,7 @@
 import { useState, Children, cloneElement, useEffect } from 'react'
+import { cn } from '../lib/utils'
 
-export default function NavStack({ activeView, children }) {
+export default function NavStack({ activeView, children, className }) {
   const [viewHeights, setViewHeights] = useState({})
   const [renderedViews, setRenderedViews] = useState(new Set([activeView]))
 
@@ -24,7 +25,7 @@ export default function NavStack({ activeView, children }) {
 
   return (
     <div
-      className="relative overflow-hidden transition-all duration-300"
+      className={cn('relative overflow-hidden transition-all duration-300', className)}
       style={{
         height: activeHeight ? `${activeHeight}px` : 'auto',
       }}

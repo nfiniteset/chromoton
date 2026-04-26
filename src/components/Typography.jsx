@@ -1,3 +1,4 @@
+import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function Typography({
@@ -17,7 +18,7 @@ export default function Typography({
 
   return (
     <Component
-      className={className}
+      className={cn(className)}
       style={{
         color: colorMap[intent] || contrastColors.textColor,
         transition: 'color 300ms ease-out',

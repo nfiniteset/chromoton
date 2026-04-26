@@ -1,3 +1,4 @@
+import { cn } from '../lib/utils'
 import { PALETTES, PALETTE_DISPLAY_NAMES } from '../palettes'
 import SubtleButton from './SubtleButton'
 import ColorSwatch from './ColorSwatch'
@@ -9,6 +10,7 @@ export default function PalettePicker({
   currentPalette,
   onPaletteChange,
   onBack,
+  className,
 }) {
   const handlePaletteClick = (paletteName) => {
     onPaletteChange(paletteName)
@@ -16,7 +18,7 @@ export default function PalettePicker({
   }
 
   return (
-    <div className="flex max-h-[calc(100vh-40px)] flex-col">
+    <div className={cn('flex max-h-[calc(100vh-40px)] flex-col', className)}>
       <SubtleButton
         onClick={onBack}
         className="shrink-0 border-b pl-1"

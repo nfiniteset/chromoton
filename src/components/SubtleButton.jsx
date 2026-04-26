@@ -1,3 +1,4 @@
+import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function SubtleButton({
@@ -13,7 +14,7 @@ export default function SubtleButton({
   return (
     <button
       onClick={onClick}
-      className={`subtle-button flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase ${active ? 'active' : ''} ${className}`}
+      className={cn('subtle-button flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase', active && 'active', className)}
       style={{
         // CSS custom properties for theme colors
         '--bg-normal': 'transparent',

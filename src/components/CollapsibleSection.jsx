@@ -1,3 +1,4 @@
+import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function CollapsibleSection({
@@ -5,11 +6,12 @@ export default function CollapsibleSection({
   isExpanded,
   onToggle,
   children,
+  className,
 }) {
   const { contrastColors } = useTheme()
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className={cn('flex flex-col gap-7', className)}>
       <button
         onClick={onToggle}
         className="flex w-full items-center justify-between rounded-sm bg-white/10 px-2 py-2 text-[11px] tracking-wider uppercase transition-colors hover:bg-white/15"

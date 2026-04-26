@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { cn } from '../lib/utils'
 import ColorSwatch from './ColorSwatch'
 import IconButton from './IconButton'
 import { useTheme } from '../contexts/ThemeContext'
@@ -24,6 +25,7 @@ export default function ColorList({
   showPopulation,
   populationPercentages,
   advancedMode = false,
+  className,
 }) {
   const [pickerIndex, setPickerIndex] = useState(null)
   const colorInputRef = useRef(null)
@@ -50,7 +52,7 @@ export default function ColorList({
   if (advancedMode) {
     return (
       <div
-        className="flex flex-col"
+        className={cn('flex flex-col', className)}
         style={{ borderTop: `1px solid ${contrastColors?.borderColor}` }}
       >
         <div className="relative">
@@ -67,12 +69,13 @@ export default function ColorList({
         {colors.map((color, index) => (
           <div
             key={index}
-            className="flex items-center px-5"
+            className="flex items-center pl-5 pr-2"
             style={{ height: '48px', borderBottom: `1px solid ${contrastColors?.borderColor}` }}
           >
-            <div className="flex-1 flex items-center">
+            <div className="flex-1 flex items-center self-stretch">
               <ColorSwatch
                 color={color}
+                fill
                 text={
                   showPopulation && populationPercentages?.[index] != null
                     ? `${Math.round(populationPercentages[index])}%`
@@ -119,7 +122,7 @@ export default function ColorList({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className={cn('flex flex-col', className)}>
       <div
         className="flex flex-wrap items-center gap-1.5 px-5 py-3"
         style={{ borderTop: `1px solid ${contrastColors?.borderColor}` }}
@@ -129,11 +132,6 @@ export default function ColorList({
             key={index}
             color={color}
             onClick={onOpenAdvanced}
-            text={
-              showPopulation && populationPercentages?.[index] != null
-                ? `${Math.round(populationPercentages[index])}%`
-                : undefined
-            }
           />
         ))}
 

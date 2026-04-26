@@ -1,10 +1,12 @@
 import { useRef, useEffect, useState } from 'react'
+import { cn } from '../lib/utils'
 
 export default function NavStackView({
   id,
   isActive,
   onHeightChange,
   children,
+  className,
 }) {
   const contentRef = useRef(null)
   const [hasMeasured, setHasMeasured] = useState(false)
@@ -65,7 +67,7 @@ export default function NavStackView({
   return (
     <div
       ref={contentRef}
-      className="transition-all duration-300"
+      className={cn('transition-all duration-300', className)}
       style={{
         position: hasMeasured ? 'absolute' : 'relative',
         left: hasMeasured ? 0 : undefined,

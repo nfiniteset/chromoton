@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 import Typography from './Typography'
 
@@ -8,6 +9,7 @@ export default function SteppedSlider({
   displayValue,
   steps,
   onChange,
+  className,
 }) {
   const { contrastColors } = useTheme()
 
@@ -47,7 +49,7 @@ export default function SteppedSlider({
   }, [contrastColors.sliderThumb])
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={cn('flex flex-col gap-2', className)}>
       <div className="flex items-baseline justify-between">
         <Typography intent="strong">{label}</Typography>
         <Typography className="text-[11px] tabular-nums" intent="weak">

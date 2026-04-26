@@ -1,3 +1,4 @@
+import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function ColorSwatch({
@@ -5,6 +6,7 @@ export default function ColorSwatch({
   selected = false,
   onClick,
   placeholder = false,
+  fill = false,
   text,
   className
 }) {
@@ -27,7 +29,7 @@ export default function ColorSwatch({
   return (
     <div
       onClick={onClick}
-      className={`relative h-6 w-6 flex-shrink-0 overflow-hidden rounded-sm border ${onClick ? 'cursor-pointer' : ''} {className}`}
+      className={cn('relative overflow-hidden rounded-sm border', fill ? 'mr-3 h-6 w-full' : 'h-6 w-6 flex-shrink-0', onClick && 'cursor-pointer', className)}
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
         outline: selected

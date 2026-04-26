@@ -1,3 +1,4 @@
+import { cn } from '../lib/utils'
 import Checkbox from './Checkbox'
 import StrategySelector from './StrategySelector'
 import SteppedSlider from './SteppedSlider'
@@ -11,6 +12,7 @@ export default function AdvancedControls({
   onClarityChange,
   onShowPopulationChange,
   onPinChange,
+  className,
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]
   const currentStepIndex = resolutionSteps.findIndex((val) => val >= clarity)
@@ -18,7 +20,7 @@ export default function AdvancedControls({
     currentStepIndex === -1 ? resolutionSteps.length - 1 : currentStepIndex
 
   return (
-    <div className="flex flex-col gap-7 pb-7">
+    <div className={cn('flex flex-col gap-7 pb-7', className)}>
       <div className="flex flex-col gap-2">
         <StrategySelector
           currentStrategy={currentStrategy}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { cn } from '../lib/utils'
 import PalettePicker from './PalettePicker'
 import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
@@ -30,6 +31,7 @@ export default function ControlPanel({
   onClarityChange,
   onShowPopulationChange,
   debug = false,
+  className,
 }) {
   const { panelRef } = useTheme()
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -206,7 +208,7 @@ export default function ControlPanel({
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]"
+      className={cn('pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]', className)}
     >
       <div
         ref={panelRef}
