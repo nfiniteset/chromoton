@@ -6,25 +6,33 @@ import { getUniqueRandomColor } from '../utils/colorUtils'
 export const metadata: StrategyMetadata = {
   id: 'three-target',
   name: 'Dramatic',
-  description: 'Replaces any color reaching 40%+',
+  description: 'Replaces any color reaching 40%+, or the most dominant after 8-15s of stasis',
 }
 
 const REPLACEMENT_THRESHOLD = 0.4 // 40%
-const CHECK_INTERVAL_MS = 2000 // Check every 2 seconds
+const CHECK_INTERVAL_MS = 3000 // Check every 3 seconds
+const MIN_FALLBACK_MS = 8000
+const MAX_FALLBACK_MS = 15000
 
 /**
  * Three-Target Strategy
  *
- * Checks every 2 seconds and immediately replaces any color
- * that reaches 40% or more of the population.
+ * Two complementary timers:
+ * - Every 2s: replaces any color at 40%+ of the population
+ * - Every 8-15s: replaces the most dominant color unconditionally (stasis breaker)
  *
- * Algorithm:
- * 1. Calculate population percentages for each color
- * 2. If any color reaches 40%+, replace it immediately
- * 3. If multiple colors reach threshold, replace one randomly
+ * Any swap — from either timer — resets the 8-15s timer.
  */
 export class ThreeTargetStrategy implements RandomizationStrategy {
   private intervalId: NodeJS.Timeout | null = null
+  private fallbackTimeoutId: NodeJS.Timeout | null = null
+  private getState: (() => ColorState) | null = null
+  private getPopulation: (() => {
+    population: Uint8ClampedArray[][]
+    xDim: number
+    yDim: number
+  }) | null = null
+  private applyAction: ((action: RandomAction) => void) | null = null
 
   start(
     getState: () => ColorState,
@@ -35,13 +43,20 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
     },
     applyAction: (action: RandomAction) => void
   ): void {
-    // Check immediately on start
-    this.checkAndAct(getState, getPopulation, applyAction)
+    this.getState = getState
+    this.getPopulation = getPopulation
+    this.applyAction = applyAction
 
-    // Then check every 2 seconds
+    // Check immediately on start
+    this.checkAndAct()
+
+    // 2s threshold checks
     this.intervalId = setInterval(() => {
-      this.checkAndAct(getState, getPopulation, applyAction)
+      this.checkAndAct()
     }, CHECK_INTERVAL_MS)
+
+    // Start the stasis-breaker timer
+    this.scheduleFallback()
   }
 
   stop(): void {
@@ -49,60 +64,74 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
       clearInterval(this.intervalId)
       this.intervalId = null
     }
+    if (this.fallbackTimeoutId) {
+      clearTimeout(this.fallbackTimeoutId)
+      this.fallbackTimeoutId = null
+    }
+    this.getState = null
+    this.getPopulation = null
+    this.applyAction = null
   }
 
-  private checkAndAct(
-    getState: () => ColorState,
-    getPopulation: () => {
-      population: Uint8ClampedArray[][]
-      xDim: number
-      yDim: number
-    },
-    applyAction: (action: RandomAction) => void
-  ): void {
-    const state = getState()
-    const { population, xDim, yDim } = getPopulation()
-    const action = this.determineAction(state, population, xDim, yDim)
+  private scheduleFallback(): void {
+    if (this.fallbackTimeoutId) {
+      clearTimeout(this.fallbackTimeoutId)
+    }
+    const delay =
+      MIN_FALLBACK_MS + Math.random() * (MAX_FALLBACK_MS - MIN_FALLBACK_MS)
+    this.fallbackTimeoutId = setTimeout(() => {
+      this.swapMostDominant()
+      this.scheduleFallback()
+    }, delay)
+  }
+
+  private checkAndAct(): void {
+    if (!this.getState || !this.getPopulation || !this.applyAction) return
+
+    const state = this.getState()
+    const { population, xDim, yDim } = this.getPopulation()
+    const action = this.determineThresholdAction(state, population, xDim, yDim)
 
     if (action) {
-      applyAction(action)
+      this.applyAction(action)
+      this.scheduleFallback()
     }
   }
 
-  private determineAction(
+  private swapMostDominant(): void {
+    if (!this.getState || !this.getPopulation || !this.applyAction) return
+
+    const state = this.getState()
+    if (state.colors.length === 0) return
+
+    const { population, xDim, yDim } = this.getPopulation()
+    const counts = getColorSuccessCounts(population, state.colors, xDim, yDim)
+    const targetIndex = this.findMaxIndex(counts)
+    const newColor = getUniqueRandomColor(state.currentPalette, state.colors)
+
+    this.applyAction({ action: 'change', targetIndex, newColor })
+  }
+
+  private determineThresholdAction(
     state: ColorState,
     population: Uint8ClampedArray[][],
     xDim: number,
     yDim: number
   ): RandomAction | null {
-    // Guard: Check if we have any colors
-    if (state.colors.length === 0) {
-      return null
-    }
+    if (state.colors.length === 0) return null
 
-    // Guard: Check for valid population
     const totalCells = xDim * yDim
-    if (totalCells === 0) {
-      return null
-    }
+    if (totalCells === 0) return null
 
-    // Process: Check for dominant colors and replace if needed
     const counts = getColorSuccessCounts(population, state.colors, xDim, yDim)
     const dominantIndices = this.findDominantColors(counts, totalCells)
 
-    if (dominantIndices.length === 0) {
-      return null
-    }
+    if (dominantIndices.length === 0) return null
 
-    // Return: Replace one of the dominant colors
     const targetIndex = this.selectRandomIndex(dominantIndices)
     const newColor = getUniqueRandomColor(state.currentPalette, state.colors)
 
-    return {
-      action: 'change',
-      targetIndex,
-      newColor,
-    }
+    return { action: 'change', targetIndex, newColor }
   }
 
   private findDominantColors(counts: number[], totalCells: number): number[] {
@@ -118,12 +147,22 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
     return dominantIndices
   }
 
-  private selectRandomIndex(indices: number[]): number {
-    if (indices.length === 0) {
-      return 0
+  private findMaxIndex(counts: number[]): number {
+    let maxCount = -1
+    let maxIndex = 0
+
+    for (let i = 0; i < counts.length; i++) {
+      if (counts[i] > maxCount) {
+        maxCount = counts[i]
+        maxIndex = i
+      }
     }
 
-    const randomArrayIndex = Math.floor(Math.random() * indices.length)
-    return indices[randomArrayIndex]
+    return maxIndex
+  }
+
+  private selectRandomIndex(indices: number[]): number {
+    if (indices.length === 0) return 0
+    return indices[Math.floor(Math.random() * indices.length)]
   }
 }

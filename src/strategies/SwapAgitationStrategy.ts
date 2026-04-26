@@ -12,7 +12,7 @@ export const metadata: StrategyMetadata = {
     'High-energy chaos - swaps most successful color every 2 seconds',
 }
 
-const SWAP_INTERVAL_MS = 2000 // 2 seconds
+const SWAP_INTERVAL_MS = 1500 // 1.5 seconds
 
 /**
  * Swap Agitation Strategy
