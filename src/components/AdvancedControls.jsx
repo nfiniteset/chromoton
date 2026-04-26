@@ -20,7 +20,8 @@ export default function AdvancedControls({
   const stepIndex =
     currentStepIndex === -1 ? resolutionSteps.length - 1 : currentStepIndex
 
-  const fpsStepIndex = FPS_STEPS.indexOf(fps) === -1 ? 1 : FPS_STEPS.indexOf(fps)
+  const fpsStepIndex =
+    FPS_STEPS.indexOf(fps) === -1 ? 1 : FPS_STEPS.indexOf(fps)
 
   return (
     <div className={cn('flex flex-col gap-7 pb-7', className)}>

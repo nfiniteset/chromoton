@@ -6,7 +6,8 @@ import { getUniqueRandomColor } from '../utils/colorUtils'
 export const metadata: StrategyMetadata = {
   id: 'three-target',
   name: 'Dramatic',
-  description: 'Replaces any color reaching 40%+, or the most dominant after 8-15s of stasis',
+  description:
+    'Replaces any color reaching 40%+, or the most dominant after 8-15s of stasis',
 }
 
 const REPLACEMENT_THRESHOLD = 0.4 // 40%
@@ -27,11 +28,13 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
   private intervalId: NodeJS.Timeout | null = null
   private fallbackTimeoutId: NodeJS.Timeout | null = null
   private getState: (() => ColorState) | null = null
-  private getPopulation: (() => {
-    population: Uint8ClampedArray[][]
-    xDim: number
-    yDim: number
-  }) | null = null
+  private getPopulation:
+    | (() => {
+        population: Uint8ClampedArray[][]
+        xDim: number
+        yDim: number
+      })
+    | null = null
   private applyAction: ((action: RandomAction) => void) | null = null
 
   start(
