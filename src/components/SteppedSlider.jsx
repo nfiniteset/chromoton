@@ -24,11 +24,15 @@ export default function SteppedSlider({
     style.id = styleId
     style.textContent = `
       input[type="range"]::-webkit-slider-thumb {
-        background: ${contrastColors.sliderThumb} !important;
+        width: 44px !important;
+        height: 44px !important;
+        background: radial-gradient(circle, ${contrastColors.sliderThumb} 27%, transparent 28%) !important;
         transition: background 300ms ease-out !important;
       }
       input[type="range"]::-moz-range-thumb {
-        background: ${contrastColors.sliderThumb} !important;
+        width: 44px !important;
+        height: 44px !important;
+        background: radial-gradient(circle, ${contrastColors.sliderThumb} 27%, transparent 28%) !important;
         transition: background 300ms ease-out !important;
       }
     `
