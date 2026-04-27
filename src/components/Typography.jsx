@@ -12,15 +12,15 @@ export default function Typography({
   const Component = as
 
   const colorMap = {
-    strong: contrastColors.textColor,
-    weak: contrastColors.textColorWeak,
+    strong: contrastColors.text,
+    weak: contrastColors.textWeak,
   }
 
   return (
     <Component
       className={cn(className)}
       style={{
-        color: colorMap[intent] || contrastColors.textColor,
+        color: colorMap[intent] || contrastColors.text,
         transition: 'color 300ms ease-out',
         ...style,
       }}

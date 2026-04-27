@@ -16,8 +16,8 @@ export default function CollapsibleSection({
         onClick={onToggle}
         className="flex w-full items-center justify-between rounded-sm bg-white/10 px-2 py-2 text-[11px] tracking-wider uppercase transition-colors hover:bg-white/15"
         style={{
-          color: contrastColors?.textColor,
-          borderColor: contrastColors?.borderColorHover,
+          color: contrastColors?.text,
+          borderColor: contrastColors?.borderHover,
           borderWidth: '1px',
           borderStyle: 'solid',
           transition:

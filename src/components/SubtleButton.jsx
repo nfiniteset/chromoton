@@ -23,13 +23,13 @@ const SubtleButton = forwardRef(function SubtleButton(
         '--bg-hover': contrastColors.backgroundHover,
         '--bg-active': contrastColors.backgroundActive,
         '--bg-active-hover': contrastColors.backgroundActiveHover,
-        '--border-normal': contrastColors.borderColor,
-        '--border-active': contrastColors.borderColorHover,
-        '--text-normal': contrastColors.textColor,
+        '--border-normal': contrastColors.border,
+        '--border-active': contrastColors.borderHover,
+        '--text-normal': contrastColors.text,
         '--text-active': contrastColors.textActive,
 
         // Apply colors using CSS variables
-        borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
+        border: active ? 'var(--border-active)' : 'var(--border-normal)',
         color: active ? 'var(--text-active)' : 'var(--text-normal)',
         transition:
           'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',

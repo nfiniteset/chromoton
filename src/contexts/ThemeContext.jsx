@@ -21,9 +21,9 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     document.body.style.setProperty(
       '--focus-ring-color',
-      contrastColors.borderFocusColor
+      contrastColors.borderFocus
     )
-  }, [contrastColors.borderFocusColor])
+  }, [contrastColors.borderFocus])
 
   return (
     <ThemeContext.Provider

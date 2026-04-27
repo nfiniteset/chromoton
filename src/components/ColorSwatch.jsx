@@ -16,7 +16,7 @@ export default function ColorSwatch({
       <div
         className="h-6 w-6 flex-shrink-0 rounded-sm"
         style={{
-          border: `1px dashed ${contrastColors?.textColor}`,
+          border: `1px dashed ${contrastColors?.text}`,
           transition: 'border-color 300ms ease-out',
         }}
       />
@@ -36,9 +36,9 @@ export default function ColorSwatch({
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
         outline: selected
-          ? `2px solid ${contrastColors.textColor}`
+          ? `2px solid ${contrastColors.text}`
           : `2px solid transparent`,
-        borderColor: contrastColors.borderColor,
+        borderColor: contrastColors.border,
         outlineOffset: '2px',
         transition:
           'background-color 300ms ease-out, outline-color 150ms ease-out, border-color 300ms ease-out',
@@ -47,7 +47,7 @@ export default function ColorSwatch({
       {text && (
         <span
           className="absolute inset-0 flex items-center justify-center text-xs leading-none font-medium"
-          style={{ color: theme.textColor, transition: 'color 300ms ease-out' }}
+          style={{ color: theme.icon, transition: 'color 300ms ease-out' }}
         >
           {text}
         </span>

@@ -19,7 +19,7 @@ export default function IconButton({
       )}
       style={{
         '--bg-hover': contrastColors.backgroundHover,
-        color: contrastColors.textColor,
+        color: contrastColors.icon,
         transition: 'background-color 300ms ease-out, color 300ms ease-out',
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? 'not-allowed' : 'pointer',

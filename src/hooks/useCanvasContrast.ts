@@ -3,14 +3,16 @@ import chroma from 'chroma-js'
 import type { Color } from '../models/colorModel'
 
 interface ContrastColors {
-  textColor: string
-  textColorAlpha: string
-  textColorWeak: string
-  textColorHeader: string
+  text: string
+  textAlpha: string
+  textWeak: string
+  textHeader: string
   textActive: string
-  borderColor: string
-  borderColorHover: string
-  borderFocusColor: string
+  icon: string
+  iconActive: string
+  border: string
+  borderHover: string
+  borderFocus: string
   sliderThumb: string
   backgroundHover: string
   backgroundActive: string
@@ -59,14 +61,16 @@ export function useCanvasContrast(
 
 function getDefaultColors(): ContrastColors {
   return {
-    textColor: '#ffffff',
-    textColorAlpha: 'rgba(255, 255, 255, 0.75)',
-    textColorWeak: 'rgba(255, 255, 255, 0.45)',
-    textColorHeader: 'rgba(255, 255, 255, 0.35)',
+    text: '#ffffff',
+    textAlpha: 'rgba(255, 255, 255, 0.75)',
+    textWeak: 'rgba(255, 255, 255, 0.45)',
+    textHeader: 'rgba(255, 255, 255, 0.35)',
     textActive: '#000000',
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    borderColorHover: 'rgba(255, 255, 255, 0.4)',
-    borderFocusColor: '#ffffff',
+    icon: '#ffffff',
+    iconActive: '#000000',
+    border: 'rgba(255, 255, 255, 0.18)',
+    borderHover: 'rgba(255, 255, 255, 0.4)',
+    borderFocus: '#ffffff',
     sliderThumb: '#eee',
     backgroundHover: 'rgba(255, 255, 255, 0.1)',
     backgroundActive: 'rgba(255, 255, 255, 0.5)',
@@ -101,14 +105,16 @@ function updateContrast(
 function colorsAreEqual(a: ContrastColors, b: ContrastColors): boolean {
   // Compare all color properties for equality
   return (
-    a.textColor === b.textColor &&
-    a.textColorAlpha === b.textColorAlpha &&
-    a.textColorWeak === b.textColorWeak &&
-    a.textColorHeader === b.textColorHeader &&
+    a.text === b.text &&
+    a.textAlpha === b.textAlpha &&
+    a.textWeak === b.textWeak &&
+    a.textHeader === b.textHeader &&
     a.textActive === b.textActive &&
-    a.borderColor === b.borderColor &&
-    a.borderColorHover === b.borderColorHover &&
-    a.borderFocusColor === b.borderFocusColor &&
+    a.icon === b.icon &&
+    a.iconActive === b.iconActive &&
+    a.border === b.border &&
+    a.borderHover === b.borderHover &&
+    a.borderFocus === b.borderFocus &&
     a.sliderThumb === b.sliderThumb &&
     a.backgroundHover === b.backgroundHover &&
     a.backgroundActive === b.backgroundActive &&
@@ -241,21 +247,21 @@ function calculateContrastColors(
 
   if (useWhite) {
     // Light scheme with sampled hue
-    const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
-    const textColorAlpha = hasHue
+    const text = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
+    const textAlpha = hasHue
       ? chroma.hsl(hue, 0.75, 0.9).alpha(0.75).css()
       : 'rgba(255, 255, 255, 0.75)'
-    const textColorWeak = hasHue
+    const textWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
       : 'rgba(255, 255, 255, 0.45)'
-    const textColorHeader = hasHue
+    const textHeader = hasHue
       ? chroma.hsl(hue, 0.65, 0.86).alpha(0.35).css()
       : 'rgba(255, 255, 255, 0.35)'
     const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
-    const borderColor = hasHue
+    const border = hasHue
       ? chroma.hsl(hue, 0.85, 0.86).alpha(0.4).css()
       : 'rgba(255, 255, 255, 0.15)'
-    const borderColorHover = hasHue
+    const borderHover = hasHue
       ? chroma.hsl(hue, 0.9, 0.88).alpha(0.7).css()
       : 'rgba(255, 255, 255, 0.4)'
     const sliderThumb = hasHue ? chroma.hsl(hue, 0.8, 0.88).hex() : '#eee'
@@ -270,14 +276,16 @@ function calculateContrastColors(
       : 'rgba(255, 255, 255, 0.3)'
 
     return {
-      textColor,
-      textColorAlpha,
-      textColorWeak,
-      textColorHeader,
+      text,
+      textAlpha,
+      textWeak,
+      textHeader,
       textActive,
-      borderColor,
-      borderColorHover,
-      borderFocusColor: textColor,
+      border,
+      borderHover,
+      icon: text,
+      iconActive: textActive,
+      borderFocus: text,
       sliderThumb,
       backgroundHover,
       backgroundActive,
@@ -285,21 +293,21 @@ function calculateContrastColors(
     }
   } else {
     // Dark scheme with sampled hue
-    const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
-    const textColorAlpha = hasHue
+    const text = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
+    const textAlpha = hasHue
       ? chroma.hsl(hue, 0.75, 0.2).alpha(0.75).css()
       : 'rgba(0, 0, 0, 0.75)'
-    const textColorWeak = hasHue
+    const textWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
       : 'rgba(0, 0, 0, 0.45)'
-    const textColorHeader = hasHue
+    const textHeader = hasHue
       ? chroma.hsl(hue, 0.65, 0.26).alpha(0.35).css()
       : 'rgba(0, 0, 0, 0.35)'
     const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
-    const borderColor = hasHue
+    const border = hasHue
       ? chroma.hsl(hue, 0.85, 0.22).alpha(0.4).css()
       : 'rgba(0, 0, 0, 0.15)'
-    const borderColorHover = hasHue
+    const borderHover = hasHue
       ? chroma.hsl(hue, 0.9, 0.26).alpha(0.7).css()
       : 'rgba(0, 0, 0, 0.4)'
     const sliderThumb = hasHue ? chroma.hsl(hue, 0.8, 0.24).hex() : '#222'
@@ -314,14 +322,16 @@ function calculateContrastColors(
       : 'rgba(0, 0, 0, 0.3)'
 
     return {
-      textColor,
-      textColorAlpha,
-      textColorWeak,
-      textColorHeader,
+      text,
+      textAlpha,
+      textWeak,
+      textHeader,
       textActive,
-      borderColor,
-      borderColorHover,
-      borderFocusColor: textColor,
+      border,
+      borderHover,
+      icon: text,
+      iconActive: textActive,
+      borderFocus: text,
       sliderThumb,
       backgroundHover,
       backgroundActive,

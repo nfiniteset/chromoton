@@ -159,7 +159,7 @@ export default function ControlPanel({
             'pointer-events-auto h-9 w-9 cursor-pointer',
             GLASS_BUTTON_CLASSES
           )}
-          style={{ color: contrastColors?.textColor }}
+          style={{ color: contrastColors?.icon }}
         >
           <FaArrowRightToBracket size="0.9em" />
         </button>
@@ -180,7 +180,7 @@ export default function ControlPanel({
             GLASS_BUTTON_CLASSES
           )}
           style={{
-            color: contrastColors?.textColor,
+            color: contrastColors?.text,
             pointerEvents: isHidden && showOpenButton ? 'auto' : 'none',
           }}
         >

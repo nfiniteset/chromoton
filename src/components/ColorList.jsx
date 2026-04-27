@@ -51,7 +51,7 @@ export default function ColorList({
     <div
       className={cn('flex flex-col', className)}
       style={{
-        borderTop: `1px solid ${contrastColors?.borderColor}`,
+        borderTop: `1px solid ${contrastColors?.border}`,
         transition: 'border-color 300ms ease-out',
       }}
     >
@@ -77,7 +77,7 @@ export default function ColorList({
           className="flex items-center border-b-1 pr-2 pl-5"
           style={{
             height: '48px',
-            borderColor: contrastColors?.borderColor,
+            borderColor: contrastColors?.border,
             transition: 'border-color 300ms ease-out',
           }}
         >
@@ -113,8 +113,8 @@ export default function ColorList({
           onClick={onAddColor}
           className="flex h-12 w-full cursor-pointer items-center gap-2 border-b-1 px-5"
           style={{
-            color: contrastColors?.textColor,
-            borderColor: contrastColors?.borderColor,
+            color: contrastColors?.icon,
+            borderColor: contrastColors?.border,
             transition: 'color 300ms ease-out',
           }}
         >

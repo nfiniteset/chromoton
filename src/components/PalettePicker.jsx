@@ -67,11 +67,11 @@ export default function PalettePicker({
               )}
               style={{
                 borderColor: isSelected
-                  ? contrastColors.borderColorHover
-                  : contrastColors.borderColor,
+                  ? contrastColors.borderHover
+                  : contrastColors.border,
                 color: isSelected
                   ? contrastColors.textActive
-                  : contrastColors.textColor,
+                  : contrastColors.text,
                 transition:
                   'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
               }}

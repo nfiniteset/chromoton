@@ -2,10 +2,10 @@ import chroma from 'chroma-js'
 import type { Color } from '../models/colorModel'
 
 interface ColorTheme {
-  textColor: string
-  textColorWeak: string
-  iconColor: string
-  borderColor: string
+  text: string
+  textWeak: string
+  icon: string
+  border: string
   backgroundHover: string
 }
 
@@ -32,14 +32,14 @@ export function getThemeForColor(color: Color): ColorTheme {
 
   if (luminance > 0.5) {
     // Light background - use dark theme
-    const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
-    const textColorWeak = hasHue
+    const text = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
+    const textWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
       : 'rgba(0, 0, 0, 0.45)'
-    const iconColor = hasHue
+    const icon = hasHue
       ? chroma.hsl(hue, 0.8, 0.15).alpha(0.85).css()
       : 'rgba(0, 0, 0, 0.85)'
-    const borderColor = hasHue
+    const border = hasHue
       ? chroma.hsl(hue, 0.7, 0.35).alpha(0.6).css()
       : 'rgba(0, 0, 0, 0.5)'
     const backgroundHover = hasHue
@@ -47,22 +47,22 @@ export function getThemeForColor(color: Color): ColorTheme {
       : 'rgba(0, 0, 0, 0.1)'
 
     return {
-      textColor,
-      textColorWeak,
-      iconColor,
-      borderColor,
+      text,
+      textWeak,
+      icon,
+      border,
       backgroundHover,
     }
   } else {
     // Dark background - use light theme
-    const textColor = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
-    const textColorWeak = hasHue
+    const text = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
+    const textWeak = hasHue
       ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
       : 'rgba(255, 255, 255, 0.45)'
-    const iconColor = hasHue
+    const icon = hasHue
       ? chroma.hsl(hue, 0.8, 0.95).alpha(0.85).css()
       : 'rgba(255, 255, 255, 0.85)'
-    const borderColor = hasHue
+    const border = hasHue
       ? chroma.hsl(hue, 0.7, 0.75).alpha(0.6).css()
       : 'rgba(255, 255, 255, 0.5)'
     const backgroundHover = hasHue
@@ -70,10 +70,10 @@ export function getThemeForColor(color: Color): ColorTheme {
       : 'rgba(255, 255, 255, 0.1)'
 
     return {
-      textColor,
-      textColorWeak,
-      iconColor,
-      borderColor,
+      text,
+      textWeak,
+      icon,
+      border,
       backgroundHover,
     }
   }
