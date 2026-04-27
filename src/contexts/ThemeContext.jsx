@@ -1,4 +1,10 @@
-import { createContext, useContext, useRef, useCallback } from 'react'
+import {
+  createContext,
+  useContext,
+  useRef,
+  useCallback,
+  useEffect,
+} from 'react'
 import { useCanvasContrast } from '../hooks/useCanvasContrast'
 import { getThemeForColor as calculateThemeForColor } from '../utils/themeUtils'
 
@@ -11,6 +17,13 @@ export function ThemeProvider({ children }) {
   const getThemeForColor = useCallback((color) => {
     return calculateThemeForColor(color)
   }, [])
+
+  useEffect(() => {
+    document.body.style.setProperty(
+      '--focus-ring-color',
+      contrastColors.borderFocusColor
+    )
+  }, [contrastColors.borderFocusColor])
 
   return (
     <ThemeContext.Provider

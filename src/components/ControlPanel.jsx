@@ -46,6 +46,8 @@ export default function ControlPanel({
   const [isHiding, setIsHiding] = useState(false)
   const [showOpenButton, setShowOpenButton] = useState(false)
   const mouseTimerRef = useRef(null)
+  const paletteLinkRef = useRef(null)
+  const prevShowPalettePickerRef = useRef(false)
 
   const withViewTransition = (updateFn) => {
     if (document.startViewTransition) {
@@ -64,14 +66,26 @@ export default function ControlPanel({
     if (mouseTimerRef.current) {
       clearTimeout(mouseTimerRef.current)
     }
+    requestAnimationFrame(() => paletteLinkRef.current?.focus())
   }
 
   const hidePanel = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
     setIsHiding(true)
     requestAnimationFrame(() => {
       setIsHidden(true)
     })
   }
+
+  // Return focus to palette button when picker closes (handles both back button and Escape)
+  useEffect(() => {
+    if (!showPalettePicker && prevShowPalettePickerRef.current) {
+      requestAnimationFrame(() => paletteLinkRef.current?.focus())
+    }
+    prevShowPalettePickerRef.current = showPalettePicker
+  }, [showPalettePicker])
 
   // Show panel on click anywhere on the canvas (outside the panel)
   useEffect(() => {
@@ -187,7 +201,10 @@ export default function ControlPanel({
             <NavStackView id="main">
               <div className="flex flex-col">
                 <div className="flex flex-col">
-                  <SubtleButton onClick={handlePalettePickerLink}>
+                  <SubtleButton
+                    ref={paletteLinkRef}
+                    onClick={handlePalettePickerLink}
+                  >
                     <div className="gap-0 text-left">
                       <Typography as="p">Color palette</Typography>
                       <Typography intent="weak" as="p">
@@ -225,6 +242,7 @@ export default function ControlPanel({
                 palettes={palettes}
                 currentPalette={currentPalette}
                 onPaletteChange={onPaletteChange}
+                isActive={showPalettePicker}
                 onBack={() =>
                   withViewTransition(() => setShowPalettePicker(false))
                 }

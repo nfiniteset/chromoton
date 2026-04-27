@@ -28,6 +28,16 @@ body {
   image-rendering: pixelated;
 }
 
+/* Keyboard focus ring — visible only for keyboard nav, hidden for mouse/touch */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--focus-ring-color, white);
+  outline-offset: 2px;
+}
+
 /* SubtleButton background states — ordered by ascending specificity so no !important needed */
 .subtle-button {
   background-color: var(--bg-normal);

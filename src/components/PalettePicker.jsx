@@ -11,6 +11,7 @@ export default function PalettePicker({
   currentPalette,
   onPaletteChange,
   onBack,
+  isActive = false,
   className,
 }) {
   const initialIndex = palettes.indexOf(currentPalette)
@@ -18,6 +19,7 @@ export default function PalettePicker({
     initialIndex >= 0 ? initialIndex : 0
   )
   const itemRefs = useRef([])
+  const focusedIndexRef = useRef(focusedIndex)
 
   const handlePaletteClick = useCallback(
     (paletteName) => {
@@ -27,9 +29,22 @@ export default function PalettePicker({
     [onPaletteChange, onBack]
   )
 
+  // Keep ref in sync so focus-on-activate reads the latest value without a dep
+  useEffect(() => {
+    focusedIndexRef.current = focusedIndex
+  }, [focusedIndex])
+
   useEffect(() => {
     itemRefs.current[focusedIndex]?.scrollIntoView({ block: 'nearest' })
   }, [focusedIndex])
+
+  // Focus the highlighted item whenever the picker becomes active
+  useEffect(() => {
+    if (!isActive) return
+    requestAnimationFrame(() =>
+      itemRefs.current[focusedIndexRef.current]?.focus()
+    )
+  }, [isActive])
 
   useEffect(() => {
     const handleKeyDown = (e) => {

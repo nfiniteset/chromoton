@@ -10,6 +10,7 @@ interface ContrastColors {
   textActive: string
   borderColor: string
   borderColorHover: string
+  borderFocusColor: string
   sliderThumb: string
   backgroundHover: string
   backgroundActive: string
@@ -65,6 +66,7 @@ function getDefaultColors(): ContrastColors {
     textActive: '#000000',
     borderColor: 'rgba(255, 255, 255, 0.18)',
     borderColorHover: 'rgba(255, 255, 255, 0.4)',
+    borderFocusColor: '#ffffff',
     sliderThumb: '#eee',
     backgroundHover: 'rgba(255, 255, 255, 0.1)',
     backgroundActive: 'rgba(255, 255, 255, 0.5)',
@@ -106,6 +108,7 @@ function colorsAreEqual(a: ContrastColors, b: ContrastColors): boolean {
     a.textActive === b.textActive &&
     a.borderColor === b.borderColor &&
     a.borderColorHover === b.borderColorHover &&
+    a.borderFocusColor === b.borderFocusColor &&
     a.sliderThumb === b.sliderThumb &&
     a.backgroundHover === b.backgroundHover &&
     a.backgroundActive === b.backgroundActive &&
@@ -274,6 +277,7 @@ function calculateContrastColors(
       textActive,
       borderColor,
       borderColorHover,
+      borderFocusColor: textColor,
       sliderThumb,
       backgroundHover,
       backgroundActive,
@@ -317,6 +321,7 @@ function calculateContrastColors(
       textActive,
       borderColor,
       borderColorHover,
+      borderFocusColor: textColor,
       sliderThumb,
       backgroundHover,
       backgroundActive,
