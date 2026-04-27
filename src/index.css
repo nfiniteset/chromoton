@@ -38,6 +38,12 @@ body {
   outline-offset: 2px;
 }
 
+/* Propagate focus ring to label when a hidden input inside it is focused */
+label:has(:focus-visible) {
+  outline: 2px solid var(--focus-ring-color, white);
+  outline-offset: 2px;
+}
+
 /* SubtleButton background states — ordered by ascending specificity so no !important needed */
 .subtle-button {
   background-color: var(--bg-normal);
@@ -53,8 +59,7 @@ body {
 }
 
 /* specificity (0,2,0) — beats .subtle-button; source order beats --active for hover/focus cases */
-.subtle-button:hover,
-.subtle-button--keyboard-focused {
+.subtle-button:hover {
   background-color: var(--bg-hover);
   transition:
     color 0ms,
@@ -63,8 +68,7 @@ body {
 }
 
 /* specificity (0,3,0) — beats all above */
-.subtle-button--active:hover,
-.subtle-button--active.subtle-button--keyboard-focused {
+.subtle-button--active:hover {
   background-color: var(--bg-active-hover);
   transition:
     color 0ms,

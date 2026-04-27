@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
 import { cn } from '../lib/utils'
 import { PALETTES, PALETTE_DISPLAY_NAMES } from '../palettes'
 import SubtleButton from './SubtleButton'
 import ColorSwatch from './ColorSwatch'
+import { useTheme } from '../contexts/ThemeContext'
 
 import { FaChevronLeft } from 'react-icons/fa6'
 
@@ -11,65 +11,14 @@ export default function PalettePicker({
   currentPalette,
   onPaletteChange,
   onBack,
-  isActive = false,
   className,
 }) {
-  const initialIndex = palettes.indexOf(currentPalette)
-  const [focusedIndex, setFocusedIndex] = useState(
-    initialIndex >= 0 ? initialIndex : 0
-  )
-  const itemRefs = useRef([])
-  const focusedIndexRef = useRef(focusedIndex)
+  const { contrastColors } = useTheme()
 
-  const handlePaletteClick = useCallback(
-    (paletteName) => {
-      onPaletteChange(paletteName)
-      onBack()
-    },
-    [onPaletteChange, onBack]
-  )
-
-  // Keep ref in sync so focus-on-activate reads the latest value without a dep
-  useEffect(() => {
-    focusedIndexRef.current = focusedIndex
-  }, [focusedIndex])
-
-  useEffect(() => {
-    itemRefs.current[focusedIndex]?.scrollIntoView({ block: 'nearest' })
-  }, [focusedIndex])
-
-  // Focus the highlighted item whenever the picker becomes active
-  useEffect(() => {
-    if (!isActive) return
-    requestAnimationFrame(() =>
-      itemRefs.current[focusedIndexRef.current]?.focus()
-    )
-  }, [isActive])
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault()
-          setFocusedIndex((i) => Math.max(0, i - 1))
-          break
-        case 'ArrowDown':
-          e.preventDefault()
-          setFocusedIndex((i) => Math.min(palettes.length - 1, i + 1))
-          break
-        case 'Enter':
-        case ' ':
-          e.preventDefault()
-          handlePaletteClick(palettes[focusedIndex])
-          break
-        default:
-          break
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [focusedIndex, palettes, handlePaletteClick])
+  const handleChange = (paletteName) => {
+    onPaletteChange(paletteName)
+    onBack()
+  }
 
   return (
     <div className={cn('flex max-h-[calc(100vh-40px)] flex-col', className)}>
@@ -84,25 +33,47 @@ export default function PalettePicker({
         </span>
       </SubtleButton>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-7">
-        {palettes.map((paletteName, idx) => {
+      <fieldset
+        className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto border-0 p-0 pb-7"
+        style={{
+          '--bg-normal': 'transparent',
+          '--bg-hover': contrastColors.backgroundHover,
+          '--bg-active': contrastColors.backgroundActive,
+          '--bg-active-hover': contrastColors.backgroundActiveHover,
+        }}
+      >
+        <legend className="sr-only">Color palette</legend>
+
+        {palettes.map((paletteName) => {
           const palette = PALETTES[paletteName]
           const isSelected = paletteName === currentPalette
-          const isFocused = idx === focusedIndex
 
           return (
-            <SubtleButton
+            <label
               key={paletteName}
-              ref={(el) => {
-                itemRefs.current[idx] = el
-              }}
-              onClick={() => handlePaletteClick(paletteName)}
-              active={isSelected}
               className={cn(
-                'py-3',
-                isFocused && 'subtle-button--keyboard-focused'
+                'subtle-button relative flex w-full cursor-pointer items-center justify-between px-5 py-3 text-[11px] tracking-wider uppercase',
+                isSelected && 'subtle-button--active'
               )}
+              style={{
+                borderColor: isSelected
+                  ? contrastColors.borderColorHover
+                  : contrastColors.borderColor,
+                color: isSelected
+                  ? contrastColors.textActive
+                  : contrastColors.textColor,
+                transition:
+                  'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
+              }}
             >
+              <input
+                type="radio"
+                name="palette"
+                value={paletteName}
+                checked={isSelected}
+                onChange={() => handleChange(paletteName)}
+                className="absolute h-px w-px opacity-0"
+              />
               <div className="flex w-full flex-col items-start justify-start gap-2 border-0">
                 <span className="text-[11px] tracking-wider uppercase">
                   {PALETTE_DISPLAY_NAMES[paletteName]}
@@ -124,10 +95,10 @@ export default function PalettePicker({
                   </div>
                 )}
               </div>
-            </SubtleButton>
+            </label>
           )
         })}
-      </div>
+      </fieldset>
     </div>
   )
 }

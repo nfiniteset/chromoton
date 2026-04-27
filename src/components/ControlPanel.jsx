@@ -79,13 +79,17 @@ export default function ControlPanel({
     })
   }
 
-  // Return focus to palette button when picker closes (handles both back button and Escape)
+  // Move focus in/out of palette picker as it opens and closes
   useEffect(() => {
-    if (!showPalettePicker && prevShowPalettePickerRef.current) {
+    if (showPalettePicker && !prevShowPalettePickerRef.current) {
+      requestAnimationFrame(() =>
+        panelRef.current?.querySelector('input[type="radio"]:checked')?.focus()
+      )
+    } else if (!showPalettePicker && prevShowPalettePickerRef.current) {
       requestAnimationFrame(() => paletteLinkRef.current?.focus())
     }
     prevShowPalettePickerRef.current = showPalettePicker
-  }, [showPalettePicker])
+  }, [showPalettePicker, panelRef])
 
   // Show panel on click anywhere on the canvas (outside the panel)
   useEffect(() => {
@@ -242,7 +246,6 @@ export default function ControlPanel({
                 palettes={palettes}
                 currentPalette={currentPalette}
                 onPaletteChange={onPaletteChange}
-                isActive={showPalettePicker}
                 onBack={() =>
                   withViewTransition(() => setShowPalettePicker(false))
                 }
