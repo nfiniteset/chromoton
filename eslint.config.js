@@ -5,12 +5,14 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import react from 'eslint-plugin-react'
 import tailwindcss from 'eslint-plugin-tailwindcss'
 import eslintConfigPrettier from 'eslint-config-prettier'
+import tseslint from 'typescript-eslint'
 
 export default [
   {
     ignores: ['dist', 'node_modules', 'chromoton'],
   },
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
@@ -22,6 +24,7 @@ export default [
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+      parser: tseslint.parser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
