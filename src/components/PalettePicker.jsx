@@ -17,7 +17,16 @@ export default function PalettePicker({
 
   const handleChange = (paletteName) => {
     onPaletteChange(paletteName)
-    onBack()
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    e.preventDefault()
+    const input = document.activeElement
+    if (input?.type === 'radio' && input.name === 'palette') {
+      onPaletteChange(input.value)
+      onBack()
+    }
   }
 
   return (
@@ -35,6 +44,7 @@ export default function PalettePicker({
 
       <fieldset
         className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto border-0 p-0 pb-7"
+        onKeyDown={handleKeyDown}
         style={{
           '--bg-normal': 'transparent',
           '--bg-hover': contrastColors.backgroundHover,

@@ -59,6 +59,7 @@ export default function ColorList({
         <input
           ref={colorInputRef}
           type="color"
+          tabIndex={-1}
           value={
             pickerIndex !== null && colors[pickerIndex]
               ? rgbToHex(colors[pickerIndex])
