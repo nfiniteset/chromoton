@@ -9,10 +9,8 @@ export default function AdvancedControls({
   onStrategyChange,
   clarity,
   fps,
-  isPinned,
   onClarityChange,
   onFpsChange,
-  onPinChange,
   className,
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]

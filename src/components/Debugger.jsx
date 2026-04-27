@@ -7,23 +7,19 @@ import { useEffect } from 'react'
  * Keyboard shortcuts:
  * - 'p': Toggle between palette picker and main view
  * - '/': Toggle control panel visibility
- * - '.': Toggle pin state
  * - 's': Toggle show population
  */
 export default function Debugger({
   showPalettePicker,
   setShowPalettePicker,
   isHidden,
-  showSidebar,
-  scheduleSidebarHide,
-  isPinned,
-  setIsPinned,
+  showPanel,
+  hidePanel,
   onShowPopulationChange,
   showPopulation,
 }) {
   useEffect(() => {
     const handleKeyPress = (e) => {
-      // Ignore if user is typing in an input field
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return
       }
@@ -34,13 +30,10 @@ export default function Debugger({
           break
         case '/':
           if (isHidden) {
-            showSidebar()
+            showPanel()
           } else {
-            scheduleSidebarHide()
+            hidePanel()
           }
-          break
-        case '.':
-          setIsPinned((prev) => !prev)
           break
         case 's':
           onShowPopulationChange(!showPopulation)
@@ -59,13 +52,11 @@ export default function Debugger({
     showPalettePicker,
     setShowPalettePicker,
     isHidden,
-    showSidebar,
-    scheduleSidebarHide,
-    isPinned,
-    setIsPinned,
+    showPanel,
+    hidePanel,
     showPopulation,
     onShowPopulationChange,
   ])
 
-  return null // This component doesn't render anything
+  return null
 }

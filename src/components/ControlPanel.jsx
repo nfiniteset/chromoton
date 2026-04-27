@@ -11,7 +11,14 @@ import Debugger from './Debugger'
 import { useTheme } from '../contexts/ThemeContext'
 import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
-import { FaChevronRight } from 'react-icons/fa6'
+import {
+  FaChevronRight,
+  FaArrowRightToBracket,
+  FaTableColumns,
+} from 'react-icons/fa6'
+
+const GLASS_BUTTON_CLASSES =
+  "relative flex items-center justify-center rounded-xl bg-white/8 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%] before:pointer-events-none before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-white/30 before:via-white/5 before:to-white/10 before:[mask-composite:exclude] before:p-px before:content-[''] before:[mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)]"
 
 export default function ControlPanel({
   palettes,
@@ -34,19 +41,13 @@ export default function ControlPanel({
   debug = false,
   className,
 }) {
-  const { panelRef } = useTheme()
+  const { panelRef, contrastColors } = useTheme()
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [isHiding, setIsHiding] = useState(false)
-  const [hideDelay, setHideDelay] = useState(0)
-  const [isPinned, setIsPinned] = useState(false)
-  const hideTimerRef = useRef(null)
-  const isHoveringRef = useRef(false)
+  const [showOpenButton, setShowOpenButton] = useState(false)
+  const mouseTimerRef = useRef(null)
 
-  const HIDE_DELAY = 500 // half second
-  const EDGE_THRESHOLD = 220 // pixels from right edge to trigger show
-
-  // Helper to use View Transition API if available
   const withViewTransition = (updateFn) => {
     if (document.startViewTransition) {
       document.startViewTransition(() => {
@@ -57,130 +58,74 @@ export default function ControlPanel({
     }
   }
 
-  const showSidebar = () => {
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current)
-    }
-
+  const showPanel = () => {
     setIsHiding(false)
-    setHideDelay(0)
+    setIsHidden(false)
+    setShowOpenButton(false)
+    if (mouseTimerRef.current) {
+      clearTimeout(mouseTimerRef.current)
+    }
+  }
+
+  const hidePanel = () => {
+    setIsHiding(true)
     requestAnimationFrame(() => {
-      setIsHidden(false)
+      setIsHidden(true)
     })
   }
 
-  const scheduleSidebarHide = () => {
-    // Don't hide if panel is pinned
-    if (isPinned) {
-      return
-    }
-
-    if (hideTimerRef.current) {
-      clearTimeout(hideTimerRef.current)
-    }
-
-    hideTimerRef.current = setTimeout(() => {
-      setIsHiding(true)
-      setHideDelay(0)
-      requestAnimationFrame(() => {
-        setIsHidden(true)
-      })
-    }, HIDE_DELAY)
-  }
-
-  const handleMouseEnter = () => {
-    isHoveringRef.current = true
-    showSidebar()
-  }
-
-  const handleMouseLeave = () => {
-    isHoveringRef.current = false
-
-    // Don't hide if a color picker is currently open (focused)
-    const hasOpenColorPicker = panelRef.current?.querySelector(
-      'input[type="color"]:focus'
-    )
-    if (hasOpenColorPicker) {
-      return
-    }
-
-    scheduleSidebarHide()
-  }
-
-  // Initial auto-hide after 3 seconds (unless pinned)
+  // Show panel on any keypress when hidden
   useEffect(() => {
-    if (isPinned) {
-      return
-    }
-
-    hideTimerRef.current = setTimeout(() => {
-      setIsHiding(true)
-      setHideDelay(0) // No advanced panel on initial load
-      requestAnimationFrame(() => {
-        setIsHidden(true)
-      })
-    }, 3000)
-
-    return () => {
-      if (hideTimerRef.current) {
-        clearTimeout(hideTimerRef.current)
-      }
-    }
-  }, [isPinned])
-
-  // Event listeners for mouse movement and color picker
-  useEffect(() => {
-    // Handle mouse movement to show sidebar when approaching right edge
-    const handleMouseMove = (e) => {
-      // Don't trigger show on mouse movement if panel is pinned
-      if (isPinned) {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return
       }
-
-      const distanceFromRight = window.innerWidth - e.clientX
-      const isNearRightEdge = distanceFromRight <= EDGE_THRESHOLD
-
-      // Only trigger show if near edge AND panel is currently hidden
-      if (!isNearRightEdge || !isHidden) {
-        return
+      if (isHidden) {
+        showPanel()
       }
-
-      showSidebar()
     }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isHidden])
 
-    // Handle color picker closing - schedule hide if mouse not over panel
-    const handleColorPickerBlur = (e) => {
-      if (e.target.type === 'color') {
-        // Small delay to allow cleanup, then check if we should hide
-        setTimeout(() => {
-          if (!isHoveringRef.current) {
-            scheduleSidebarHide()
-          }
-        }, 100)
+  // Show panel on click anywhere on the canvas (outside the panel)
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (isHidden && !panelRef.current?.contains(e.target)) {
+        showPanel()
       }
+    }
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [isHidden, panelRef])
+
+  // Open button fades in on mouse move, fades out after 3s of stillness
+  // showPanel() resets showOpenButton when the panel is shown
+  useEffect(() => {
+    if (!isHidden) return
+
+    const handleMouseMove = () => {
+      setShowOpenButton(true)
+      if (mouseTimerRef.current) {
+        clearTimeout(mouseTimerRef.current)
+      }
+      mouseTimerRef.current = setTimeout(() => {
+        setShowOpenButton(false)
+      }, 3000)
     }
 
     document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('blur', handleColorPickerBlur, true)
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('blur', handleColorPickerBlur, true)
+      if (mouseTimerRef.current) {
+        clearTimeout(mouseTimerRef.current)
+      }
     }
-  }, [isHidden, isPinned])
+  }, [isHidden])
 
-  // When pinned, ensure panel is visible
-  useEffect(() => {
-    if (isPinned && isHidden) {
-      showSidebar()
-    }
-  }, [isPinned, isHidden])
-
-  // Handle transition end to reset isHiding state
   const handleTransitionEnd = (e) => {
     if (e.propertyName === 'transform' && isHiding) {
       setIsHiding(false)
-      setHideDelay(0)
     }
   }
 
@@ -188,15 +133,59 @@ export default function ControlPanel({
     withViewTransition(() => setShowPalettePicker(true))
   }
 
+  const panelVisible = !isHidden && !isHiding
+
   return (
     <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       className={cn(
         'pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]',
         className
       )}
     >
+      {/* Hide button — upper-left of panel, outside the panel */}
+      <div
+        className="pointer-events-none absolute top-5 right-[233px] z-10"
+        style={{
+          opacity: panelVisible ? 1 : 0,
+          transition: 'opacity 200ms ease-out',
+        }}
+      >
+        <button
+          onClick={hidePanel}
+          className={cn(
+            'pointer-events-auto h-9 w-9 cursor-pointer',
+            GLASS_BUTTON_CLASSES
+          )}
+          style={{ color: contrastColors?.textColor }}
+        >
+          <FaArrowRightToBracket size="0.9em" />
+        </button>
+      </div>
+
+      {/* Open button — upper-right corner, fades in on mouse move when panel is hidden */}
+      <div
+        className="pointer-events-none absolute top-5 right-5 z-10"
+        style={{
+          opacity: isHidden && showOpenButton ? 1 : 0,
+          transition: 'opacity 300ms ease-out',
+        }}
+      >
+        <button
+          onClick={showPanel}
+          className={cn(
+            'pointer-events-auto h-9 w-9 cursor-pointer',
+            GLASS_BUTTON_CLASSES
+          )}
+          style={{
+            color: contrastColors?.textColor,
+            pointerEvents: isHidden && showOpenButton ? 'auto' : 'none',
+          }}
+        >
+          <FaTableColumns size="0.9em" />
+        </button>
+      </div>
+
+      {/* Main panel */}
       <div
         ref={panelRef}
         onTransitionEnd={handleTransitionEnd}
@@ -205,7 +194,7 @@ export default function ControlPanel({
           transform: isHidden
             ? 'translateX(calc(100% + 20px))'
             : 'translateX(0)',
-          transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'} ${hideDelay}ms, color 300ms ease-out, border-color 300ms ease-out`,
+          transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'}, color 300ms ease-out, border-color 300ms ease-out`,
         }}
       >
         <div className="relative z-[1] overflow-x-hidden overflow-y-auto">
@@ -239,10 +228,8 @@ export default function ControlPanel({
                     onStrategyChange={onStrategyChange}
                     clarity={clarity}
                     fps={fps}
-                    isPinned={isPinned}
                     onClarityChange={onClarityChange}
                     onFpsChange={onFpsChange}
-                    onPinChange={setIsPinned}
                   />
                 </div>
               </div>
@@ -267,10 +254,8 @@ export default function ControlPanel({
           showPalettePicker={showPalettePicker}
           setShowPalettePicker={setShowPalettePicker}
           isHidden={isHidden}
-          showSidebar={showSidebar}
-          scheduleSidebarHide={scheduleSidebarHide}
-          isPinned={isPinned}
-          setIsPinned={setIsPinned}
+          showPanel={showPanel}
+          hidePanel={hidePanel}
           showPopulation={showPopulation}
           onShowPopulationChange={onShowPopulationChange}
         />
