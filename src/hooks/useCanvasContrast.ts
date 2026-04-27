@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, type RefObject } from 'react'
 import chroma from 'chroma-js'
 import type { Color } from '../models/colorModel'
 
-interface ContrastColors {
+export interface ContrastColors {
   text: string
   textAlpha: string
   textWeak: string
@@ -24,7 +24,7 @@ interface ContrastColors {
  * appropriate UI colors for sufficient contrast
  */
 export function useCanvasContrast(
-  panelRef: RefObject<HTMLElement>
+  panelRef: RefObject<HTMLElement | null>
 ): ContrastColors {
   const [colors, setColors] = useState<ContrastColors>(getDefaultColors())
   const intervalRef = useRef<NodeJS.Timeout | null>(null)

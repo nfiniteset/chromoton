@@ -4,17 +4,30 @@ import {
   useRef,
   useCallback,
   useEffect,
+  type ReactNode,
+  type RefObject,
 } from 'react'
-import { useCanvasContrast } from '../hooks/useCanvasContrast'
+import {
+  useCanvasContrast,
+  type ContrastColors,
+} from '../hooks/useCanvasContrast'
 import { getThemeForColor as calculateThemeForColor } from '../utils/themeUtils'
+import type { Color } from '../models/colorModel'
+import type { ColorTheme } from '../utils/themeUtils'
 
-const ThemeContext = createContext(null)
+interface ThemeContextValue {
+  contrastColors: ContrastColors
+  panelRef: RefObject<HTMLElement | null>
+  getThemeForColor: (color: Color) => ColorTheme
+}
 
-export function ThemeProvider({ children }) {
-  const panelRef = useRef(null)
+const ThemeContext = createContext<ThemeContextValue | null>(null)
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const panelRef = useRef<HTMLElement>(null)
   const contrastColors = useCanvasContrast(panelRef)
 
-  const getThemeForColor = useCallback((color) => {
+  const getThemeForColor = useCallback((color: Color) => {
     return calculateThemeForColor(color)
   }, [])
 
@@ -34,7 +47,7 @@ export function ThemeProvider({ children }) {
   )
 }
 
-export function useTheme() {
+export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext)
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider')

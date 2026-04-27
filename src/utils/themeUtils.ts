@@ -1,7 +1,7 @@
 import chroma from 'chroma-js'
 import type { Color } from '../models/colorModel'
 
-interface ColorTheme {
+export interface ColorTheme {
   text: string
   textWeak: string
   icon: string
