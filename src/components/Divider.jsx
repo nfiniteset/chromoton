@@ -8,7 +8,7 @@ export default function Divider({ className }) {
     <hr
       className={cn('h-px border-none', className)}
       style={{
-        backgroundColor: contrastColors.borderColor,
+        backgroundColor: contrastColors.border,
         transition: 'background-color 300ms ease-out',
       }}
     />
