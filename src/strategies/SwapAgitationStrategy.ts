@@ -3,6 +3,7 @@ import type { RandomizationStrategy, StrategyMetadata } from './types'
 import {
   getUniqueRandomColor,
   getColorSuccessCounts,
+  type ChromotonCell,
 } from '../utils/colorUtils'
 
 export const metadata: StrategyMetadata = {
@@ -38,7 +39,7 @@ export class SwapAgitationStrategy implements RandomizationStrategy {
   start(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },
@@ -61,7 +62,7 @@ export class SwapAgitationStrategy implements RandomizationStrategy {
   private swapMostSuccessfulColor(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },

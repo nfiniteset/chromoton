@@ -1,4 +1,5 @@
 import type { ColorState, RandomAction } from '../models/colorModel'
+import type { ChromotonCell } from '../utils/colorUtils'
 
 /**
  * Strategy metadata for UI display and registration
@@ -26,7 +27,7 @@ export interface RandomizationStrategy {
   start(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },

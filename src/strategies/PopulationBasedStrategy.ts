@@ -4,6 +4,7 @@ import { PALETTES } from '../palettes'
 import {
   getRandomColor,
   getColorSuccessCounts,
+  type ChromotonCell,
 } from '../utils/colorUtils'
 
 export const metadata: StrategyMetadata = {
@@ -32,7 +33,7 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
   start(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },
@@ -51,7 +52,7 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
   private scheduleNextChange(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },
@@ -77,7 +78,7 @@ export class PopulationBasedStrategy implements RandomizationStrategy {
 
   private determineAction(
     state: ColorState,
-    population: Uint8ClampedArray[][],
+    population: ChromotonCell[][],
     xDim: number,
     yDim: number
   ): RandomAction | null {

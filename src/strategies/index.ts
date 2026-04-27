@@ -3,6 +3,7 @@ export type {
   StrategyMetadata,
   StrategyRegistryEntry,
 } from './types'
+import type { RandomizationStrategy } from './types'
 
 // Import strategy classes and metadata
 import { NoOpStrategy, metadata as noOpMetadata } from './NoOpStrategy'

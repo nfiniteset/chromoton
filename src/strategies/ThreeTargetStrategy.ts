@@ -1,6 +1,6 @@
 import type { ColorState, RandomAction } from '../models/colorModel'
 import type { RandomizationStrategy, StrategyMetadata } from './types'
-import { getColorSuccessCounts } from '../utils/colorUtils'
+import { getColorSuccessCounts, type ChromotonCell } from '../utils/colorUtils'
 import { getUniqueRandomColor } from '../utils/colorUtils'
 
 export const metadata: StrategyMetadata = {
@@ -30,7 +30,7 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
   private getState: (() => ColorState) | null = null
   private getPopulation:
     | (() => {
-        population: Uint8ClampedArray[][]
+        population: ChromotonCell[][]
         xDim: number
         yDim: number
       })
@@ -40,7 +40,7 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
   start(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },
@@ -117,7 +117,7 @@ export class ThreeTargetStrategy implements RandomizationStrategy {
 
   private determineThresholdAction(
     state: ColorState,
-    population: Uint8ClampedArray[][],
+    population: ChromotonCell[][],
     xDim: number,
     yDim: number
   ): RandomAction | null {

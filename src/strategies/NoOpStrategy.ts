@@ -1,5 +1,6 @@
 import type { ColorState, RandomAction } from '../models/colorModel'
 import type { RandomizationStrategy, StrategyMetadata } from './types'
+import type { ChromotonCell } from '../utils/colorUtils'
 
 export const metadata: StrategyMetadata = {
   id: 'none',
@@ -22,7 +23,7 @@ export class NoOpStrategy implements RandomizationStrategy {
   start(
     _getState: () => ColorState,
     _getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },

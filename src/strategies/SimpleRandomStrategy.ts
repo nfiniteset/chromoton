@@ -1,6 +1,6 @@
 import type { ColorState, RandomAction } from '../models/colorModel'
 import type { RandomizationStrategy, StrategyMetadata } from './types'
-import { getUniqueRandomColor } from '../utils/colorUtils'
+import { getUniqueRandomColor, type ChromotonCell } from '../utils/colorUtils'
 
 export const metadata: StrategyMetadata = {
   id: 'simple',
@@ -32,7 +32,7 @@ export class SimpleRandomStrategy implements RandomizationStrategy {
   start(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },
@@ -51,7 +51,7 @@ export class SimpleRandomStrategy implements RandomizationStrategy {
   private scheduleNextChange(
     getState: () => ColorState,
     getPopulation: () => {
-      population: Uint8ClampedArray[][]
+      population: ChromotonCell[][]
       xDim: number
       yDim: number
     },

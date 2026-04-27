@@ -1,6 +1,12 @@
 import { PALETTES, type PaletteName } from '../palettes'
 import type { Color } from '../models/colorModel'
 
+export interface ChromotonCell {
+  red: number
+  green: number
+  blue: number
+}
+
 /**
  * Generate a random color from a palette (or random if none/null palette)
  */
@@ -144,7 +150,7 @@ function selectRandomFromArray(colors: Color[]): Color {
  * This shows which colors have successfully dominated
  */
 export function getColorSuccessCounts(
-  population: Uint8ClampedArray[][],
+  population: ChromotonCell[][],
   targetColors: Color[],
   xDim: number,
   yDim: number,
@@ -155,9 +161,9 @@ export function getColorSuccessCounts(
   for (let y = 0; y < yDim; y++) {
     for (let x = 0; x < xDim; x++) {
       const cell = population[y][x]
-      const cellR = cell[0]
-      const cellG = cell[1]
-      const cellB = cell[2]
+      const cellR = cell.red
+      const cellG = cell.green
+      const cellB = cell.blue
 
       // Check each target to see if this cell has successfully matched it
       for (let i = 0; i < targetColors.length; i++) {
@@ -185,7 +191,7 @@ export function getColorSuccessCounts(
  * Returns array where counts[i] = number of cells closest to targetColors[i]
  */
 export function getClosestColorCounts(
-  population: Uint8ClampedArray[][],
+  population: ChromotonCell[][],
   targetColors: Color[],
   xDim: number,
   yDim: number
@@ -195,9 +201,9 @@ export function getClosestColorCounts(
   for (let y = 0; y < yDim; y++) {
     for (let x = 0; x < xDim; x++) {
       const cell = population[y][x]
-      const cellR = cell[0]
-      const cellG = cell[1]
-      const cellB = cell[2]
+      const cellR = cell.red
+      const cellG = cell.green
+      const cellB = cell.blue
 
       let minDeviation = Infinity
       let closestIndex = 0
