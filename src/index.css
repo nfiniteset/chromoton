@@ -80,3 +80,9 @@ label:has(:focus-visible) {
 .icon-button:hover {
   background-color: var(--bg-hover);
 }
+
+/* Draw focus ring inside for buttons that have their own background */
+.subtle-button:focus-visible,
+.icon-button:focus-visible {
+  outline-offset: -2px;
+}
