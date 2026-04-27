@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { cn } from '../lib/utils'
 import { PALETTES, PALETTE_DISPLAY_NAMES } from '../palettes'
 import SubtleButton from './SubtleButton'
@@ -12,10 +13,48 @@ export default function PalettePicker({
   onBack,
   className,
 }) {
-  const handlePaletteClick = (paletteName) => {
-    onPaletteChange(paletteName)
-    onBack()
-  }
+  const initialIndex = palettes.indexOf(currentPalette)
+  const [focusedIndex, setFocusedIndex] = useState(
+    initialIndex >= 0 ? initialIndex : 0
+  )
+  const itemRefs = useRef([])
+
+  const handlePaletteClick = useCallback(
+    (paletteName) => {
+      onPaletteChange(paletteName)
+      onBack()
+    },
+    [onPaletteChange, onBack]
+  )
+
+  useEffect(() => {
+    itemRefs.current[focusedIndex]?.scrollIntoView({ block: 'nearest' })
+  }, [focusedIndex])
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault()
+          setFocusedIndex((i) => Math.max(0, i - 1))
+          break
+        case 'ArrowDown':
+          e.preventDefault()
+          setFocusedIndex((i) => Math.min(palettes.length - 1, i + 1))
+          break
+        case 'Enter':
+        case ' ':
+          e.preventDefault()
+          handlePaletteClick(palettes[focusedIndex])
+          break
+        default:
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [focusedIndex, palettes, handlePaletteClick])
 
   return (
     <div className={cn('flex max-h-[calc(100vh-40px)] flex-col', className)}>
@@ -31,16 +70,23 @@ export default function PalettePicker({
       </SubtleButton>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-7">
-        {palettes.map((paletteName) => {
+        {palettes.map((paletteName, idx) => {
           const palette = PALETTES[paletteName]
           const isSelected = paletteName === currentPalette
+          const isFocused = idx === focusedIndex
 
           return (
             <SubtleButton
               key={paletteName}
+              ref={(el) => {
+                itemRefs.current[idx] = el
+              }}
               onClick={() => handlePaletteClick(paletteName)}
               active={isSelected}
-              className="py-3"
+              className={cn(
+                'py-3',
+                isFocused && 'subtle-button--keyboard-focused'
+              )}
             >
               <div className="flex w-full flex-col items-start justify-start gap-2 border-0">
                 <span className="text-[11px] tracking-wider uppercase">

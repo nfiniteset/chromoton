@@ -94,15 +94,11 @@ function App() {
 
   // Calculate population percentages when showPopulation is enabled
   useEffect(() => {
-    if (!showPopulation) {
-      setPopulationPercentages([])
-      return
-    }
+    if (!showPopulation) return
 
     const calculatePercentages = () => {
       if (window.chromoton && window.chromoton.getPopulation) {
         const { population, xDim, yDim } = window.chromoton.getPopulation()
-        // Count cells that have actually MATCHED each target (deviance <= 20)
         const counts = getColorSuccessCounts(
           population,
           colorModel.colors,
@@ -120,13 +116,14 @@ function App() {
       }
     }
 
-    // Calculate immediately
     calculatePercentages()
 
-    // Update every 500ms
     const interval = setInterval(calculatePercentages, 500)
 
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(interval)
+      setPopulationPercentages([])
+    }
   }, [showPopulation, colorModel.colors])
 
   // Use the color randomizer hook with strategy
@@ -155,7 +152,6 @@ function App() {
       <Chromoton width={clarity} autoStart={true} />
 
       <ControlPanel
-        debug={true}
         palettes={Object.keys(PALETTES)}
         currentPalette={colorModel.currentPalette}
         colors={colorModel.colors}

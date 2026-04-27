@@ -28,34 +28,41 @@ body {
   image-rendering: pixelated;
 }
 
-/* SubtleButton hover states - pure CSS, no JS re-renders */
+/* SubtleButton background states — ordered by ascending specificity so no !important needed */
 .subtle-button {
-  /* Smooth transition when leaving hover state */
+  background-color: var(--bg-normal);
   transition:
     color 300ms ease-out,
     background-color 300ms ease-out,
     border-color 300ms ease-out;
 }
 
-.subtle-button:hover {
-  background-color: var(--bg-hover) !important;
-  /* Instant transition when entering hover state */
+/* specificity (0,2,0) — beats .subtle-button */
+.subtle-button--active {
+  background-color: var(--bg-active);
+}
+
+/* specificity (0,2,0) — beats .subtle-button; source order beats --active for hover/focus cases */
+.subtle-button:hover,
+.subtle-button--keyboard-focused {
+  background-color: var(--bg-hover);
   transition:
     color 0ms,
     background-color 0ms,
     border-color 300ms ease-out;
 }
 
-.subtle-button.active:hover {
-  background-color: var(--bg-active-hover) !important;
-  /* Instant transition when entering hover state */
+/* specificity (0,3,0) — beats all above */
+.subtle-button--active:hover,
+.subtle-button--active.subtle-button--keyboard-focused {
+  background-color: var(--bg-active-hover);
   transition:
     color 0ms,
     background-color 0ms,
     border-color 300ms ease-out;
 }
 
-/* IconButton hover states - pure CSS */
+/* IconButton hover states — pure CSS */
 .icon-button:hover {
-  background-color: var(--bg-hover) !important;
+  background-color: var(--bg-hover);
 }

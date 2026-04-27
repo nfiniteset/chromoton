@@ -1,15 +1,12 @@
 import { useEffect } from 'react'
 
 /**
- * Debugger component for keyboard controls
- * Only rendered when debug mode is enabled
- *
  * Keyboard shortcuts:
- * - 'p': Toggle between palette picker and main view
- * - '/': Toggle control panel visibility
+ * - 'Escape': Back to main panel (if palette picker open), or hide control panel
+ * - 'p': Toggle palette picker open/closed
  * - 's': Toggle show population
  */
-export default function Debugger({
+export default function KeyboardControls({
   showPalettePicker,
   setShowPalettePicker,
   isHidden,
@@ -24,16 +21,21 @@ export default function Debugger({
         return
       }
 
+      if (isHidden) {
+        showPanel()
+        return
+      }
+
       switch (e.key) {
-        case 'p':
-          setShowPalettePicker((prev) => !prev)
-          break
-        case '/':
-          if (isHidden) {
-            showPanel()
+        case 'Escape':
+          if (showPalettePicker) {
+            setShowPalettePicker(false)
           } else {
             hidePanel()
           }
+          break
+        case 'p':
+          setShowPalettePicker((prev) => !prev)
           break
         case 's':
           onShowPopulationChange(!showPopulation)

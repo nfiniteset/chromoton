@@ -7,7 +7,7 @@ import SubtleButton from './SubtleButton'
 import Typography from './Typography'
 import NavStack from './NavStack'
 import NavStackView from './NavStackView'
-import Debugger from './Debugger'
+import KeyboardControls from './KeyboardControls'
 import { useTheme } from '../contexts/ThemeContext'
 import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
@@ -38,7 +38,6 @@ export default function ControlPanel({
   fps,
   onFpsChange,
   onShowPopulationChange,
-  debug = false,
   className,
 }) {
   const { panelRef, contrastColors } = useTheme()
@@ -73,20 +72,6 @@ export default function ControlPanel({
       setIsHidden(true)
     })
   }
-
-  // Show panel on any keypress when hidden
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return
-      }
-      if (isHidden) {
-        showPanel()
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isHidden])
 
   // Show panel on click anywhere on the canvas (outside the panel)
   useEffect(() => {
@@ -249,17 +234,15 @@ export default function ControlPanel({
         </div>
       </div>
 
-      {debug && (
-        <Debugger
-          showPalettePicker={showPalettePicker}
-          setShowPalettePicker={setShowPalettePicker}
-          isHidden={isHidden}
-          showPanel={showPanel}
-          hidePanel={hidePanel}
-          showPopulation={showPopulation}
-          onShowPopulationChange={onShowPopulationChange}
-        />
-      )}
+      <KeyboardControls
+        showPalettePicker={showPalettePicker}
+        setShowPalettePicker={setShowPalettePicker}
+        isHidden={isHidden}
+        showPanel={showPanel}
+        hidePanel={hidePanel}
+        showPopulation={showPopulation}
+        onShowPopulationChange={onShowPopulationChange}
+      />
     </div>
   )
 }

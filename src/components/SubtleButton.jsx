@@ -1,22 +1,20 @@
+import { forwardRef } from 'react'
 import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
-export default function SubtleButton({
-  onClick,
-  children,
-  className,
-  active = false,
-  style = {},
-  ...props
-}) {
+const SubtleButton = forwardRef(function SubtleButton(
+  { onClick, children, className, active = false, style = {}, ...props },
+  ref
+) {
   const { contrastColors } = useTheme()
 
   return (
     <button
+      ref={ref}
       onClick={onClick}
       className={cn(
         'subtle-button flex w-full cursor-pointer items-center justify-between px-5 py-4 text-[11px] tracking-wider uppercase',
-        active && 'active',
+        active && 'subtle-button--active',
         className
       )}
       style={{
@@ -31,7 +29,6 @@ export default function SubtleButton({
         '--text-active': contrastColors.textActive,
 
         // Apply colors using CSS variables
-        backgroundColor: active ? 'var(--bg-active)' : 'var(--bg-normal)',
         borderColor: active ? 'var(--border-active)' : 'var(--border-normal)',
         color: active ? 'var(--text-active)' : 'var(--text-normal)',
         transition:
@@ -43,4 +40,6 @@ export default function SubtleButton({
       {children}
     </button>
   )
-}
+})
+
+export default SubtleButton
