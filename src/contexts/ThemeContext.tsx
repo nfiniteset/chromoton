@@ -11,9 +11,8 @@ import {
   useCanvasContrast,
   type ContrastColors,
 } from '../hooks/useCanvasContrast'
-import { getThemeForColor as calculateThemeForColor } from '../utils/themeUtils'
+import { buildSwatchTheme, type ColorTheme } from '../utils/themeBuilder'
 import type { Color } from '../models/colorModel'
-import type { ColorTheme } from '../utils/themeUtils'
 
 interface ThemeContextValue {
   contrastColors: ContrastColors
@@ -28,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const contrastColors = useCanvasContrast(panelRef)
 
   const getThemeForColor = useCallback((color: Color) => {
-    return calculateThemeForColor(color)
+    return buildSwatchTheme(color)
   }, [])
 
   useEffect(() => {
