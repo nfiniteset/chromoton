@@ -22,7 +22,9 @@ function App() {
     false
   )
   const [fps, setFps] = useLocalStorage('chromoton-fps', 10)
-  const [populationPercentages, setPopulationPercentages] = useState([])
+  const [populationPercentages, setPopulationPercentages] = useState(
+    /** @type {number[]} */ ([])
+  )
 
   // Initialize palette and colors from localStorage or random defaults
   const initialPaletteName = useMemo(() => {

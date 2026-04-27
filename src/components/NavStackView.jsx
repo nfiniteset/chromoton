@@ -3,63 +3,51 @@ import { cn } from '../lib/utils'
 
 export default function NavStackView({
   id,
-  isActive,
-  onHeightChange,
+  isActive = false,
+  onHeightChange = /** @type {((id: string, height: number) => void) | undefined} */ (
+    undefined
+  ),
   children,
-  className,
+  className = '',
 }) {
-  const contentRef = useRef(null)
+  const contentRef = useRef(/** @type {HTMLDivElement | null} */ (null))
   const [hasMeasured, setHasMeasured] = useState(false)
 
-  // Measure and report natural height whenever content changes or becomes active
   useEffect(() => {
-    if (!contentRef.current) return
+    const el = contentRef.current
+    if (!el) return
 
     const measureHeight = () => {
-      const height = contentRef.current.scrollHeight
-      onHeightChange?.(id, height)
-      // Once we've measured, we can start animating
+      if (onHeightChange) onHeightChange(id, el.scrollHeight)
       if (!hasMeasured) {
-        // Small delay to allow the height to be set before animations start
         requestAnimationFrame(() => {
           setHasMeasured(true)
         })
       }
     }
 
-    // Initial measurement
     measureHeight()
 
-    // Re-measure on window resize
     const resizeObserver = new ResizeObserver(measureHeight)
-    resizeObserver.observe(contentRef.current)
+    resizeObserver.observe(el)
 
-    // Also listen for transitionend events to catch CSS transitions completing
     const handleTransitionEnd = () => {
       measureHeight()
     }
 
-    contentRef.current.addEventListener('transitionend', handleTransitionEnd)
+    el.addEventListener('transitionend', handleTransitionEnd)
 
     return () => {
       resizeObserver.disconnect()
-      contentRef.current?.removeEventListener(
-        'transitionend',
-        handleTransitionEnd
-      )
+      el.removeEventListener('transitionend', handleTransitionEnd)
     }
   }, [id, onHeightChange, children, hasMeasured])
 
-  // Determine transform based on view type
   const getTransform = () => {
-    // Palette picker slides from right
     if (id === 'palette-picker') {
-      // Start off-screen right even before measurement
       if (!hasMeasured) return 'translateX(100%)'
       return isActive ? 'translateX(0)' : 'translateX(100%)'
     }
-
-    // Main view starts and stays in place until measured
     if (!hasMeasured) return 'translateX(0)'
     return isActive ? 'translateX(0)' : 'translateX(-100%)'
   }

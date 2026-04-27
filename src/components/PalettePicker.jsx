@@ -11,7 +11,7 @@ export default function PalettePicker({
   currentPalette,
   onPaletteChange,
   onBack,
-  className,
+  className = '',
 }) {
   const { contrastColors } = useTheme()
 
@@ -23,7 +23,11 @@ export default function PalettePicker({
     if (e.key !== 'Enter' && e.key !== ' ') return
     e.preventDefault()
     const input = document.activeElement
-    if (input?.type === 'radio' && input.name === 'palette') {
+    if (
+      input instanceof HTMLInputElement &&
+      input.type === 'radio' &&
+      input.name === 'palette'
+    ) {
       onPaletteChange(input.value)
       onBack()
     }

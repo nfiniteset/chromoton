@@ -23,10 +23,12 @@ export default function ColorList({
   onSwapColor,
   showPopulation,
   populationPercentages,
-  className,
+  className = '',
 }) {
-  const [pickerIndex, setPickerIndex] = useState(null)
-  const colorInputRef = useRef(null)
+  const [pickerIndex, setPickerIndex] = useState(
+    /** @type {number | null} */ (null)
+  )
+  const colorInputRef = useRef(/** @type {HTMLInputElement | null} */ (null))
   const { contrastColors } = useTheme()
 
   const handleColorChange = (hex) => {

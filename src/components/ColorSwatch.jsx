@@ -2,12 +2,14 @@ import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
 export default function ColorSwatch({
-  color,
+  color = /** @type {import('../models/colorModel').Color | undefined} */ (
+    undefined
+  ),
   selected = false,
-  onClick,
+  onClick = /** @type {(() => void) | undefined} */ (undefined),
   placeholder = false,
-  text,
-  className,
+  text = /** @type {string | undefined} */ (undefined),
+  className = '',
 }) {
   const { contrastColors, getThemeForColor } = useTheme()
 

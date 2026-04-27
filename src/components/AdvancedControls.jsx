@@ -11,7 +11,7 @@ export default function AdvancedControls({
   fps,
   onClarityChange,
   onFpsChange,
-  className,
+  className = '',
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]
   const currentStepIndex = resolutionSteps.findIndex((val) => val >= clarity)

@@ -1,20 +1,6 @@
 import { useEffect } from 'react'
 import type { RandomAction, ColorState } from '../models/colorModel'
 import type { RandomizationStrategy } from '../strategies'
-import type { ChromotonCell } from '../utils/colorUtils'
-
-// Declare chromoton global
-declare global {
-  interface Window {
-    chromoton?: {
-      getPopulation: () => {
-        population: ChromotonCell[][]
-        xDim: number
-        yDim: number
-      }
-    }
-  }
-}
 
 /**
  * Hook to initialize and cleanup active randomization strategies

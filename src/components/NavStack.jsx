@@ -1,7 +1,7 @@
 import { useState, Children, cloneElement, useEffect } from 'react'
 import { cn } from '../lib/utils'
 
-export default function NavStack({ activeView, children, className }) {
+export default function NavStack({ activeView, children, className = '' }) {
   const [viewHeights, setViewHeights] = useState({})
   const [renderedViews, setRenderedViews] = useState(new Set([activeView]))
 
@@ -12,15 +12,15 @@ export default function NavStack({ activeView, children, className }) {
     })
   }
 
-  // When activeView changes, add it to renderedViews if not already there
   useEffect(() => {
+    // The `return prev` guard prevents cascading renders when the view is already tracked.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRenderedViews((prev) => {
       if (prev.has(activeView)) return prev
       return new Set([...prev, activeView])
     })
   }, [activeView])
 
-  // Get the height of the currently active view
   const activeHeight = viewHeights[activeView]
 
   return (
@@ -34,7 +34,6 @@ export default function NavStack({ activeView, children, className }) {
       }}
     >
       {Children.map(children, (child) => {
-        // Only render views that have been active at least once
         if (!renderedViews.has(child.props.id)) {
           return null
         }

@@ -79,7 +79,7 @@ function getDefaultColors(): ContrastColors {
 }
 
 function updateContrast(
-  panel: HTMLElement,
+  panel: HTMLElement | null,
   setColors: (colors: ContrastColors) => void,
   isLightThemeRef: RefObject<boolean>,
   lastColorsRef: RefObject<ContrastColors>

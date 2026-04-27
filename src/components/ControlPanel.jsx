@@ -38,15 +38,17 @@ export default function ControlPanel({
   fps,
   onFpsChange,
   onShowPopulationChange,
-  className,
+  className = '',
 }) {
   const { panelRef, contrastColors } = useTheme()
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [isHiding, setIsHiding] = useState(false)
   const [showOpenButton, setShowOpenButton] = useState(false)
-  const mouseTimerRef = useRef(null)
-  const paletteLinkRef = useRef(null)
+  const mouseTimerRef = useRef(
+    /** @type {ReturnType<typeof setTimeout> | null} */ (null)
+  )
+  const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const prevShowPalettePickerRef = useRef(false)
 
   const withViewTransition = (updateFn) => {
@@ -82,9 +84,12 @@ export default function ControlPanel({
   // Move focus in/out of palette picker as it opens and closes
   useEffect(() => {
     if (showPalettePicker && !prevShowPalettePickerRef.current) {
-      requestAnimationFrame(() =>
-        panelRef.current?.querySelector('input[type="radio"]:checked')?.focus()
-      )
+      requestAnimationFrame(() => {
+        const checked = panelRef.current?.querySelector(
+          'input[type="radio"]:checked'
+        )
+        if (checked instanceof HTMLElement) checked.focus()
+      })
     } else if (!showPalettePicker && prevShowPalettePickerRef.current) {
       requestAnimationFrame(() => paletteLinkRef.current?.focus())
     }
@@ -103,7 +108,6 @@ export default function ControlPanel({
   }, [isHidden, panelRef])
 
   // Open button fades in on mouse move, fades out after 3s of stillness
-  // showPanel() resets showOpenButton when the panel is shown
   useEffect(() => {
     if (!isHidden) return
 

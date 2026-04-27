@@ -9,7 +9,7 @@ export default function Typography({
   style = {},
 }) {
   const { contrastColors } = useTheme()
-  const Component = as
+  const Component = /** @type {import('react').ElementType} */ (as)
 
   const colorMap = {
     strong: contrastColors.text,

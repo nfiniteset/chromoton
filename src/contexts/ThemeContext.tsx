@@ -17,14 +17,14 @@ import type { ColorTheme } from '../utils/themeUtils'
 
 interface ThemeContextValue {
   contrastColors: ContrastColors
-  panelRef: RefObject<HTMLElement | null>
+  panelRef: RefObject<HTMLDivElement | null>
   getThemeForColor: (color: Color) => ColorTheme
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const panelRef = useRef<HTMLElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const contrastColors = useCanvasContrast(panelRef)
 
   const getThemeForColor = useCallback((color: Color) => {

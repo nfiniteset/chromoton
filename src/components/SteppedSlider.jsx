@@ -9,15 +9,13 @@ export default function SteppedSlider({
   displayValue,
   steps,
   onChange,
-  className,
+  className = '',
 }) {
   const { contrastColors } = useTheme()
 
-  // Inject dynamic slider thumb styles based on contrast colors
   useEffect(() => {
     const styleId = 'dynamic-slider-styles'
-    let existingStyle = document.getElementById(styleId)
-
+    const existingStyle = document.getElementById(styleId)
     if (existingStyle) {
       existingStyle.remove()
     }

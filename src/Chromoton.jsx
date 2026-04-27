@@ -18,9 +18,11 @@ export default function Chromoton({
 }) {
   // Internal mutation rate for the simulation (not exposed as a prop)
   const mutationRate = 0.002
-  const containerRef = useRef(null)
+  const containerRef = useRef(/** @type {HTMLDivElement | null} */ (null))
   const isInitialized = useRef(false)
-  const resizeTimeoutRef = useRef(null)
+  const resizeTimeoutRef = useRef(
+    /** @type {ReturnType<typeof setTimeout> | null} */ (null)
+  )
 
   useEffect(() => {
     // Initialize chromoton if not already done
@@ -32,7 +34,8 @@ export default function Chromoton({
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container || !window.chromoton) return
+    const sim = window.chromoton
+    if (!container || !sim) return
 
     // Function to calculate and update dimensions
     const updateDimensions = () => {
@@ -45,7 +48,7 @@ export default function Chromoton({
           return Math.round(width * aspectRatio)
         })()
 
-      window.chromoton.configure({
+      sim.configure({
         width: width,
         height: calculatedHeight,
       })
@@ -55,11 +58,11 @@ export default function Chromoton({
     updateDimensions()
 
     // Set mutation rate
-    window.chromoton.setMutationRate(mutationRate)
+    sim.setMutationRate(mutationRate)
 
     // Start simulation if autoStart is true
     if (autoStart) {
-      window.chromoton.show(container)
+      sim.show(container)
     }
 
     // Handle window resize with debouncing

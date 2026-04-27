@@ -4,7 +4,7 @@ import { useTheme } from '../contexts/ThemeContext'
 export default function IconButton({
   onClick,
   children,
-  className,
+  className = '',
   disabled = false,
 }) {
   const { contrastColors } = useTheme()
