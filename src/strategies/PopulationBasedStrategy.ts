@@ -3,7 +3,6 @@ import type { RandomizationStrategy, StrategyMetadata } from './types'
 import { PALETTES } from '../palettes'
 import {
   getRandomColor,
-  getUniqueRandomColor,
   getColorSuccessCounts,
 } from '../utils/colorUtils'
 

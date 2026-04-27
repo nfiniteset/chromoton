@@ -164,7 +164,7 @@ function sampleCanvasColorBehindPanel(panel: HTMLElement): Color | null {
       totalG += data[1]
       totalB += data[2]
       validSamples++
-    } catch (e) {
+    } catch {
       // Security error or out of bounds - skip this sample
       continue
     }
@@ -190,8 +190,8 @@ function calculateContrastColors(
 
   // Saturate the color (180%)
   const hsl = color.hsl()
-  let hue = hsl[0]
-  let saturation = hsl[1]
+  const hue = hsl[0]
+  const saturation = hsl[1]
 
   if (!isNaN(saturation)) {
     const newSaturation = Math.min(1, saturation * 1.8)

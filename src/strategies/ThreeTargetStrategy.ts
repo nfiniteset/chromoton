@@ -1,4 +1,4 @@
-import type { Color, ColorState, RandomAction } from '../models/colorModel'
+import type { ColorState, RandomAction } from '../models/colorModel'
 import type { RandomizationStrategy, StrategyMetadata } from './types'
 import { getColorSuccessCounts } from '../utils/colorUtils'
 import { getUniqueRandomColor } from '../utils/colorUtils'

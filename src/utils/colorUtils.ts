@@ -144,7 +144,7 @@ function selectRandomFromArray(colors: Color[]): Color {
  * This shows which colors have successfully dominated
  */
 export function getColorSuccessCounts(
-  population: any[][],
+  population: Uint8ClampedArray[][],
   targetColors: Color[],
   xDim: number,
   yDim: number,
@@ -155,9 +155,9 @@ export function getColorSuccessCounts(
   for (let y = 0; y < yDim; y++) {
     for (let x = 0; x < xDim; x++) {
       const cell = population[y][x]
-      const cellR = cell.red !== undefined ? cell.red : cell[0]
-      const cellG = cell.green !== undefined ? cell.green : cell[1]
-      const cellB = cell.blue !== undefined ? cell.blue : cell[2]
+      const cellR = cell[0]
+      const cellG = cell[1]
+      const cellB = cell[2]
 
       // Check each target to see if this cell has successfully matched it
       for (let i = 0; i < targetColors.length; i++) {
@@ -185,7 +185,7 @@ export function getColorSuccessCounts(
  * Returns array where counts[i] = number of cells closest to targetColors[i]
  */
 export function getClosestColorCounts(
-  population: any[][],
+  population: Uint8ClampedArray[][],
   targetColors: Color[],
   xDim: number,
   yDim: number
@@ -195,9 +195,9 @@ export function getClosestColorCounts(
   for (let y = 0; y < yDim; y++) {
     for (let x = 0; x < xDim; x++) {
       const cell = population[y][x]
-      const cellR = cell.red !== undefined ? cell.red : cell[0]
-      const cellG = cell.green !== undefined ? cell.green : cell[1]
-      const cellB = cell.blue !== undefined ? cell.blue : cell[2]
+      const cellR = cell[0]
+      const cellG = cell[1]
+      const cellB = cell[2]
 
       let minDeviation = Infinity
       let closestIndex = 0
