@@ -117,7 +117,7 @@ window.chromoton = (function () {
   // the canvas to fit the container, so the cell count drives resolution, not pixel size.
   function render(population) {
     var canvas = el.getElementsByClassName('chromotons')[0]
-    var ctx = canvas.getContext('2d')
+    var ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!imageData) {
       canvas.width = xDim
       canvas.height = yDim
