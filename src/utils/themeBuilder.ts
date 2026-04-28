@@ -4,12 +4,9 @@ import { bestPolarity, type Polarity } from './contrastPolarity'
 
 export interface ContrastColors {
   text: string
-  textAlpha: string
   textWeak: string
-  textHeader: string
   textActive: string
   icon: string
-  iconActive: string
   border: string
   borderHover: string
   borderFocus: string
@@ -30,12 +27,9 @@ export interface ColorTheme {
 export function defaultContrastColors(): ContrastColors {
   return {
     text: '#ffffff',
-    textAlpha: 'rgba(255, 255, 255, 0.75)',
     textWeak: 'rgba(255, 255, 255, 0.45)',
-    textHeader: 'rgba(255, 255, 255, 0.35)',
     textActive: '#000000',
     icon: '#ffffff',
-    iconActive: '#000000',
     border: 'rgba(255, 255, 255, 0.18)',
     borderHover: 'rgba(255, 255, 255, 0.4)',
     borderFocus: '#ffffff',
@@ -86,18 +80,11 @@ export function buildPanelTheme(
     const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.18).hex() : '#000000'
     return {
       text,
-      textAlpha: hasHue
-        ? chroma.hsl(hue, 0.75, 0.9).alpha(0.75).css()
-        : 'rgba(255, 255, 255, 0.75)',
       textWeak: hasHue
         ? chroma.hsl(hue, 0.7, 0.88).alpha(0.65).css()
         : 'rgba(255, 255, 255, 0.45)',
-      textHeader: hasHue
-        ? chroma.hsl(hue, 0.65, 0.86).alpha(0.35).css()
-        : 'rgba(255, 255, 255, 0.35)',
       textActive,
       icon: text,
-      iconActive: textActive,
       border: hasHue
         ? chroma.hsl(hue, 0.85, 0.86).alpha(0.4).css()
         : 'rgba(255, 255, 255, 0.15)',
@@ -121,18 +108,11 @@ export function buildPanelTheme(
     const textActive = hasHue ? chroma.hsl(hue, 0.8, 0.92).hex() : '#ffffff'
     return {
       text,
-      textAlpha: hasHue
-        ? chroma.hsl(hue, 0.75, 0.2).alpha(0.75).css()
-        : 'rgba(0, 0, 0, 0.75)',
       textWeak: hasHue
         ? chroma.hsl(hue, 0.7, 0.24).alpha(0.65).css()
         : 'rgba(0, 0, 0, 0.45)',
-      textHeader: hasHue
-        ? chroma.hsl(hue, 0.65, 0.26).alpha(0.35).css()
-        : 'rgba(0, 0, 0, 0.35)',
       textActive,
       icon: text,
-      iconActive: textActive,
       border: hasHue
         ? chroma.hsl(hue, 0.85, 0.22).alpha(0.4).css()
         : 'rgba(0, 0, 0, 0.15)',

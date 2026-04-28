@@ -8,7 +8,7 @@ export function sampleCanvasRegion(element: HTMLElement): Color | null {
   const canvas = document.querySelector<HTMLCanvasElement>('.chromotons')
   if (!canvas) return null
 
-  const ctx = canvas.getContext('2d')
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
   if (!ctx) return null
 
   const canvasRect = canvas.getBoundingClientRect()

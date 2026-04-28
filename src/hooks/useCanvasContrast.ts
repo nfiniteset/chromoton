@@ -53,12 +53,9 @@ export function useCanvasContrast(
 function colorsAreEqual(a: ContrastColors, b: ContrastColors): boolean {
   return (
     a.text === b.text &&
-    a.textAlpha === b.textAlpha &&
     a.textWeak === b.textWeak &&
-    a.textHeader === b.textHeader &&
     a.textActive === b.textActive &&
     a.icon === b.icon &&
-    a.iconActive === b.iconActive &&
     a.border === b.border &&
     a.borderHover === b.borderHover &&
     a.borderFocus === b.borderFocus &&

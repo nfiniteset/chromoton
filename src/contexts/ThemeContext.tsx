@@ -33,12 +33,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const body = document.body
     body.style.setProperty('--ct-text', contrastColors.text)
-    body.style.setProperty('--ct-text-alpha', contrastColors.textAlpha)
     body.style.setProperty('--ct-text-weak', contrastColors.textWeak)
-    body.style.setProperty('--ct-text-header', contrastColors.textHeader)
     body.style.setProperty('--ct-text-active', contrastColors.textActive)
     body.style.setProperty('--ct-icon', contrastColors.icon)
-    body.style.setProperty('--ct-icon-active', contrastColors.iconActive)
     body.style.setProperty('--ct-border', contrastColors.border)
     body.style.setProperty('--ct-border-hover', contrastColors.borderHover)
     body.style.setProperty('--ct-border-focus', contrastColors.borderFocus)
