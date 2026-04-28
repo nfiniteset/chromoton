@@ -7,7 +7,7 @@ import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
 import KeyboardControls from './KeyboardControls'
 
-import SubtleButton from './primitives/SubtleButton'
+import SubtleButton from './primitives/Button'
 import Typography from './primitives/Typography'
 import NavStack from './NavStack/NavStack'
 import NavStackView from './NavStack/NavStackView'

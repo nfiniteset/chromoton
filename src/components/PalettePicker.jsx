@@ -1,7 +1,7 @@
 import { cn } from '../lib/utils'
 import { PALETTES, PALETTE_DISPLAY_NAMES } from '../palettes'
-import SubtleButton from './primitives/SubtleButton'
-import ColorSwatch from './primitives/ColorSwatch'
+import SubtleButton from './primitives/Button'
+import ColorSwatch from './primitives/Swatch'
 
 import { FaChevronLeft } from 'react-icons/fa6'
 

@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react'
 import { cn } from '../lib/utils'
-import ColorSwatch from './primitives/ColorSwatch'
+import ColorSwatch from './primitives/Swatch'
 import IconButton from './primitives/IconButton'
-import SubtleButton from './primitives/SubtleButton'
+import SubtleButton from './primitives/Button'
 import { MAX_COLORS } from '../models/colorModel'
 
 import {

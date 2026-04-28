@@ -1,5 +1,5 @@
 import { STRATEGY_REGISTRY } from '../strategies'
-import SteppedSlider from './primitives/SteppedSlider'
+import SteppedSlider from './primitives/Slider'
 
 // Slider position to strategy ID mapping
 const STRATEGY_MAP = [
