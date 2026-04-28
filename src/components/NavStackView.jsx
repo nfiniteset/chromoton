@@ -56,6 +56,7 @@ export default function NavStackView({
     <div
       ref={contentRef}
       className={cn('transition-all duration-300', className)}
+      inert={!isActive || undefined}
       style={{
         position: hasMeasured ? 'absolute' : 'relative',
         left: hasMeasured ? 0 : undefined,
