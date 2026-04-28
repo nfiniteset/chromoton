@@ -1,6 +1,6 @@
 import { cn } from '../lib/utils'
 import StrategySelector from './StrategySelector'
-import SteppedSlider from './SteppedSlider'
+import SteppedSlider from './primitives/SteppedSlider'
 
 const FPS_STEPS = [5, 10, 15, 20, 25, 30]
 

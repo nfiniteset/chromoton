@@ -1,5 +1,5 @@
 import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from 'react'
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 
 interface SubtleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean

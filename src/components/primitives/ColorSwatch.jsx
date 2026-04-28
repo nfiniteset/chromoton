@@ -1,8 +1,8 @@
-import { cn } from '../lib/utils'
-import { useTheme } from '../contexts/ThemeContext'
+import { cn } from '../../lib/utils'
+import { useTheme } from '../../contexts/ThemeContext'
 
 export default function ColorSwatch({
-  color = /** @type {import('../models/colorModel').Color | undefined} */ (
+  color = /** @type {import('../../models/colorModel').Color | undefined} */ (
     undefined
   ),
   selected = false,

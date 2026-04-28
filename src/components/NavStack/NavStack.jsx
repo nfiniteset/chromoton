@@ -1,5 +1,5 @@
 import { useState, Children, cloneElement, useEffect } from 'react'
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 
 export default function NavStack({ activeView, children, className = '' }) {
   const [viewHeights, setViewHeights] = useState({})

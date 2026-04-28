@@ -94,7 +94,7 @@ label:has(:focus-visible) {
 .subtle-button:focus-visible,
 .icon-button:focus-visible {
   outline-offset: -4px;
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 /* Slider thumb — large touch target (44px) with a small visual dot */

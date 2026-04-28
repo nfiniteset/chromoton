@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { cn } from '../lib/utils'
+import { useTheme } from '../contexts/ThemeContext'
+
 import PalettePicker from './PalettePicker'
 import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
-import SubtleButton from './SubtleButton'
-import Typography from './Typography'
-import NavStack from './NavStack'
-import NavStackView from './NavStackView'
 import KeyboardControls from './KeyboardControls'
-import { useTheme } from '../contexts/ThemeContext'
+
+import SubtleButton from './primitives/SubtleButton'
+import Typography from './primitives/Typography'
+import NavStack from './NavStack/NavStack'
+import NavStackView from './NavStack/NavStackView'
+
 import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
 import {
@@ -266,7 +269,7 @@ export default function ControlPanel({
               </div>
             </NavStackView>
 
-            <NavStackView id="palette-picker">
+            <NavStackView id="palette-picker" slideFrom="right">
               <PalettePicker
                 palettes={palettes}
                 currentPalette={currentPalette}
