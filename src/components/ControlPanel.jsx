@@ -54,16 +54,6 @@ export default function ControlPanel({
   const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const prevShowPalettePickerRef = useRef(false)
 
-  const withViewTransition = (updateFn) => {
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
-        updateFn()
-      })
-    } else {
-      updateFn()
-    }
-  }
-
   const showPanel = () => {
     setIsHiding(false)
     setIsHidden(false)
@@ -140,7 +130,7 @@ export default function ControlPanel({
   }
 
   function handlePalettePickerLink() {
-    withViewTransition(() => setShowPalettePicker(true))
+    setShowPalettePicker(true)
   }
 
   const handlePanelKeyDown = (e) => {
@@ -274,9 +264,7 @@ export default function ControlPanel({
                 palettes={palettes}
                 currentPalette={currentPalette}
                 onPaletteChange={onPaletteChange}
-                onBack={() =>
-                  withViewTransition(() => setShowPalettePicker(false))
-                }
+                onBack={() => setShowPalettePicker(false)}
               />
             </NavStackView>
           </NavStack>
