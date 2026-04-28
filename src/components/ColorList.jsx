@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { cn } from '../lib/utils'
 import ColorSwatch from './ColorSwatch'
 import IconButton from './IconButton'
-import { useTheme } from '../contexts/ThemeContext'
+import SubtleButton from './SubtleButton'
 import { MAX_COLORS } from '../models/colorModel'
 
 import {
@@ -29,8 +29,6 @@ export default function ColorList({
     /** @type {number | null} */ (null)
   )
   const colorInputRef = useRef(/** @type {HTMLInputElement | null} */ (null))
-  const { contrastColors } = useTheme()
-
   const handleColorChange = (hex) => {
     if (!hex || hex.length !== 7 || pickerIndex === null) return
     const r = parseInt(hex.slice(1, 3), 16)
@@ -53,7 +51,7 @@ export default function ColorList({
     <div
       className={cn('flex flex-col', className)}
       style={{
-        borderTop: `1px solid ${contrastColors?.border}`,
+        borderTop: '1px solid var(--ct-border)',
         transition: 'border-color 300ms ease-out',
       }}
     >
@@ -79,7 +77,7 @@ export default function ColorList({
           className="flex items-center border-b-1 pr-2 pl-5"
           style={{
             height: '48px',
-            borderColor: contrastColors?.border,
+            borderColor: 'var(--ct-border)',
             transition: 'border-color 300ms ease-out',
           }}
         >
@@ -111,20 +109,10 @@ export default function ColorList({
       ))}
 
       {colors.length < MAX_COLORS && (
-        <button
-          onClick={onAddColor}
-          className="flex h-12 w-full cursor-pointer items-center gap-2 border-b-1 px-5"
-          style={{
-            color: contrastColors?.icon,
-            borderColor: contrastColors?.border,
-            transition: 'color 300ms ease-out',
-          }}
-        >
+        <SubtleButton onClick={onAddColor} className="gap-2 border-b-1">
           <FaPlus size="1em" />
-          <span className="text-xs tracking-wider uppercase">
-            Add target color
-          </span>
-        </button>
+          <span>Add target color</span>
+        </SubtleButton>
       )}
     </div>
   )

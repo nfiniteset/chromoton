@@ -40,7 +40,7 @@ export default function ControlPanel({
   onShowPopulationChange,
   className = '',
 }) {
-  const { panelRef, contrastColors } = useTheme()
+  const { panelRef } = useTheme()
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [isHidden, setIsHidden] = useState(false)
   const [isHiding, setIsHiding] = useState(false)
@@ -140,7 +140,25 @@ export default function ControlPanel({
     withViewTransition(() => setShowPalettePicker(true))
   }
 
-  const panelVisible = !isHidden && !isHiding
+  const handlePanelKeyDown = (e) => {
+    if (e.key !== 'Tab' || isHidden) return
+    const container = e.currentTarget
+    const focusable = Array.from(
+      container.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter((el) => !el.closest('[inert]'))
+    if (focusable.length < 2) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    } else if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    }
+  }
 
   return (
     <div
@@ -148,47 +166,50 @@ export default function ControlPanel({
         'pointer-events-none fixed top-0 right-0 z-[100] h-screen w-[400px]',
         className
       )}
+      onKeyDown={handlePanelKeyDown}
     >
-      {/* Hide button — upper-left of panel, outside the panel */}
+      {/* Toggle button — slides between left-of-panel and top-right corner */}
       <div
-        className="pointer-events-none absolute top-5 right-[233px] z-10"
+        className="pointer-events-none absolute top-5 z-10"
+        inert={(isHidden && !showOpenButton) || undefined}
         style={{
-          opacity: panelVisible ? 1 : 0,
-          transition: 'opacity 200ms ease-out',
+          right: isHidden ? '20px' : '233px',
+          opacity: !isHidden || showOpenButton ? 1 : 0,
+          transition:
+            'right 200ms cubic-bezier(0.23,1,0.32,1), opacity 300ms ease-out',
         }}
       >
         <button
-          onClick={hidePanel}
+          onClick={isHidden ? showPanel : hidePanel}
           className={cn(
             'pointer-events-auto h-9 w-9 cursor-pointer',
             GLASS_BUTTON_CLASSES
           )}
-          style={{ color: contrastColors?.icon }}
+          style={{ color: 'var(--ct-icon)' }}
         >
-          <FaArrowRightToBracket size="0.9em" />
-        </button>
-      </div>
-
-      {/* Open button — upper-right corner, fades in on mouse move when panel is hidden */}
-      <div
-        className="pointer-events-none absolute top-5 right-5 z-10"
-        style={{
-          opacity: isHidden && showOpenButton ? 1 : 0,
-          transition: 'opacity 300ms ease-out',
-        }}
-      >
-        <button
-          onClick={showPanel}
-          className={cn(
-            'pointer-events-auto h-9 w-9 cursor-pointer',
-            GLASS_BUTTON_CLASSES
-          )}
-          style={{
-            color: contrastColors?.text,
-            pointerEvents: isHidden && showOpenButton ? 'auto' : 'none',
-          }}
-        >
-          <FaTableColumns size="0.9em" />
+          <span
+            className="relative block"
+            style={{ width: '0.9em', height: '0.9em' }}
+          >
+            <FaArrowRightToBracket
+              size="0.9em"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: isHidden ? 0 : 1,
+                transition: 'opacity 150ms ease-out',
+              }}
+            />
+            <FaTableColumns
+              size="0.9em"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: isHidden ? 1 : 0,
+                transition: 'opacity 150ms ease-out',
+              }}
+            />
+          </span>
         </button>
       </div>
 
