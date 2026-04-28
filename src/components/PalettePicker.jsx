@@ -2,7 +2,6 @@ import { cn } from '../lib/utils'
 import { PALETTES, PALETTE_DISPLAY_NAMES } from '../palettes'
 import SubtleButton from './SubtleButton'
 import ColorSwatch from './ColorSwatch'
-import { useTheme } from '../contexts/ThemeContext'
 
 import { FaChevronLeft } from 'react-icons/fa6'
 
@@ -13,8 +12,6 @@ export default function PalettePicker({
   onBack,
   className = '',
 }) {
-  const { contrastColors } = useTheme()
-
   const handleChange = (paletteName) => {
     onPaletteChange(paletteName)
   }
@@ -49,12 +46,6 @@ export default function PalettePicker({
       <fieldset
         className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto border-0 p-0 pb-7"
         onKeyDown={handleKeyDown}
-        style={{
-          '--bg-normal': 'transparent',
-          '--bg-hover': contrastColors.backgroundHover,
-          '--bg-active': contrastColors.backgroundActive,
-          '--bg-active-hover': contrastColors.backgroundActiveHover,
-        }}
       >
         <legend className="sr-only">Color palette</legend>
 
@@ -71,11 +62,8 @@ export default function PalettePicker({
               )}
               style={{
                 borderColor: isSelected
-                  ? contrastColors.borderHover
-                  : contrastColors.border,
-                color: isSelected
-                  ? contrastColors.textActive
-                  : contrastColors.text,
+                  ? 'var(--ct-border-hover)'
+                  : 'var(--ct-border)',
                 transition:
                   'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
               }}

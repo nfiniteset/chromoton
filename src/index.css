@@ -34,19 +34,20 @@ body {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--focus-ring-color, white);
+  outline: 2px solid var(--ct-border-focus, white);
   outline-offset: 2px;
 }
 
 /* Propagate focus ring to label when a hidden input inside it is focused */
 label:has(:focus-visible) {
-  outline: 2px solid var(--focus-ring-color, white);
+  outline: 2px solid var(--ct-border-focus, white);
   outline-offset: 2px;
 }
 
-/* SubtleButton background states — ordered by ascending specificity so no !important needed */
+/* SubtleButton background/color states — ordered by ascending specificity so no !important needed */
 .subtle-button {
-  background-color: var(--bg-normal);
+  background-color: transparent;
+  color: var(--ct-text);
   transition:
     color 300ms ease-out,
     background-color 300ms ease-out,
@@ -55,12 +56,13 @@ label:has(:focus-visible) {
 
 /* specificity (0,2,0) — beats .subtle-button */
 .subtle-button--active {
-  background-color: var(--bg-active);
+  background-color: var(--ct-bg-active);
+  color: var(--ct-text-active);
 }
 
 /* specificity (0,2,0) — beats .subtle-button; source order beats --active for hover/focus cases */
 .subtle-button:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--ct-bg-hover);
   transition:
     color 0ms,
     background-color 0ms,
@@ -69,16 +71,23 @@ label:has(:focus-visible) {
 
 /* specificity (0,3,0) — beats all above */
 .subtle-button--active:hover {
-  background-color: var(--bg-active-hover);
+  background-color: var(--ct-bg-active-hover);
   transition:
     color 0ms,
     background-color 0ms,
     border-color 300ms ease-out;
 }
 
-/* IconButton hover states — pure CSS */
+/* IconButton base and hover states — pure CSS */
+.icon-button {
+  color: var(--ct-icon);
+  transition:
+    background-color 300ms ease-out,
+    color 300ms ease-out;
+}
+
 .icon-button:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--ct-bg-hover);
 }
 
 /* Draw focus ring inside for buttons that have their own background */
@@ -86,4 +95,27 @@ label:has(:focus-visible) {
 .icon-button:focus-visible {
   outline-offset: -4px;
   border-radius: 4px;
+}
+
+/* Slider thumb — large touch target (44px) with a small visual dot */
+input[type='range']::-webkit-slider-thumb {
+  width: 44px !important;
+  height: 44px !important;
+  background: radial-gradient(
+    circle,
+    var(--ct-slider-thumb, #eee) 27%,
+    transparent 28%
+  ) !important;
+  transition: background 300ms ease-out !important;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 44px !important;
+  height: 44px !important;
+  background: radial-gradient(
+    circle,
+    var(--ct-slider-thumb, #eee) 27%,
+    transparent 28%
+  ) !important;
+  transition: background 300ms ease-out !important;
 }

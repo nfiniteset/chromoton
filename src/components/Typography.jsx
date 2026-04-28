@@ -1,5 +1,4 @@
 import { cn } from '../lib/utils'
-import { useTheme } from '../contexts/ThemeContext'
 
 export default function Typography({
   as = 'p',
@@ -8,19 +7,18 @@ export default function Typography({
   className = '',
   style = {},
 }) {
-  const { contrastColors } = useTheme()
   const Component = /** @type {import('react').ElementType} */ (as)
 
   const colorMap = {
-    strong: contrastColors.text,
-    weak: contrastColors.textWeak,
+    strong: 'var(--ct-text)',
+    weak: 'var(--ct-text-weak)',
   }
 
   return (
     <Component
       className={cn(className)}
       style={{
-        color: colorMap[intent] || contrastColors.text,
+        color: colorMap[intent] || 'var(--ct-text)',
         transition: 'color 300ms ease-out',
         ...style,
       }}

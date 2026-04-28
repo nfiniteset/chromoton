@@ -1,5 +1,4 @@
 import { cn } from '../lib/utils'
-import { useTheme } from '../contexts/ThemeContext'
 
 export default function IconButton({
   onClick,
@@ -7,8 +6,6 @@ export default function IconButton({
   className = '',
   disabled = false,
 }) {
-  const { contrastColors } = useTheme()
-
   return (
     <button
       onClick={onClick}
@@ -18,9 +15,6 @@ export default function IconButton({
         className
       )}
       style={{
-        '--bg-hover': contrastColors.backgroundHover,
-        color: contrastColors.icon,
-        transition: 'background-color 300ms ease-out, color 300ms ease-out',
         opacity: disabled ? 0.4 : 1,
         cursor: disabled ? 'not-allowed' : 'pointer',
       }}

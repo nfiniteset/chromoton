@@ -1,6 +1,5 @@
 import { forwardRef, type ReactNode, type ButtonHTMLAttributes } from 'react'
 import { cn } from '../lib/utils'
-import { useTheme } from '../contexts/ThemeContext'
 
 interface SubtleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean
@@ -12,8 +11,6 @@ const SubtleButton = forwardRef<HTMLButtonElement, SubtleButtonProps>(
     { onClick, children, className, active = false, style, ...props },
     ref
   ) {
-    const { contrastColors } = useTheme()
-
     return (
       <button
         ref={ref}
@@ -23,21 +20,7 @@ const SubtleButton = forwardRef<HTMLButtonElement, SubtleButtonProps>(
           active && 'subtle-button--active',
           className
         )}
-        style={{
-          '--bg-normal': 'transparent',
-          '--bg-hover': contrastColors.backgroundHover,
-          '--bg-active': contrastColors.backgroundActive,
-          '--bg-active-hover': contrastColors.backgroundActiveHover,
-          '--border-normal': contrastColors.border,
-          '--border-active': contrastColors.borderHover,
-          '--text-normal': contrastColors.text,
-          '--text-active': contrastColors.textActive,
-          border: active ? 'var(--border-active)' : 'var(--border-normal)',
-          color: active ? 'var(--text-active)' : 'var(--text-normal)',
-          transition:
-            'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
-          ...style,
-        }}
+        style={style}
         {...props}
       >
         {children}

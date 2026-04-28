@@ -11,14 +11,14 @@ export default function ColorSwatch({
   text = /** @type {string | undefined} */ (undefined),
   className = '',
 }) {
-  const { contrastColors, getThemeForColor } = useTheme()
+  const { getThemeForColor } = useTheme()
 
   if (placeholder || !color) {
     return (
       <div
         className="h-6 w-6 flex-shrink-0 rounded-sm"
         style={{
-          border: `1px dashed ${contrastColors?.text}`,
+          border: '1px dashed var(--ct-text)',
           transition: 'border-color 300ms ease-out',
         }}
       />
@@ -38,9 +38,9 @@ export default function ColorSwatch({
       style={{
         backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
         outline: selected
-          ? `2px solid ${contrastColors.text}`
-          : `2px solid transparent`,
-        borderColor: contrastColors.border,
+          ? '2px solid var(--ct-text)'
+          : '2px solid transparent',
+        borderColor: 'var(--ct-border)',
         outlineOffset: '2px',
         transition:
           'background-color 300ms ease-out, outline-color 150ms ease-out, border-color 300ms ease-out',
