@@ -2,6 +2,11 @@
 
 @theme {
   --font-family-sans: Futura, Helvetica, Arial, sans-serif;
+
+  /* Navigation transition easings */
+  --ease-begin-off-screen: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-end-off-screen: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+  --ease-begin-and-end-on-screen: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {

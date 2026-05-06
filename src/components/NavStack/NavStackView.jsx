@@ -50,13 +50,12 @@ export default function NavStackView({
     <div
       ref={contentRef}
       className={cn(
-        'absolute inset-x-0 top-0 transition-all duration-300',
+        'ease-begin-and-end-on-screen absolute inset-x-0 top-0 transition-transform duration-300',
         className
       )}
       inert={!isActive || undefined}
       style={{
         transform: getTransform(),
-        opacity: hasMeasured && !isActive ? 0 : 1,
         pointerEvents: isActive ? 'auto' : 'none',
       }}
     >

@@ -31,7 +31,7 @@ export default function PalettePicker({
   }
 
   return (
-    <div className={cn('flex max-h-[calc(100vh-40px)] flex-col', className)}>
+    <div className={cn('flex h-[calc(100vh-40px)] flex-col', className)}>
       <SubtleButton
         onClick={onBack}
         className="shrink-0 border-b pl-1"

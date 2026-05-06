@@ -169,7 +169,7 @@ export default function ControlPanel({
           right: isHidden ? '20px' : '233px',
           opacity: !isHidden || showOpenButton ? 1 : 0,
           transition:
-            'right 200ms cubic-bezier(0.23,1,0.32,1), opacity 300ms ease-out',
+            'right 200ms var(--ease-begin-off-screen), opacity 300ms ease-out',
         }}
       >
         <button
@@ -215,7 +215,7 @@ export default function ControlPanel({
           transform: isHidden
             ? 'translateX(calc(100% + 20px))'
             : 'translateX(0)',
-          transition: `transform 200ms ${isHiding ? 'cubic-bezier(0.755,0.05,0.855,0.06)' : 'cubic-bezier(0.23,1,0.32,1)'}, color 300ms ease-out, border-color 300ms ease-out`,
+          transition: `transform 200ms ${isHiding ? 'var(--ease-end-off-screen)' : 'var(--ease-begin-off-screen)'}, color 300ms ease-out, border-color 300ms ease-out`,
         }}
       >
         <div className="relative z-[1] overflow-x-hidden overflow-y-auto">
