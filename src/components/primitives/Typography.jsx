@@ -19,7 +19,7 @@ export default function Typography({
       className={cn(className)}
       style={{
         color: colorMap[intent] || 'var(--ct-text)',
-        transition: 'color 300ms ease-out',
+        transition: 'color var(--duration-color) ease-out',
         ...style,
       }}
     >

@@ -189,7 +189,10 @@ export default function ControlPanel({
             'pointer-events-auto h-9 w-9 cursor-pointer',
             GLASS_BUTTON_CLASSES
           )}
-          style={{ color: 'var(--ct-icon)' }}
+          style={{
+            color: 'var(--ct-icon)',
+            transition: 'color var(--duration-color) ease-out',
+          }}
         >
           <span
             className="relative block"
@@ -226,7 +229,7 @@ export default function ControlPanel({
           transform: isHidden
             ? 'translateX(calc(100% + 20px))'
             : 'translateX(0)',
-          transition: `transform 200ms ${isHiding ? 'var(--ease-end-off-screen)' : 'var(--ease-begin-off-screen)'}, color 300ms ease-out, border-color 300ms ease-out`,
+          transition: `transform 200ms ${isHiding ? 'var(--ease-end-off-screen)' : 'var(--ease-begin-off-screen)'}, color var(--duration-color) ease-out, border-color var(--duration-color) ease-out`,
         }}
       >
         <div className="relative z-[1] overflow-x-hidden overflow-y-auto">

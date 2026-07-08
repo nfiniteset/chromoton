@@ -52,7 +52,7 @@ export default function ColorList({
       className={cn('flex flex-col', className)}
       style={{
         borderTop: '1px solid var(--ct-border)',
-        transition: 'border-color 300ms ease-out',
+        transition: 'border-color var(--duration-color) ease-out',
       }}
     >
       <div className="relative">
@@ -78,7 +78,7 @@ export default function ColorList({
           style={{
             height: '48px',
             borderColor: 'var(--ct-border)',
-            transition: 'border-color 300ms ease-out',
+            transition: 'border-color var(--duration-color) ease-out',
           }}
         >
           <ColorSwatch

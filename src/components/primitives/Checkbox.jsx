@@ -20,7 +20,7 @@ export default function Checkbox({ checked, onChange, label, className }) {
           borderStyle: 'solid',
           color: 'var(--ct-text)',
           transition:
-            'color 300ms ease-out, border-color 300ms ease-out, background-color 300ms ease-out',
+            'color var(--duration-color) ease-out, border-color var(--duration-color) ease-out, background-color var(--duration-color) ease-out',
         }}
       />
       <Typography as="span">{label}</Typography>

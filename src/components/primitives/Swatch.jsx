@@ -19,7 +19,7 @@ export default function ColorSwatch({
         className="h-6 w-6 flex-shrink-0 rounded-sm"
         style={{
           border: '1px dashed var(--ct-text)',
-          transition: 'border-color 300ms ease-out',
+          transition: 'border-color var(--duration-color) ease-out',
         }}
       />
     )
@@ -43,13 +43,16 @@ export default function ColorSwatch({
         borderColor: 'var(--ct-border)',
         outlineOffset: '2px',
         transition:
-          'background-color 300ms ease-out, outline-color 150ms ease-out, border-color 300ms ease-out',
+          'background-color var(--duration-color) ease-out, border-color var(--duration-color) ease-out',
       }}
     >
       {text && (
         <span
           className="absolute inset-0 flex items-center justify-center text-xs leading-none font-medium"
-          style={{ color: theme.icon, transition: 'color 300ms ease-out' }}
+          style={{
+            color: theme.icon,
+            transition: 'color var(--duration-color) ease-out',
+          }}
         >
           {text}
         </span>

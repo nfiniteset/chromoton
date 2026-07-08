@@ -6,7 +6,7 @@ export default function Divider({ className }) {
       className={cn('h-px border-none', className)}
       style={{
         backgroundColor: 'var(--ct-border)',
-        transition: 'background-color 300ms ease-out',
+        transition: 'background-color var(--duration-color) ease-out',
       }}
     />
   )

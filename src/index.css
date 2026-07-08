@@ -10,6 +10,11 @@
   /* Accelerates like --ease-end-off-screen but decelerates to rest on screen —
      for elements chasing an exiting element without overtaking it */
   --ease-follow-off-screen: cubic-bezier(0.755, 0.05, 0.2, 1);
+
+  /* Shared duration for transitions on colors sourced from the live theme
+     (the contrast engine, which recalculates frequently). Interaction-driven
+     color changes (hover, active, selection) snap instantly instead. */
+  --duration-color: 300ms;
 }
 
 html {
@@ -57,15 +62,20 @@ label:has(:focus-visible) {
   background-color: transparent;
   color: var(--ct-text);
   transition:
-    color 300ms ease-out,
-    background-color 300ms ease-out,
-    border-color 300ms ease-out;
+    color var(--duration-color) ease-out,
+    background-color var(--duration-color) ease-out,
+    border-color var(--duration-color) ease-out;
 }
 
-/* specificity (0,2,0) — beats .subtle-button */
+/* specificity (0,2,0) — beats .subtle-button; active is an interaction state, not a theme
+   color update, so it snaps instantly rather than inheriting the base transition */
 .subtle-button--active {
   background-color: var(--ct-bg-active);
   color: var(--ct-text-active);
+  transition:
+    color 0ms,
+    background-color 0ms,
+    border-color 0ms;
 }
 
 /* specificity (0,2,0) — beats .subtle-button; source order beats --active for hover/focus cases */
@@ -74,7 +84,7 @@ label:has(:focus-visible) {
   transition:
     color 0ms,
     background-color 0ms,
-    border-color 300ms ease-out;
+    border-color 0ms;
 }
 
 /* specificity (0,3,0) — beats all above */
@@ -83,19 +93,21 @@ label:has(:focus-visible) {
   transition:
     color 0ms,
     background-color 0ms,
-    border-color 300ms ease-out;
+    border-color 0ms;
 }
 
 /* IconButton base and hover states — pure CSS */
 .icon-button {
   color: var(--ct-icon);
   transition:
-    background-color 300ms ease-out,
-    color 300ms ease-out;
+    background-color var(--duration-color) ease-out,
+    color var(--duration-color) ease-out;
 }
 
+/* Hover is an interaction state, not a theme color update — snap instantly */
 .icon-button:hover {
   background-color: var(--ct-bg-hover);
+  transition: background-color 0ms;
 }
 
 /* Draw focus ring inside for buttons that have their own background */
@@ -105,25 +117,22 @@ label:has(:focus-visible) {
   border-radius: 12px;
 }
 
-/* Slider thumb — large touch target (44px) with a small visual dot */
+/* Slider thumb — large touch target (44px) with a small visual dot.
+   Drawn with background-color + clip-path (not a radial-gradient) because
+   gradients built from custom properties don't interpolate smoothly across
+   browsers — solid colors do. */
 input[type='range']::-webkit-slider-thumb {
   width: 44px !important;
   height: 44px !important;
-  background: radial-gradient(
-    circle,
-    var(--ct-slider-thumb, #eee) 27%,
-    transparent 28%
-  ) !important;
-  transition: background 300ms ease-out !important;
+  background-color: var(--ct-slider-thumb, #eee) !important;
+  clip-path: circle(8px at center) !important;
+  transition: background-color var(--duration-color) ease-out !important;
 }
 
 input[type='range']::-moz-range-thumb {
   width: 44px !important;
   height: 44px !important;
-  background: radial-gradient(
-    circle,
-    var(--ct-slider-thumb, #eee) 27%,
-    transparent 28%
-  ) !important;
-  transition: background 300ms ease-out !important;
+  background-color: var(--ct-slider-thumb, #eee) !important;
+  clip-path: circle(8px at center) !important;
+  transition: background-color var(--duration-color) ease-out !important;
 }

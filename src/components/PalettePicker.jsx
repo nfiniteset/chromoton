@@ -64,8 +64,6 @@ export default function PalettePicker({
                 borderColor: isSelected
                   ? 'var(--ct-border-hover)'
                   : 'var(--ct-border)',
-                transition:
-                  'background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out',
               }}
             >
               <input

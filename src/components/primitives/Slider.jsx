@@ -27,7 +27,7 @@ export default function SteppedSlider({
         className="h-0.5 w-full cursor-pointer appearance-none rounded-sm outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full"
         style={{
           background: 'var(--ct-border)',
-          transition: 'background 300ms ease-out',
+          transition: 'background var(--duration-color) ease-out',
         }}
       />
     </div>
