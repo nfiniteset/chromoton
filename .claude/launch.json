@@ -1,0 +1,16 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/Users/seandurham/.nvm/versions/node/v24.8.0/bin/node",
+      "runtimeArgs": [
+        "node_modules/vite/bin/vite.js",
+        "--port",
+        "8080",
+        "--strictPort"
+      ],
+      "port": 8080
+    }
+  ]
+}

@@ -1,10 +1,9 @@
-import { useRef, useEffect, useState, useLayoutEffect } from 'react'
+import { useRef, useEffect, useLayoutEffect } from 'react'
 import { cn } from '../../lib/utils'
 
 export default function NavStackView({
   id,
   isActive = false,
-  slideFrom = 'left',
   onHeightChange = /** @type {((id: string, height: number) => void) | undefined} */ (
     undefined
   ),
@@ -12,14 +11,15 @@ export default function NavStackView({
   className = '',
 }) {
   const contentRef = useRef(/** @type {HTMLDivElement | null} */ (null))
-  const [hasMeasured, setHasMeasured] = useState(false)
 
-  // Measure synchronously before first paint so the always-absolute container isn't 0-height.
-
+  // Re-measure synchronously whenever isActive changes so the correct height is committed
+  // to NavStack state before the CSS transition starts. Without this, the initial measurement
+  // happens while the view is inert and may not match the live layout, causing the height
+  // transition to restart mid-animation and appear to vibrate.
   useLayoutEffect(() => {
     const el = contentRef.current
     if (el && onHeightChange) onHeightChange(id, el.scrollHeight)
-  }, [])
+  }, [isActive])
 
   useEffect(() => {
     const el = contentRef.current
@@ -30,34 +30,11 @@ export default function NavStackView({
     return () => ro.disconnect()
   }, [id, onHeightChange])
 
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setHasMeasured(true))
-    return () => cancelAnimationFrame(raf)
-  }, [])
-
-  const offscreen =
-    slideFrom === 'right' ? 'translateX(100%)' : 'translateX(-100%)'
-
-  const getTransform = () => {
-    if (slideFrom === 'right') {
-      return hasMeasured && isActive ? 'translateX(0)' : offscreen
-    }
-    if (!hasMeasured) return 'translateX(0)'
-    return isActive ? 'translateX(0)' : offscreen
-  }
-
   return (
     <div
       ref={contentRef}
-      className={cn(
-        'ease-begin-and-end-on-screen absolute inset-x-0 top-0 transition-transform duration-300',
-        className
-      )}
+      className={cn(className)}
       inert={!isActive || undefined}
-      style={{
-        transform: getTransform(),
-        pointerEvents: isActive ? 'auto' : 'none',
-      }}
     >
       {children}
     </div>

@@ -163,13 +163,24 @@ export default function ControlPanel({
     >
       {/* Toggle button — slides between left-of-panel and top-right corner */}
       <div
-        className="pointer-events-none absolute top-5 z-10"
+        className="pointer-events-none absolute top-8 z-10"
         inert={(isHidden && !showOpenButton) || undefined}
         style={{
-          right: isHidden ? '20px' : '233px',
+          // Closing: the button launches with the panel and accelerates at the
+          // panel's own rate (never overtaking it), then slows and settles
+          // into the corner (32px off the viewport edges) before fading.
+          // Opening: perfect synchrony — no delay, same easing as the panel.
+          // Animating transform (not `right`) keeps it on the panel's
+          // compositor timeline.
+          right: '233px',
+          transform: isHidden ? 'translateX(201px)' : 'translateX(0)',
           opacity: !isHidden || showOpenButton ? 1 : 0,
-          transition:
-            'right 200ms var(--ease-begin-off-screen), opacity 300ms ease-out',
+          transition: [
+            isHidden
+              ? 'transform 450ms var(--ease-follow-off-screen)'
+              : 'transform 200ms var(--ease-begin-off-screen)',
+            `opacity 300ms ease-out ${isHidden && !showOpenButton ? '800ms' : '0ms'}`,
+          ].join(', '),
         }}
       >
         <button
@@ -259,7 +270,7 @@ export default function ControlPanel({
               </div>
             </NavStackView>
 
-            <NavStackView id="palette-picker" slideFrom="right">
+            <NavStackView id="palette-picker">
               <PalettePicker
                 palettes={palettes}
                 currentPalette={currentPalette}
