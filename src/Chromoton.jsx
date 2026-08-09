@@ -8,12 +8,14 @@ import '../chromoton.js'
  * @param {number} [props.width=240] - Initial grid width (clarity)
  * @param {number} [props.height] - Initial grid height (auto-calculated if not provided)
  * @param {boolean} [props.autoStart=true] - Whether to start the simulation automatically
+ * @param {() => void} [props.onToggleMonochrome] - Called when the hidden '`' shortcut is pressed
  * @param {string} [props.className] - Additional CSS classes for the container
  */
 export default function Chromoton({
   width = 240,
   height,
   autoStart = true,
+  onToggleMonochrome,
   className = '',
 }) {
   // Internal mutation rate for the simulation (not exposed as a prop)
@@ -92,6 +94,21 @@ export default function Chromoton({
       }
     }
   }, [width, height, autoStart])
+
+  // Hidden shortcut: '`' toggles monochrome rendering (mirrors the
+  // Monochrome checkbox in the control panel)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return
+      }
+      if (e.key === '`') {
+        onToggleMonochrome?.()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onToggleMonochrome])
 
   return (
     <div

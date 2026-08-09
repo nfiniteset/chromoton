@@ -41,6 +41,8 @@ export default function ControlPanel({
   fps,
   onFpsChange,
   onShowPopulationChange,
+  monochrome,
+  onMonochromeChange,
   className = '',
 }) {
   const { panelRef } = useTheme()
@@ -268,6 +270,8 @@ export default function ControlPanel({
                     fps={fps}
                     onClarityChange={onClarityChange}
                     onFpsChange={onFpsChange}
+                    monochrome={monochrome}
+                    onMonochromeChange={onMonochromeChange}
                   />
                 </div>
               </div>

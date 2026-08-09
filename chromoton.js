@@ -24,6 +24,7 @@ window.chromoton = (function () {
   var lastStepTime = 0
   var stepInterval = 100 // ms between steps (~10fps)
   var imageData
+  var grayscale = false // display-only toggle; simulation state is unaffected
 
   // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
   function applyChromosome(c) {
@@ -130,9 +131,16 @@ window.chromoton = (function () {
       for (var j = 0; j < xDim; j++) {
         var c = row[j]
         var base = rowBase + j * 4
-        data[base] = c.red
-        data[base + 1] = c.green
-        data[base + 2] = c.blue
+        if (grayscale) {
+          var gray = (c.red * 77 + c.green * 150 + c.blue * 29) >> 8
+          data[base] = gray
+          data[base + 1] = gray
+          data[base + 2] = gray
+        } else {
+          data[base] = c.red
+          data[base + 1] = c.green
+          data[base + 2] = c.blue
+        }
         data[base + 3] = 255
       }
     }
@@ -291,6 +299,13 @@ window.chromoton = (function () {
     MUTATION_RATE = rate
   }
 
+  // Display-only toggle: swaps rendering between full color and grayscale.
+  // Does not touch chromosome/color state, so the simulation is unaffected.
+  function setGrayscale(value) {
+    grayscale = !!value
+    if (el) render(population)
+  }
+
   function setTargetColors(colors) {
     if (colors && colors.length > 0) {
       targetColors = colors.map(function (c) {
@@ -332,6 +347,7 @@ window.chromoton = (function () {
     setStepInterval: setStepInterval,
     getStepInterval: getStepInterval,
     setMutationRate: setMutationRate,
+    setGrayscale: setGrayscale,
     setTargetColors: setTargetColors,
     getTargetColors: getTargetColors,
     getPopulation: getPopulation,

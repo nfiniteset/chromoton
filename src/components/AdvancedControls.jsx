@@ -1,6 +1,7 @@
 import { cn } from '../lib/utils'
 import StrategySelector from './StrategySelector'
 import SteppedSlider from './primitives/Slider'
+import Checkbox from './primitives/Checkbox'
 
 const FPS_STEPS = [5, 10, 15, 20, 25, 30]
 
@@ -11,6 +12,8 @@ export default function AdvancedControls({
   fps,
   onClarityChange,
   onFpsChange,
+  monochrome,
+  onMonochromeChange,
   className = '',
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]
@@ -46,6 +49,12 @@ export default function AdvancedControls({
         onChange={(e) =>
           onClarityChange(resolutionSteps[parseInt(e.target.value)])
         }
+      />
+
+      <Checkbox
+        label="Monochrome"
+        checked={monochrome}
+        onChange={onMonochromeChange}
       />
     </div>
   )

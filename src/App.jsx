@@ -22,6 +22,10 @@ function App() {
     false
   )
   const [fps, setFps] = useLocalStorage('chromoton-fps', 10)
+  const [monochrome, setMonochrome] = useLocalStorage(
+    'chromoton-monochrome',
+    false
+  )
   const [populationPercentages, setPopulationPercentages] = useState(
     /** @type {number[]} */ ([])
   )
@@ -85,6 +89,13 @@ function App() {
       window.chromoton.setStepInterval(Math.round(1000 / fps))
     }
   }, [fps])
+
+  // Sync monochrome rendering to chromoton engine whenever it changes
+  useEffect(() => {
+    if (window.chromoton) {
+      window.chromoton.setGrayscale(monochrome)
+    }
+  }, [monochrome])
 
   // Sync colors to chromoton engine whenever they change
   useEffect(() => {
@@ -151,7 +162,11 @@ function App() {
 
   return (
     <ThemeProvider>
-      <Chromoton width={clarity} autoStart={true} />
+      <Chromoton
+        width={clarity}
+        autoStart={true}
+        onToggleMonochrome={() => setMonochrome(!monochrome)}
+      />
 
       <ControlPanel
         palettes={Object.keys(PALETTES)}
@@ -171,6 +186,8 @@ function App() {
         fps={fps}
         onFpsChange={setFps}
         onShowPopulationChange={setShowPopulation}
+        monochrome={monochrome}
+        onMonochromeChange={setMonochrome}
       />
     </ThemeProvider>
   )

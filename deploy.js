@@ -47,6 +47,53 @@ if (!fs.existsSync(DIST_DIR)) {
   process.exit(1)
 }
 
+// Additional preconfigured artifacts to generate from dist/index.html before
+// upload. Each entry gets its own subdirectory sharing the same JS/CSS
+// bundle, with a bootstrap script that seeds localStorage before the app
+// mounts (matching the keys/format App.jsx's useLocalStorage reads/writes).
+const VARIANTS = [
+  {
+    subpath: 'mono',
+    localStorageOverrides: {
+      'chromoton-monochrome': true,
+      'chromoton-strategyType': 'population', // "Chill" spiciness
+      'chromoton-palette': 'eames',
+    },
+  },
+]
+
+// Build the inline bootstrap <script> that seeds localStorage with the
+// variant's overrides, JSON-encoded the same way useLocalStorage does.
+function buildBootstrapScript(overrides) {
+  const statements = Object.entries(overrides)
+    .map(
+      ([key, value]) =>
+        `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(JSON.stringify(value))});`
+    )
+    .join(' ')
+  return `<script>${statements}</script>`
+}
+
+// Generate a preconfigured variant of the app at dist/<subpath>/index.html,
+// reusing the already-built JS/CSS bundle.
+function generateVariant({ subpath, localStorageOverrides }) {
+  const sourceHtml = fs.readFileSync(path.join(DIST_DIR, 'index.html'), 'utf-8')
+
+  // Asset paths in the built index.html are relative ("./assets/..."), so
+  // nesting the variant one directory deeper means walking back up one level.
+  const rewritten = sourceHtml.replace(/(src|href)="\.\//g, '$1="../')
+
+  const withBootstrap = rewritten.replace(
+    '<body>',
+    `<body>\n    ${buildBootstrapScript(localStorageOverrides)}`
+  )
+
+  const outDir = path.join(DIST_DIR, subpath)
+  fs.mkdirSync(outDir, { recursive: true })
+  fs.writeFileSync(path.join(outDir, 'index.html'), withBootstrap)
+  console.log(`📄 Generated variant: /${subpath}/index.html`)
+}
+
 // Initialize S3 client
 const s3Client = new S3Client({
   region: AWS_REGION,
@@ -149,6 +196,12 @@ async function deploy() {
   console.log(`   Path: ${S3_PREFIX}/`)
 
   try {
+    // Generate preconfigured variants (e.g. /mono/) from the built app
+    // before uploading, so they're picked up by uploadFiles()
+    for (const variant of VARIANTS) {
+      generateVariant(variant)
+    }
+
     // Clear bucket prefix before uploading
     await clearBucket()
 
