@@ -17,6 +17,12 @@ interface ChromotonAPI {
   show(container: HTMLElement): void
   hide(): void
   getPopulation(): { population: ChromotonCell[][]; xDim: number; yDim: number }
+  setImageTargets(
+    imageData: ImageData,
+    colors: { black: Color; white: Color }
+  ): void
+  clearImageTargets(): void
+  isImageModeEnabled(): boolean
 }
 
 declare global {

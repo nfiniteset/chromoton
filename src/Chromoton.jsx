@@ -9,6 +9,7 @@ import '../chromoton.js'
  * @param {number} [props.height] - Initial grid height (auto-calculated if not provided)
  * @param {boolean} [props.autoStart=true] - Whether to start the simulation automatically
  * @param {() => void} [props.onToggleMonochrome] - Called when the hidden '`' shortcut is pressed
+ * @param {() => void} [props.onToggleImageMode] - Called when the hidden 'm' shortcut is pressed
  * @param {string} [props.className] - Additional CSS classes for the container
  */
 export default function Chromoton({
@@ -16,6 +17,7 @@ export default function Chromoton({
   height,
   autoStart = true,
   onToggleMonochrome,
+  onToggleImageMode,
   className = '',
 }) {
   // Internal mutation rate for the simulation (not exposed as a prop)
@@ -95,8 +97,8 @@ export default function Chromoton({
     }
   }, [width, height, autoStart])
 
-  // Hidden shortcut: '`' toggles monochrome rendering (mirrors the
-  // Monochrome checkbox in the control panel)
+  // Hidden shortcuts: '`' toggles monochrome rendering (mirrors the
+  // Monochrome checkbox in the control panel), 'm' toggles image mode
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -104,11 +106,13 @@ export default function Chromoton({
       }
       if (e.key === '`') {
         onToggleMonochrome?.()
+      } else if (e.key === 'm' || e.key === 'M') {
+        onToggleImageMode?.()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onToggleMonochrome])
+  }, [onToggleMonochrome, onToggleImageMode])
 
   return (
     <div

@@ -4,13 +4,9 @@
     {
       "name": "dev",
       "runtimeExecutable": "/Users/seandurham/.nvm/versions/node/v24.8.0/bin/node",
-      "runtimeArgs": [
-        "node_modules/vite/bin/vite.js",
-        "--port",
-        "8080",
-        "--strictPort"
-      ],
-      "port": 8080
+      "runtimeArgs": ["node_modules/vite/bin/vite.js"],
+      "port": 8080,
+      "autoPort": true
     }
   ]
 }

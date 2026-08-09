@@ -9,6 +9,8 @@ import { useColorRandomizer } from './hooks/useColorRandomizer'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { createStrategyById } from './strategies'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { generateCircleTestImage } from './utils/imageSource'
+import { applyImageMode, clearImageMode } from './utils/imageTargets'
 
 function App() {
   // Persisted settings with defaults
@@ -26,6 +28,7 @@ function App() {
     'chromoton-monochrome',
     false
   )
+  const [imageModeEnabled, setImageModeEnabled] = useState(false)
   const [populationPercentages, setPopulationPercentages] = useState(
     /** @type {number[]} */ ([])
   )
@@ -97,6 +100,22 @@ function App() {
     }
   }, [monochrome])
 
+  // Toggle image mode ('m' shortcut) using the first two target colors of
+  // the active palette as the black/white targets
+  useEffect(() => {
+    if (!window.chromoton) return
+
+    if (!imageModeEnabled) {
+      clearImageMode()
+      return
+    }
+
+    const [black, white = black] = colorModel.colors
+    if (!black) return
+
+    applyImageMode(generateCircleTestImage(256, 256), { black, white })
+  }, [imageModeEnabled, colorModel.colors])
+
   // Sync colors to chromoton engine whenever they change
   useEffect(() => {
     if (window.chromoton) {
@@ -166,6 +185,7 @@ function App() {
         width={clarity}
         autoStart={true}
         onToggleMonochrome={() => setMonochrome(!monochrome)}
+        onToggleImageMode={() => setImageModeEnabled((prev) => !prev)}
       />
 
       <ControlPanel

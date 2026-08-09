@@ -26,6 +26,14 @@ window.chromoton = (function () {
   var imageData
   var grayscale = false // display-only toggle; simulation state is unaffected
 
+  // Image mode: each cell pursues one of two target colors depending on
+  // whether it falls on a black or white pixel of a source image, instead of
+  // the whole population chasing the same global targetColors list.
+  var imageModeEnabled = false
+  var imageSourceData = null // last ImageData-like {width, height, data} applied
+  var imageColors = null // { black: {red,green,blue}, white: {red,green,blue} }
+  var imageThreshold = 128 // luma cutoff separating "black" from "white" pixels
+
   // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
   function applyChromosome(c) {
     var red = 0
@@ -50,24 +58,35 @@ window.chromoton = (function () {
     c.green = green > 255 ? 255 : green
     c.blue = blue > 255 ? 255 : blue
 
-    // Calculate deviance against all target colors and use the minimum
-    var minDeviance = Infinity
-    var numTargets = targetColors.length
-    for (var i = 0; i < numTargets; i++) {
-      var target = targetColors[i]
-      var dr = c.red - target.red
-      var dg = c.green - target.green
-      var db = c.blue - target.blue
+    if (c.target) {
+      // Image mode: this cell has a single fixed target color (chosen by
+      // which pixel of the source image it overlaps), so deviance is a
+      // straight distance to that one target rather than a min over many.
+      var tdr = c.red - c.target.red
+      var tdg = c.green - c.target.green
+      var tdb = c.blue - c.target.blue
+      c.deviance =
+        (tdr < 0 ? -tdr : tdr) + (tdg < 0 ? -tdg : tdg) + (tdb < 0 ? -tdb : tdb)
+    } else {
+      // Calculate deviance against all target colors and use the minimum
+      var minDeviance = Infinity
+      var numTargets = targetColors.length
+      for (var i = 0; i < numTargets; i++) {
+        var target = targetColors[i]
+        var dr = c.red - target.red
+        var dg = c.green - target.green
+        var db = c.blue - target.blue
 
-      // Use absolute difference without Math.abs (faster)
-      var deviation =
-        (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db)
+        // Use absolute difference without Math.abs (faster)
+        var deviation =
+          (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db)
 
-      if (deviation < minDeviance) {
-        minDeviance = deviation
+        if (deviation < minDeviance) {
+          minDeviance = deviation
+        }
       }
+      c.deviance = minDeviance
     }
-    c.deviance = minDeviance
     c.breedTimes = 0
   }
 
@@ -82,6 +101,7 @@ window.chromoton = (function () {
       breedTimes: 0,
       parentX: -1,
       parentY: -1,
+      target: null, // per-cell fixed target color, set by image mode
     }
     for (var i = 0; i < NUMBER_OF_GENES; i++) c.chromosome[i] = srcChromosome[i]
     applyChromosome(c)
@@ -283,6 +303,7 @@ window.chromoton = (function () {
     populationNext = []
     imageData = null
     init()
+    if (imageModeEnabled) applyImageTargetsToPopulation()
     if (el) startSimulation(el)
   }
 
@@ -331,6 +352,107 @@ window.chromoton = (function () {
     })
   }
 
+  function normalizeColor(c) {
+    return {
+      red: c.r !== undefined ? c.r : c.red,
+      green: c.g !== undefined ? c.g : c.green,
+      blue: c.b !== undefined ? c.b : c.blue,
+    }
+  }
+
+  // Downsample a source image to one black/white bit per grid cell using
+  // nearest-neighbor lookup + the same luma formula used for grayscale
+  // rendering. imgData is any {width, height, data} with RGBA bytes — an
+  // ImageData object works as-is.
+  //
+  // The image is scaled up as large as possible without distorting its
+  // aspect ratio ("contain" fit) and centered in the grid; cells outside
+  // the scaled image bounds are treated as black.
+  function sampleImageMask(imgData, cols, rows) {
+    var mask = new Uint8Array(cols * rows)
+    var srcW = imgData.width
+    var srcH = imgData.height
+    var data = imgData.data
+
+    var scale = Math.min(cols / srcW, rows / srcH)
+    var scaledW = srcW * scale
+    var scaledH = srcH * scale
+    var offsetX = (cols - scaledW) / 2
+    var offsetY = (rows - scaledH) / 2
+
+    for (var y = 0; y < rows; y++) {
+      var sy = (y - offsetY) / scale
+      var rowInBounds = sy >= 0 && sy < srcH
+      var syIdx = rowInBounds ? sy | 0 : 0
+      for (var x = 0; x < cols; x++) {
+        var sx = (x - offsetX) / scale
+        if (!rowInBounds || sx < 0 || sx >= srcW) {
+          mask[y * cols + x] = 0
+          continue
+        }
+        var i = (syIdx * srcW + (sx | 0)) * 4
+        var luma = (data[i] * 77 + data[i + 1] * 150 + data[i + 2] * 29) >> 8
+        mask[y * cols + x] = luma >= imageThreshold ? 1 : 0
+      }
+    }
+    return mask
+  }
+
+  // Re-sample the stored image against the current grid and assign each
+  // cell its black/white target, recomputing deviance immediately. Both
+  // double-buffered cells at a grid position share the same target since
+  // the target belongs to the position, not the chromosome.
+  function applyImageTargetsToPopulation() {
+    if (!imageSourceData || !imageColors) return
+    var mask = sampleImageMask(imageSourceData, xDim, yDim)
+    for (var y = 0; y < yDim; y++) {
+      for (var x = 0; x < xDim; x++) {
+        var target = mask[y * xDim + x] ? imageColors.white : imageColors.black
+        var cur = population[y][x]
+        var nxt = populationNext[y][x]
+        cur.target = target
+        nxt.target = target
+        applyChromosome(cur)
+        applyChromosome(nxt)
+      }
+    }
+  }
+
+  // Enable image mode: imgData is any {width, height, data} RGBA source
+  // (e.g. an ImageData from a file, URL, or another canvas). colors is
+  // { black: Color, white: Color } drawn from the current palette.
+  function setImageTargets(imgData, colors) {
+    if (!imgData || !imgData.data || !imgData.width || !imgData.height) return
+    if (!colors || !colors.black || !colors.white) return
+
+    imageSourceData = imgData
+    imageColors = {
+      black: normalizeColor(colors.black),
+      white: normalizeColor(colors.white),
+    }
+    imageModeEnabled = true
+    applyImageTargetsToPopulation()
+  }
+
+  // Disable image mode and fall back to the global targetColors list.
+  function clearImageTargets() {
+    imageModeEnabled = false
+    imageSourceData = null
+    imageColors = null
+    for (var y = 0; y < yDim; y++) {
+      for (var x = 0; x < xDim; x++) {
+        population[y][x].target = null
+        populationNext[y][x].target = null
+        applyChromosome(population[y][x])
+        applyChromosome(populationNext[y][x])
+      }
+    }
+  }
+
+  function isImageModeEnabled() {
+    return imageModeEnabled
+  }
+
   function getPopulation() {
     return {
       population: population,
@@ -351,5 +473,8 @@ window.chromoton = (function () {
     setTargetColors: setTargetColors,
     getTargetColors: getTargetColors,
     getPopulation: getPopulation,
+    setImageTargets: setImageTargets,
+    clearImageTargets: clearImageTargets,
+    isImageModeEnabled: isImageModeEnabled,
   }
 })()
