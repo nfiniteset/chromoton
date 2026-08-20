@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Chromoton from './Chromoton'
 import ControlPanel from './components/ControlPanel'
+import FpsCounter from './components/FpsCounter'
 import { PALETTES, getRandomPaletteName } from './palettes'
 import { getUniqueRandomColorsFromPalette } from './utils/colorUtils'
 import { getColorSuccessCounts } from './utils/colorUtils'
@@ -29,6 +30,7 @@ function App() {
     false
   )
   const [imageModeEnabled, setImageModeEnabled] = useState(false)
+  const [showFps, setShowFps] = useState(false)
   const [populationPercentages, setPopulationPercentages] = useState(
     /** @type {number[]} */ ([])
   )
@@ -186,7 +188,10 @@ function App() {
         autoStart={true}
         onToggleMonochrome={() => setMonochrome(!monochrome)}
         onToggleImageMode={() => setImageModeEnabled((prev) => !prev)}
+        onToggleFps={() => setShowFps((prev) => !prev)}
       />
+
+      <FpsCounter show={showFps} />
 
       <ControlPanel
         palettes={Object.keys(PALETTES)}

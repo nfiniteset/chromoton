@@ -10,6 +10,7 @@ import '../chromoton.js'
  * @param {boolean} [props.autoStart=true] - Whether to start the simulation automatically
  * @param {() => void} [props.onToggleMonochrome] - Called when the hidden '`' shortcut is pressed
  * @param {() => void} [props.onToggleImageMode] - Called when the hidden 'm' shortcut is pressed
+ * @param {() => void} [props.onToggleFps] - Called when the hidden 'f' shortcut is pressed
  * @param {string} [props.className] - Additional CSS classes for the container
  */
 export default function Chromoton({
@@ -18,6 +19,7 @@ export default function Chromoton({
   autoStart = true,
   onToggleMonochrome,
   onToggleImageMode,
+  onToggleFps,
   className = '',
 }) {
   // Internal mutation rate for the simulation (not exposed as a prop)
@@ -98,7 +100,8 @@ export default function Chromoton({
   }, [width, height, autoStart])
 
   // Hidden shortcuts: '`' toggles monochrome rendering (mirrors the
-  // Monochrome checkbox in the control panel), 'm' toggles image mode
+  // Monochrome checkbox in the control panel), 'm' toggles image mode,
+  // 'f' toggles the fps readout
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -108,11 +111,13 @@ export default function Chromoton({
         onToggleMonochrome?.()
       } else if (e.key === 'm' || e.key === 'M') {
         onToggleImageMode?.()
+      } else if (e.key === 'f' || e.key === 'F') {
+        onToggleFps?.()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onToggleMonochrome, onToggleImageMode])
+  }, [onToggleMonochrome, onToggleImageMode, onToggleFps])
 
   return (
     <div

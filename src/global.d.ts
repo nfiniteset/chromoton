@@ -26,6 +26,7 @@ interface ChromotonAPI {
   isImageModeEnabled(): boolean
   setImageThreshold(value: number): void
   getImageThreshold(): number
+  getFps(): number
 }
 
 declare global {

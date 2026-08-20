@@ -1,24 +1,22 @@
 window.chromoton = (function () {
   var el
   var PRIME_INC = 457
-  var NEIGHBOR_SEQUENCE = [
-    [-1, -1],
-    [1, 1],
-    [1, -1],
-    [-1, 1],
-    [0, -1],
-    [0, 1],
-    [1, 0],
-    [-1, 0],
-  ]
+  var NEIGHBOR_DX = new Int8Array([-1, 1, 1, -1, 0, 0, 1, -1])
+  var NEIGHBOR_DY = new Int8Array([-1, 1, -1, 1, -1, 1, 0, 0])
   var NUMBER_OF_GENES = 24
   var MAX_MATES = 3 // maximum number of times a chromoton can breed
   var MUTATION_RATE = 0.002 // likelyhood that a mutation will occur
   var xDim = 240 // dimensions of arrays in x direction
   var yDim = 1 // dimensions of arrays in y direction
 
-  var population = []
-  var populationNext = []
+  // Population is stored Struct-of-Arrays style (flat typed arrays, one slot
+  // per cell at index y*xDim+x) instead of arrays of JS objects. This keeps
+  // the hot per-step loop free of object/property overhead and nested-array
+  // indirection. getPopulation() reconstructs the old per-object shape for
+  // external consumers, since that's called on a slow UI-polling cadence,
+  // not from the simulation loop.
+  var population // current generation buffer
+  var populationNext // scratch buffer for the generation being computed
   var targetColors = [] // array of target colors
   var rafId
   var lastStepTime = 0
@@ -34,50 +32,89 @@ window.chromoton = (function () {
   var imageColors = null // { black: {red,green,blue}, white: {red,green,blue} }
   var imageThreshold = 128 // luma cutoff separating "black" from "white" pixels
 
-  // Decode chromosome into RGB + deviance, mutating the chromoton in-place.
-  function applyChromosome(c) {
+  // Fast inline PRNG (xorshift32) for the breeding crossover mask. Math.random()
+  // was measured to cost ~25% of total step time at large grid sizes because
+  // breedInto draws from it up to 24 times per breeding cell, and nearly every
+  // cell breeds every step. xorshift32 avoids the per-call engine overhead and
+  // lets us draw one 32-bit word and slice it into four 8-bit gene masks.
+  var rngState = (Date.now() ^ 0x9e3779b9) >>> 0 || 1
+  function nextRandom32() {
+    var x = rngState
+    x ^= x << 13
+    x ^= x >>> 17
+    x ^= x << 5
+    rngState = x >>> 0
+    return rngState
+  }
+
+  // Allocate a struct-of-arrays buffer for `size` cells.
+  function makeBuffer(size) {
+    return {
+      red: new Uint8Array(size),
+      green: new Uint8Array(size),
+      blue: new Uint8Array(size),
+      deviance: new Int32Array(size),
+      breedTimes: new Uint8Array(size),
+      parentX: new Int16Array(size),
+      parentY: new Int16Array(size),
+      chromosome: new Uint8Array(size * NUMBER_OF_GENES),
+      targetActive: new Uint8Array(size),
+      targetR: new Uint8Array(size),
+      targetG: new Uint8Array(size),
+      targetB: new Uint8Array(size),
+    }
+  }
+
+  function writeChromosomeAt(buf, idx, src) {
+    var base = idx * NUMBER_OF_GENES
+    for (var i = 0; i < NUMBER_OF_GENES; i++) buf.chromosome[base + i] = src[i]
+  }
+
+  // Decode chromosome into RGB + deviance for cell `idx`, mutating buf in-place.
+  function applyChromosomeAt(buf, idx) {
     var red = 0
     var green = 0
     var blue = 0
-    var chromosome = c.chromosome
+    var base = idx * NUMBER_OF_GENES
+    var chromosome = buf.chromosome
 
-    // Optimized calculation for better performance
     for (var i = 0; i < NUMBER_OF_GENES; i++) {
-      var gene = chromosome[i] & 0x1f
+      var gene = chromosome[base + i] & 0x1f
       var colorVal = gene >> 3
       var multiplier = gene & 0x7
       var value = 1 << multiplier
 
-      // Use if-else instead of switch for better branch prediction
       if (colorVal === 1) red += value
       else if (colorVal === 2) green += value
       else if (colorVal === 3) blue += value
     }
 
-    c.red = red > 255 ? 255 : red
-    c.green = green > 255 ? 255 : green
-    c.blue = blue > 255 ? 255 : blue
+    red = red > 255 ? 255 : red
+    green = green > 255 ? 255 : green
+    blue = blue > 255 ? 255 : blue
+    buf.red[idx] = red
+    buf.green[idx] = green
+    buf.blue[idx] = blue
 
-    if (c.target) {
+    if (buf.targetActive[idx]) {
       // Image mode: this cell has a single fixed target color (chosen by
       // which pixel of the source image it overlaps), so deviance is a
       // straight distance to that one target rather than a min over many.
-      var tdr = c.red - c.target.red
-      var tdg = c.green - c.target.green
-      var tdb = c.blue - c.target.blue
-      c.deviance =
+      var tdr = red - buf.targetR[idx]
+      var tdg = green - buf.targetG[idx]
+      var tdb = blue - buf.targetB[idx]
+      buf.deviance[idx] =
         (tdr < 0 ? -tdr : tdr) + (tdg < 0 ? -tdg : tdg) + (tdb < 0 ? -tdb : tdb)
     } else {
       // Calculate deviance against all target colors and use the minimum
-      var minDeviance = Infinity
+      var minDeviance = 0x7fffffff
       var numTargets = targetColors.length
-      for (var i = 0; i < numTargets; i++) {
-        var target = targetColors[i]
-        var dr = c.red - target.red
-        var dg = c.green - target.green
-        var db = c.blue - target.blue
+      for (var t = 0; t < numTargets; t++) {
+        var target = targetColors[t]
+        var dr = red - target.red
+        var dg = green - target.green
+        var db = blue - target.blue
 
-        // Use absolute difference without Math.abs (faster)
         var deviation =
           (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db)
 
@@ -85,58 +122,50 @@ window.chromoton = (function () {
           minDeviance = deviation
         }
       }
-      c.deviance = minDeviance
+      buf.deviance[idx] = minDeviance
     }
-    c.breedTimes = 0
+    buf.breedTimes[idx] = 0
   }
 
-  // Allocate a new chromoton object with a Uint8Array chromosome.
-  function makeChromoton(srcChromosome) {
-    var c = {
-      chromosome: new Uint8Array(NUMBER_OF_GENES),
-      red: 0,
-      green: 0,
-      blue: 0,
-      deviance: 0,
-      breedTimes: 0,
-      parentX: -1,
-      parentY: -1,
-      target: null, // per-cell fixed target color, set by image mode
-    }
-    for (var i = 0; i < NUMBER_OF_GENES; i++) c.chromosome[i] = srcChromosome[i]
-    applyChromosome(c)
-    return c
-  }
+  // Write offspring of curBuf[motherIdx] x curBuf[fatherIdx] into nextBuf[idx].
+  // Target fields aren't touched here — target belongs to the grid position,
+  // not the chromosome, and is kept in sync by applyImageTargetsToPopulation.
+  function breedIntoAt(nextBuf, idx, curBuf, motherIdx, fatherIdx) {
+    var nc = nextBuf.chromosome
+    var cc = curBuf.chromosome
+    var base = idx * NUMBER_OF_GENES
+    var mBase = motherIdx * NUMBER_OF_GENES
+    var fBase = fatherIdx * NUMBER_OF_GENES
 
-  // Write offspring of mother+father into an existing chromoton object (no allocation).
-  function breedInto(child, mother, father) {
-    var chromosome = child.chromosome
-    var mc = mother.chromosome
-    var fc = father.chromosome
+    var word = 0
     for (var i = 0; i < NUMBER_OF_GENES; i++) {
-      var mask = (256 * Math.random()) | 0
-      chromosome[i] = (mc[i] & mask) | (fc[i] & ~mask)
+      if ((i & 3) === 0) word = nextRandom32()
+      var mask = word & 0xff
+      word >>>= 8
+      nc[base + i] = (cc[mBase + i] & mask) | (cc[fBase + i] & ~mask)
     }
+
     // determine if a mutation should occur
-    if (Math.random() < MUTATION_RATE) {
-      i = (Math.random() * NUMBER_OF_GENES) | 0
-      // mutate a single bit
-      chromosome[i] ^= 1 << ((Math.random() * 7) | 0)
+    if (nextRandom32() / 4294967296 < MUTATION_RATE) {
+      var gi = nextRandom32() % NUMBER_OF_GENES
+      nc[base + gi] ^= 1 << (nextRandom32() % 7)
     }
-    applyChromosome(child)
+    applyChromosomeAt(nextBuf, idx)
   }
 
-  // Copy source's chromosome into child and recalculate (picks up target color changes).
-  function cloneInto(child, source) {
-    var sc = source.chromosome
-    var cc = child.chromosome
-    for (var i = 0; i < NUMBER_OF_GENES; i++) cc[i] = sc[i]
-    applyChromosome(child)
+  // Copy curBuf[srcIdx]'s chromosome into nextBuf[idx] and recalculate.
+  function cloneIntoAt(nextBuf, idx, curBuf, srcIdx) {
+    var nc = nextBuf.chromosome
+    var cc = curBuf.chromosome
+    var base = idx * NUMBER_OF_GENES
+    var sBase = srcIdx * NUMBER_OF_GENES
+    for (var i = 0; i < NUMBER_OF_GENES; i++) nc[base + i] = cc[sBase + i]
+    applyChromosomeAt(nextBuf, idx)
   }
 
   // Render one pixel per cell into a reused ImageData buffer. CSS width:100% scales
   // the canvas to fit the container, so the cell count drives resolution, not pixel size.
-  function render(population) {
+  function render(buf) {
     var canvas = el.getElementsByClassName('chromotons')[0]
     var ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!imageData) {
@@ -145,26 +174,43 @@ window.chromoton = (function () {
       imageData = ctx.createImageData(xDim, yDim)
     }
     var data = imageData.data
-    for (var i = 0; i < yDim; i++) {
-      var row = population[i]
-      var rowBase = i * xDim * 4
-      for (var j = 0; j < xDim; j++) {
-        var c = row[j]
-        var base = rowBase + j * 4
-        if (grayscale) {
-          var gray = (c.red * 77 + c.green * 150 + c.blue * 29) >> 8
-          data[base] = gray
-          data[base + 1] = gray
-          data[base + 2] = gray
-        } else {
-          data[base] = c.red
-          data[base + 1] = c.green
-          data[base + 2] = c.blue
-        }
-        data[base + 3] = 255
+    var size = xDim * yDim
+    var red = buf.red
+    var green = buf.green
+    var blue = buf.blue
+    for (var idx = 0; idx < size; idx++) {
+      var base = idx * 4
+      if (grayscale) {
+        var gray = (red[idx] * 77 + green[idx] * 150 + blue[idx] * 29) >> 8
+        data[base] = gray
+        data[base + 1] = gray
+        data[base + 2] = gray
+      } else {
+        data[base] = red[idx]
+        data[base + 1] = green[idx]
+        data[base + 2] = blue[idx]
       }
+      data[base + 3] = 255
     }
     ctx.putImageData(imageData, 0, 0)
+  }
+
+  // Actual measured step cadence (as opposed to the configured target
+  // stepInterval) — tracks a small rolling window of step() timestamps so
+  // the fps reading reflects reality when the sim can't keep up.
+  var fpsSamples = []
+  var FPS_SAMPLE_WINDOW = 10
+
+  function recordFpsSample(timestamp) {
+    fpsSamples.push(timestamp)
+    if (fpsSamples.length > FPS_SAMPLE_WINDOW) fpsSamples.shift()
+  }
+
+  function getFps() {
+    if (fpsSamples.length < 2) return 0
+    var elapsed = fpsSamples[fpsSamples.length - 1] - fpsSamples[0]
+    if (elapsed <= 0) return 0
+    return ((fpsSamples.length - 1) * 1000) / elapsed
   }
 
   // Use requestAnimationFrame with a timestamp gate to maintain ~10fps cadence.
@@ -173,6 +219,7 @@ window.chromoton = (function () {
     if (timestamp - lastStepTime >= stepInterval) {
       step()
       lastStepTime = timestamp
+      recordFpsSample(timestamp)
     }
     rafId = requestAnimationFrame(loop)
   }
@@ -181,6 +228,7 @@ window.chromoton = (function () {
     el = element
     cancelAnimationFrame(rafId)
     lastStepTime = 0
+    fpsSamples = []
     rafId = requestAnimationFrame(loop)
   }
 
@@ -191,69 +239,74 @@ window.chromoton = (function () {
   function step() {
     var size = xDim * yDim // dimensions of array
     var index = 0 // index of current chromoton
-    var subIndex = 0 // index moded into range of array
+    var subIndex = 0 // index moded into range of array (== flat cell index)
     var deviance = 1 << 30 // deviance of current mate
     var x = 0 // x position of current chromoton
     var y = 0 // y position of current chromoton
+    var lowIdx = -1 // flat index of best mate for chromoton
     var lowX = 0 // x position of best mate for chromoton
     var lowY = 0 // y position of best mate for chromoton
     var testX = 0 // index of potential mate
     var testY = 0 // index of potential mate
-    var current // current chromoton
-    var mate // mate chromoton
-    var next // target cell in next generation
-    var tmpPopulation // temporary population used to swap populations
+    var testIdx = 0 // flat index of potential mate
+    var curParentX = 0
+    var curParentY = 0
     var sequenceIndex = 0 // which direction to begin mate search
+    var cur = population
+    var nxt = populationNext
 
     // perform a semi-random traversal of population
     index = (Math.random() * size) | 0
     for (var i = 0; i < size; i++) {
       subIndex = index % size
       y = (subIndex / xDim) | 0
-      x = subIndex % xDim
+      x = subIndex - y * xDim
 
-      current = population[y][x]
+      curParentX = cur.parentX[subIndex]
+      curParentY = cur.parentY[subIndex]
       deviance = 1 << 30
-      lowX = -1
-      lowY = -1
+      lowIdx = -1
 
       // loop through potential mates
       for (var k = 0; k < 8; k++) {
-        testX = x + NEIGHBOR_SEQUENCE[(k + sequenceIndex) & 0x7][0]
-        testY = y + NEIGHBOR_SEQUENCE[(k + sequenceIndex) & 0x7][1]
+        var seq = (k + sequenceIndex) & 0x7
+        testX = x + NEIGHBOR_DX[seq]
+        testY = y + NEIGHBOR_DY[seq]
 
         if (testY >= 0 && testY < yDim && testX >= 0 && testX < xDim) {
-          mate = population[testY][testX]
+          testIdx = testY * xDim + testX
 
           // if mate's deviance is too high, don't bother
-          if (mate.deviance < deviance && mate.breedTimes <= MAX_MATES) {
+          if (
+            cur.deviance[testIdx] < deviance &&
+            cur.breedTimes[testIdx] <= MAX_MATES
+          ) {
             // make sure chromotons aren't siblings
             if (
-              (current.parentX != testX || current.parentY != testY) &&
-              (current.parentX != mate.parentX ||
-                current.parentY != mate.parentY)
+              (curParentX != testX || curParentY != testY) &&
+              (curParentX != cur.parentX[testIdx] ||
+                curParentY != cur.parentY[testIdx])
             ) {
               // this ones an ok mate
+              lowIdx = testIdx
               lowX = testX
               lowY = testY
-              deviance = mate.deviance
+              deviance = cur.deviance[testIdx]
             }
           }
         }
       }
 
       // if mate found, breed into next generation, else clone — no allocation in either path
-      next = populationNext[y][x]
-      if (lowX >= 0 && lowY >= 0) {
-        mate = population[lowY][lowX]
-        breedInto(next, current, mate)
-        next.parentX = lowX
-        next.parentY = lowY
-        mate.breedTimes = (mate.breedTimes || 0) + 1
+      if (lowIdx >= 0) {
+        breedIntoAt(nxt, subIndex, cur, subIndex, lowIdx)
+        nxt.parentX[subIndex] = lowX
+        nxt.parentY[subIndex] = lowY
+        cur.breedTimes[lowIdx] = cur.breedTimes[lowIdx] + 1
       } else {
-        cloneInto(next, current)
-        next.parentX = x
-        next.parentY = y
+        cloneIntoAt(nxt, subIndex, cur, subIndex)
+        nxt.parentX[subIndex] = x
+        nxt.parentY[subIndex] = y
       }
 
       // increment index
@@ -264,9 +317,8 @@ window.chromoton = (function () {
     }
 
     // population mate complete — swap populations
-    tmpPopulation = population
-    population = populationNext
-    populationNext = tmpPopulation
+    population = nxt
+    populationNext = cur
 
     render(population)
   }
@@ -277,20 +329,26 @@ window.chromoton = (function () {
     for (var i = defaultChromosome.length; i < NUMBER_OF_GENES; i++)
       defaultChromosome[i] = 0
 
-    // create arrays of default chromotons — both buffers pre-allocated to avoid per-step allocation
-    for (var i = 0; i < yDim; i++) {
-      population[i] = []
-      populationNext[i] = []
+    var size = xDim * yDim
+    population = makeBuffer(size)
+    populationNext = makeBuffer(size)
 
-      for (var j = 0; j < xDim; j++) {
-        population[i][j] = makeChromoton(defaultChromosome)
+    // create default chromotons in both buffers — both pre-allocated to avoid
+    // per-step allocation
+    for (var y = 0; y < yDim; y++) {
+      for (var x = 0; x < xDim; x++) {
+        var idx = y * xDim + x
+
+        writeChromosomeAt(population, idx, defaultChromosome)
+        applyChromosomeAt(population, idx)
         // set parent to self (so there won't be inbreeding problems in first step)
-        population[i][j].parentX = j
-        population[i][j].parentY = i
+        population.parentX[idx] = x
+        population.parentY[idx] = y
 
-        populationNext[i][j] = makeChromoton(defaultChromosome)
-        populationNext[i][j].parentX = j
-        populationNext[i][j].parentY = i
+        writeChromosomeAt(populationNext, idx, defaultChromosome)
+        applyChromosomeAt(populationNext, idx)
+        populationNext.parentX[idx] = x
+        populationNext.parentY[idx] = y
       }
     }
   }
@@ -299,8 +357,6 @@ window.chromoton = (function () {
   function configure(params) {
     if (params.width !== undefined) xDim = Math.max(1, params.width | 0)
     if (params.height !== undefined) yDim = Math.max(1, params.height | 0)
-    population = []
-    populationNext = []
     imageData = null
     init()
     if (imageModeEnabled) applyImageTargetsToPopulation()
@@ -338,10 +394,9 @@ window.chromoton = (function () {
       })
 
       // Recalculate deviances for the entire population since target colors changed
-      for (var y = 0; y < yDim; y++) {
-        for (var x = 0; x < xDim; x++) {
-          applyChromosome(population[y][x])
-        }
+      var size = xDim * yDim
+      for (var idx = 0; idx < size; idx++) {
+        applyChromosomeAt(population, idx)
       }
     }
   }
@@ -405,16 +460,21 @@ window.chromoton = (function () {
   function applyImageTargetsToPopulation() {
     if (!imageSourceData || !imageColors) return
     var mask = sampleImageMask(imageSourceData, xDim, yDim)
-    for (var y = 0; y < yDim; y++) {
-      for (var x = 0; x < xDim; x++) {
-        var target = mask[y * xDim + x] ? imageColors.white : imageColors.black
-        var cur = population[y][x]
-        var nxt = populationNext[y][x]
-        cur.target = target
-        nxt.target = target
-        applyChromosome(cur)
-        applyChromosome(nxt)
-      }
+    var black = imageColors.black
+    var white = imageColors.white
+    var size = xDim * yDim
+    for (var idx = 0; idx < size; idx++) {
+      var target = mask[idx] ? white : black
+      population.targetActive[idx] = 1
+      population.targetR[idx] = target.red
+      population.targetG[idx] = target.green
+      population.targetB[idx] = target.blue
+      populationNext.targetActive[idx] = 1
+      populationNext.targetR[idx] = target.red
+      populationNext.targetG[idx] = target.green
+      populationNext.targetB[idx] = target.blue
+      applyChromosomeAt(population, idx)
+      applyChromosomeAt(populationNext, idx)
     }
   }
 
@@ -439,13 +499,12 @@ window.chromoton = (function () {
     imageModeEnabled = false
     imageSourceData = null
     imageColors = null
-    for (var y = 0; y < yDim; y++) {
-      for (var x = 0; x < xDim; x++) {
-        population[y][x].target = null
-        populationNext[y][x].target = null
-        applyChromosome(population[y][x])
-        applyChromosome(populationNext[y][x])
-      }
+    var size = xDim * yDim
+    for (var idx = 0; idx < size; idx++) {
+      population.targetActive[idx] = 0
+      populationNext.targetActive[idx] = 0
+      applyChromosomeAt(population, idx)
+      applyChromosomeAt(populationNext, idx)
     }
   }
 
@@ -465,9 +524,41 @@ window.chromoton = (function () {
     return imageThreshold
   }
 
+  // Reconstructs the pre-SoA per-object population shape for external
+  // consumers (UI polling, strategies). Not called from the simulation
+  // loop, so the per-cell object allocation here is cheap relative to its
+  // ~500ms polling cadence.
   function getPopulation() {
+    var result = []
+    for (var y = 0; y < yDim; y++) {
+      var row = []
+      for (var x = 0; x < xDim; x++) {
+        var idx = y * xDim + x
+        row.push({
+          red: population.red[idx],
+          green: population.green[idx],
+          blue: population.blue[idx],
+          deviance: population.deviance[idx],
+          breedTimes: population.breedTimes[idx],
+          parentX: population.parentX[idx],
+          parentY: population.parentY[idx],
+          target: population.targetActive[idx]
+            ? {
+                red: population.targetR[idx],
+                green: population.targetG[idx],
+                blue: population.targetB[idx],
+              }
+            : null,
+          chromosome: population.chromosome.subarray(
+            idx * NUMBER_OF_GENES,
+            (idx + 1) * NUMBER_OF_GENES
+          ),
+        })
+      }
+      result.push(row)
+    }
     return {
-      population: population,
+      population: result,
       xDim: xDim,
       yDim: yDim,
     }
@@ -490,5 +581,6 @@ window.chromoton = (function () {
     isImageModeEnabled: isImageModeEnabled,
     setImageThreshold: setImageThreshold,
     getImageThreshold: getImageThreshold,
+    getFps: getFps,
   }
 })()
