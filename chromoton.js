@@ -453,6 +453,18 @@ window.chromoton = (function () {
     return imageModeEnabled
   }
 
+  // Adjust the black/white luma cutoff used by sampleImageMask — lower
+  // values classify more pixels as "white", higher values classify more as
+  // "black". Re-applies immediately if image mode is active.
+  function setImageThreshold(value) {
+    imageThreshold = Math.max(0, Math.min(255, value | 0))
+    if (imageModeEnabled) applyImageTargetsToPopulation()
+  }
+
+  function getImageThreshold() {
+    return imageThreshold
+  }
+
   function getPopulation() {
     return {
       population: population,
@@ -476,5 +488,7 @@ window.chromoton = (function () {
     setImageTargets: setImageTargets,
     clearImageTargets: clearImageTargets,
     isImageModeEnabled: isImageModeEnabled,
+    setImageThreshold: setImageThreshold,
+    getImageThreshold: getImageThreshold,
   }
 })()

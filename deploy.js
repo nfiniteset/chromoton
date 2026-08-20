@@ -150,9 +150,25 @@ async function clearBucket() {
   }
 }
 
+// Paths (relative to DIST_DIR, forward-slash) to skip during upload. The
+// Cinema page's local video is large and has no CDN/caching strategy worked
+// out yet, so it's deliberately excluded from deploys for now — Cinema will
+// work in local dev but show its "not found" message once deployed.
+const EXCLUDED_PATH_PREFIXES = ['cinema/media/']
+
 // Upload files to S3
 async function uploadFiles() {
-  const files = getAllFiles(DIST_DIR)
+  const allFiles = getAllFiles(DIST_DIR)
+  const files = allFiles.filter((file) => {
+    const relativePath = path.relative(DIST_DIR, file).replace(/\\/g, '/')
+    return !EXCLUDED_PATH_PREFIXES.some((prefix) =>
+      relativePath.startsWith(prefix)
+    )
+  })
+  const skipped = allFiles.length - files.length
+  if (skipped > 0) {
+    console.log(`⏭️  Skipping ${skipped} file(s) under excluded paths`)
+  }
   console.log(`\n📦 Found ${files.length} files to upload`)
 
   let uploaded = 0

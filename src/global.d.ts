@@ -14,6 +14,7 @@ interface ChromotonAPI {
   setMutationRate(rate: number): void
   setStepInterval(ms: number): void
   setTargetColors(colors: Color[]): void
+  setGrayscale(value: boolean): void
   show(container: HTMLElement): void
   hide(): void
   getPopulation(): { population: ChromotonCell[][]; xDim: number; yDim: number }
@@ -23,6 +24,8 @@ interface ChromotonAPI {
   ): void
   clearImageTargets(): void
   isImageModeEnabled(): boolean
+  setImageThreshold(value: number): void
+  getImageThreshold(): number
 }
 
 declare global {

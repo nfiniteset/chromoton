@@ -59,6 +59,38 @@ export function fromFile(file: File | Blob): ImageSource {
 }
 
 /**
+ * Sample the current frame of a playing <video> element. Meant to be called
+ * at video frame-rate, so — unlike the other factories — this keeps a
+ * persistent offscreen canvas across calls instead of allocating a fresh one
+ * every time, recreating it only if the video's decoded dimensions change.
+ */
+export function fromVideoElement(video: HTMLVideoElement): ImageSource {
+  let canvas: HTMLCanvasElement | null = null
+  let ctx: CanvasRenderingContext2D | null = null
+
+  return {
+    async getImageData() {
+      const width = video.videoWidth
+      const height = video.videoHeight
+      if (!width || !height) {
+        throw new Error('Video has no decoded dimensions yet')
+      }
+
+      if (!canvas || canvas.width !== width || canvas.height !== height) {
+        canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Canvas has no 2D context')
+      }
+
+      ctx!.drawImage(video, 0, 0, width, height)
+      return ctx!.getImageData(0, 0, width, height)
+    },
+  }
+}
+
+/**
  * Generates a black background with a white circle covering roughly half
  * the image area. Handy default for exercising image mode end-to-end
  * without needing a real image file.

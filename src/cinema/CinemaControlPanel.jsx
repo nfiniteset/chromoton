@@ -2,38 +2,52 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
-import PalettePicker from './PalettePicker'
-import ColorList from './ColorList'
-import AdvancedControls from './AdvancedControls'
-import KeyboardControls from './KeyboardControls'
+import PalettePicker from '../components/PalettePicker'
+import ColorList from '../components/ColorList'
+import AdvancedControls from '../components/AdvancedControls'
+import KeyboardControls from '../components/KeyboardControls'
 
-import SubtleButton from './primitives/Button'
-import Typography from './primitives/Typography'
-import NavStack from './NavStack/NavStack'
-import NavStackView from './NavStack/NavStackView'
+import SubtleButton from '../components/primitives/Button'
+import Typography from '../components/primitives/Typography'
+import Divider from '../components/primitives/Divider'
+import Checkbox from '../components/primitives/Checkbox'
+import SteppedSlider from '../components/primitives/Slider'
+import Notice from '../components/primitives/Notice'
+import NavStack from '../components/NavStack/NavStack'
+import NavStackView from '../components/NavStack/NavStackView'
 
 import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
 import { FaChevronRight } from 'react-icons/fa6'
 
-// How "open" each panel state is, used to pick the transition's direction
-// (and therefore its easing curve) whenever the state changes.
-const OPENNESS = { open: 2, peek: 1, hidden: 0 }
-
-// Panel offsets, expressed as translateX from the fully-open (0) position.
-// `hidden` pushes the panel fully clear of the viewport (its own width plus
-// the 20px gap it normally sits at). `peek` pulls back 50px from there so
-// exactly 50px of the panel shows at the screen edge.
+// Shell (panel open/hidden state, idle-hide, focus trap) duplicated from
+// ../components/ControlPanel.jsx rather than shared, since that component
+// isn't designed to accept extra injected sections and this page must not
+// touch the existing app's code.
+const OPENNESS = { open: 1, hidden: 0 }
 const TRANSFORM = {
   open: 'translateX(0)',
-  peek: 'translateX(calc(100% - 30px))',
   hidden: 'translateX(calc(100% + 20px))',
 }
-
-const HOT_ZONE_WIDTH = 50
 const IDLE_HIDE_DELAY = 3000
 
-export default function ControlPanel({
+const PLAYBACK_RATE_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]
+const THRESHOLD_STEPS = Array.from({ length: 256 }, (_, i) => i)
+
+function closestStepIndex(steps, value) {
+  let bestIndex = 0
+  let bestDiff = Infinity
+  steps.forEach((step, index) => {
+    const diff = Math.abs(step - value)
+    if (diff < bestDiff) {
+      bestDiff = diff
+      bestIndex = index
+    }
+  })
+  return bestIndex
+}
+
+export default function CinemaControlPanel({
   palettes,
   currentPalette,
   colors,
@@ -53,12 +67,21 @@ export default function ControlPanel({
   onShowPopulationChange,
   monochrome,
   onMonochromeChange,
+  videoFound,
+  soundEnabled,
+  onSoundChange,
+  playbackRate,
+  onPlaybackRateChange,
+  threshold,
+  onThresholdChange,
+  onPanelStateChange,
+  thumbnail,
   className = '',
 }) {
   const { panelRef } = useTheme()
   const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [panelState, setPanelState] = useState(
-    /** @type {'open' | 'peek' | 'hidden'} */ ('open')
+    /** @type {'open' | 'hidden'} */ ('open')
   )
   const [isClosing, setIsClosing] = useState(false)
   const panelStateRef = useRef(panelState)
@@ -68,8 +91,6 @@ export default function ControlPanel({
   const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const prevShowPalettePickerRef = useRef(false)
 
-  // Moves the panel toward a new state, picking the transition's easing
-  // curve from whether that move opens or closes the panel further.
   const goTo = useCallback((nextState) => {
     if (nextState === panelStateRef.current) return
     const opening = OPENNESS[nextState] > OPENNESS[panelStateRef.current]
@@ -84,8 +105,6 @@ export default function ControlPanel({
     setPanelState(nextState)
   }, [])
 
-  // Explicit reveal (click-outside, keypress) — fully opens and focuses in,
-  // unlike the ambient hover reveal which only opens without stealing focus.
   const revealPanel = useCallback(() => {
     goTo('open')
     requestAnimationFrame(() => paletteLinkRef.current?.focus())
@@ -93,8 +112,6 @@ export default function ControlPanel({
 
   const hidePanel = useCallback(() => goTo('hidden'), [goTo])
 
-  // Hide the system cursor while the panel is fully hidden; restore it as
-  // soon as the panel peeks or opens.
   useEffect(() => {
     document.body.style.cursor = panelState === 'hidden' ? 'none' : ''
     return () => {
@@ -102,7 +119,12 @@ export default function ControlPanel({
     }
   }, [panelState])
 
-  // Move focus in/out of palette picker as it opens and closes
+  // Report state up so sibling UI (the Scrubber, rendered outside this
+  // component) can fade in/out in sync with the panel.
+  useEffect(() => {
+    onPanelStateChange?.(panelState)
+  }, [panelState, onPanelStateChange])
+
   useEffect(() => {
     if (showPalettePicker && !prevShowPalettePickerRef.current) {
       requestAnimationFrame(() => {
@@ -117,23 +139,24 @@ export default function ControlPanel({
     prevShowPalettePickerRef.current = showPalettePicker
   }, [showPalettePicker, panelRef])
 
-  // Show panel on click anywhere on the canvas (outside the panel)
+  // Clicking the sim toggles the panel (and, since the Scrubber's
+  // visibility follows this same panelState, the Scrubber along with it).
+  // Clicks on the panel itself or on the Scrubber bar (a sibling element,
+  // marked with data-cinema-ui) don't count as "the sim".
   useEffect(() => {
     const handleClick = (e) => {
-      if (
-        panelStateRef.current !== 'open' &&
-        !panelRef.current?.contains(e.target)
-      ) {
+      if (panelRef.current?.contains(e.target)) return
+      if (e.target.closest('[data-cinema-ui]')) return
+      if (panelStateRef.current === 'open') {
+        hidePanel()
+      } else {
         revealPanel()
       }
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
-  }, [panelRef, revealPanel])
+  }, [panelRef, revealPanel, hidePanel])
 
-  // Ambient hover behavior: idle (mouse off panel, still for 3s) hides the
-  // panel; any movement while hidden peeks it 50px onscreen; moving into the
-  // right 50px hot zone (or hovering the panel itself) opens it fully.
   useEffect(() => {
     const clearIdleTimer = () => {
       if (idleTimerRef.current) {
@@ -147,20 +170,20 @@ export default function ControlPanel({
       idleTimerRef.current = setTimeout(() => goTo('hidden'), IDLE_HIDE_DELAY)
     }
 
+    // Any movement reveals the panel. While the cursor is over the panel
+    // itself or the Scrubber bar (a sibling, marked with data-cinema-ui),
+    // don't schedule the idle-hide countdown — it should only creep back
+    // in once the mouse moves off both of them, onto the sim.
     const handleMouseMove = (e) => {
-      const overPanel = panelRef.current?.contains(e.target)
-      const inHotZone = window.innerWidth - e.clientX <= HOT_ZONE_WIDTH
+      const overUI =
+        panelRef.current?.contains(e.target) ||
+        (e.target instanceof Element && !!e.target.closest('[data-cinema-ui]'))
 
-      if (overPanel || inHotZone) {
-        clearIdleTimer()
-        goTo('open')
-        return
+      clearIdleTimer()
+      goTo('open')
+      if (!overUI) {
+        scheduleIdleHide()
       }
-
-      if (panelStateRef.current === 'hidden') {
-        goTo('peek')
-      }
-      scheduleIdleHide()
     }
 
     document.addEventListener('mousemove', handleMouseMove)
@@ -195,6 +218,9 @@ export default function ControlPanel({
       last.focus()
     }
   }
+
+  const playbackStepIndex = closestStepIndex(PLAYBACK_RATE_STEPS, playbackRate)
+  const thresholdStepIndex = closestStepIndex(THRESHOLD_STEPS, threshold)
 
   return (
     <div
@@ -252,6 +278,60 @@ export default function ControlPanel({
                     monochrome={monochrome}
                     onMonochromeChange={onMonochromeChange}
                   />
+                </div>
+
+                <Divider className="" />
+
+                <div className="flex flex-col gap-7 px-5 py-7">
+                  <Typography
+                    intent="strong"
+                    className="text-xs tracking-wider uppercase"
+                  >
+                    Video
+                  </Typography>
+
+                  {videoFound ? (
+                    <>
+                      <Checkbox
+                        label="Sound"
+                        checked={soundEnabled}
+                        onChange={onSoundChange}
+                        className=""
+                      />
+
+                      <SteppedSlider
+                        label="Playback speed"
+                        value={playbackStepIndex}
+                        displayValue={`${PLAYBACK_RATE_STEPS[playbackStepIndex]}x`}
+                        steps={PLAYBACK_RATE_STEPS}
+                        onChange={(e) =>
+                          onPlaybackRateChange(
+                            PLAYBACK_RATE_STEPS[parseInt(e.target.value)]
+                          )
+                        }
+                      />
+
+                      <SteppedSlider
+                        label="Contrast"
+                        value={thresholdStepIndex}
+                        displayValue={THRESHOLD_STEPS[thresholdStepIndex]}
+                        steps={THRESHOLD_STEPS}
+                        onChange={(e) =>
+                          onThresholdChange(
+                            THRESHOLD_STEPS[parseInt(e.target.value)]
+                          )
+                        }
+                      />
+
+                      {thumbnail}
+                    </>
+                  ) : (
+                    <Notice title="Movie not found">
+                      Place a video at{' '}
+                      <code>public/cinema/media/metropolis.mp4</code> and
+                      reload.
+                    </Notice>
+                  )}
                 </div>
               </div>
             </NavStackView>
