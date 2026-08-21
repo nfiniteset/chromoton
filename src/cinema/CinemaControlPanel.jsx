@@ -283,13 +283,6 @@ export default function CinemaControlPanel({
                 <Divider className="" />
 
                 <div className="flex flex-col gap-7 px-5 py-7">
-                  <Typography
-                    intent="strong"
-                    className="text-xs tracking-wider uppercase"
-                  >
-                    Video
-                  </Typography>
-
                   {videoFound ? (
                     <>
                       <Checkbox

@@ -156,11 +156,18 @@ async function clearBucket() {
 // work in local dev but show its "not found" message once deployed.
 const EXCLUDED_PATH_PREFIXES = ['cinema/media/']
 
+// Individual files (relative to DIST_DIR, forward-slash) that upload despite
+// matching an excluded prefix above.
+const WHITELISTED_PATHS = [
+  'cinema/media/forsythe_one_flat_thing_reproduced.mp4',
+]
+
 // Upload files to S3
 async function uploadFiles() {
   const allFiles = getAllFiles(DIST_DIR)
   const files = allFiles.filter((file) => {
     const relativePath = path.relative(DIST_DIR, file).replace(/\\/g, '/')
+    if (WHITELISTED_PATHS.includes(relativePath)) return true
     return !EXCLUDED_PATH_PREFIXES.some((prefix) =>
       relativePath.startsWith(prefix)
     )

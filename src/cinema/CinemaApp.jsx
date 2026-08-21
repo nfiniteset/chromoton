@@ -4,7 +4,6 @@ import CinemaControlPanel from './CinemaControlPanel'
 import Scrubber from './Scrubber'
 import { useVideoImageMode } from './useVideoImageMode'
 import { PALETTES, getRandomPaletteName } from '../palettes'
-import { getUniqueRandomColorsFromPalette } from '../utils/colorUtils'
 import { getColorSuccessCounts } from '../utils/colorUtils'
 import { useColorModel } from '../hooks/useColorModel'
 import { useColorRandomizer } from '../hooks/useColorRandomizer'
@@ -14,14 +13,14 @@ import { ThemeProvider } from '../contexts/ThemeContext'
 
 // Same-directory-relative to cinema/index.html, so it resolves correctly
 // whether served from dev root or nested under a deployed base path.
-const VIDEO_SRC = 'media/metropolis.mp4'
+const VIDEO_SRC = 'media/forsythe_one_flat_thing_reproduced.mp4'
 
 // Matches the video's native decoded resolution (see useVideoImageMode /
 // fromVideoElement) so thumbnails never distort.
 const PANEL_THUMB_WIDTH = 320
-const PANEL_THUMB_HEIGHT = 240
+const PANEL_THUMB_HEIGHT = 180
 const DRAG_THUMB_WIDTH = 120
-const DRAG_THUMB_HEIGHT = 90
+const DRAG_THUMB_HEIGHT = 68
 
 // The source video doesn't expose its true encoded frame rate through the
 // HTMLVideoElement API, so frame-stepping assumes a standard rate.
@@ -30,16 +29,16 @@ const FRAME_DURATION = 1 / ASSUMED_FRAME_RATE
 const FAST_STEP_FRAMES = 30
 
 function CinemaApp() {
-  const [clarity, setClarity] = useLocalStorage('chromoton-cinema-clarity', 240)
+  const [clarity, setClarity] = useLocalStorage('chromoton-cinema-clarity', 320)
   const [strategyType, setStrategyType] = useLocalStorage(
     'chromoton-cinema-strategyType',
-    'three-target'
+    'none'
   )
   const [showPopulation, setShowPopulation] = useLocalStorage(
     'chromoton-cinema-showPopulation',
     false
   )
-  const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', 10)
+  const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', 15)
   const [monochrome, setMonochrome] = useLocalStorage(
     'chromoton-cinema-monochrome',
     false
@@ -50,11 +49,11 @@ function CinemaApp() {
   )
   const [playbackRate, setPlaybackRate] = useLocalStorage(
     'chromoton-cinema-playbackRate',
-    1
+    0.5
   )
   const [threshold, setThreshold] = useLocalStorage(
     'chromoton-cinema-threshold',
-    128
+    35
   )
   const [populationPercentages, setPopulationPercentages] = useState(
     /** @type {number[]} */ ([])
@@ -100,11 +99,17 @@ function CinemaApp() {
       const stored = window.localStorage.getItem('chromoton-cinema-colors')
       return stored
         ? JSON.parse(stored)
-        : getUniqueRandomColorsFromPalette(initialPaletteName, 3)
+        : [
+            { r: 0, g: 0, b: 0 },
+            { r: 255, g: 255, b: 255 },
+          ]
     } catch {
-      return getUniqueRandomColorsFromPalette(initialPaletteName, 3)
+      return [
+        { r: 0, g: 0, b: 0 },
+        { r: 255, g: 255, b: 255 },
+      ]
     }
-  }, [initialPaletteName])
+  }, [])
 
   const colorModel = useColorModel(initialPaletteName, initialColors)
 
