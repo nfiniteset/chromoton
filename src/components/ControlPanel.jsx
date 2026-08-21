@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import PalettePicker from './PalettePicker'
 import ColorList from './ColorList'
 import AdvancedControls from './AdvancedControls'
-import KeyboardControls from './KeyboardControls'
+import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
 
 import SubtleButton from './primitives/Button'
 import Typography from './primitives/Typography'
@@ -51,8 +51,6 @@ export default function ControlPanel({
   fps,
   onFpsChange,
   onShowPopulationChange,
-  monochrome,
-  onMonochromeChange,
   className = '',
 }) {
   const { panelRef } = useTheme()
@@ -70,19 +68,28 @@ export default function ControlPanel({
 
   // Moves the panel toward a new state, picking the transition's easing
   // curve from whether that move opens or closes the panel further.
-  const goTo = useCallback((nextState) => {
-    if (nextState === panelStateRef.current) return
-    const opening = OPENNESS[nextState] > OPENNESS[panelStateRef.current]
-    panelStateRef.current = nextState
-    if (
-      nextState === 'hidden' &&
-      document.activeElement instanceof HTMLElement
-    ) {
-      document.activeElement.blur()
-    }
-    setIsClosing(!opening)
-    setPanelState(nextState)
-  }, [])
+  const goTo = useCallback(
+    (nextState) => {
+      if (nextState === panelStateRef.current) return
+      const opening = OPENNESS[nextState] > OPENNESS[panelStateRef.current]
+      panelStateRef.current = nextState
+      // Only blur if the panel still actually owns focus — e.g. focus moved
+      // out to open the command menu, this same transition to 'hidden' is
+      // already underway (via the focus-out handler below) to reflect that,
+      // and blurring unconditionally here would yank focus right back out of
+      // wherever it just legitimately went.
+      if (
+        nextState === 'hidden' &&
+        document.activeElement instanceof HTMLElement &&
+        panelRef.current?.contains(document.activeElement)
+      ) {
+        document.activeElement.blur()
+      }
+      setIsClosing(!opening)
+      setPanelState(nextState)
+    },
+    [panelRef]
+  )
 
   // Explicit reveal (click-outside, keypress) — fully opens and focuses in,
   // unlike the ambient hover reveal which only opens without stealing focus.
@@ -91,7 +98,81 @@ export default function ControlPanel({
     requestAnimationFrame(() => paletteLinkRef.current?.focus())
   }, [goTo])
 
-  const hidePanel = useCallback(() => goTo('hidden'), [goTo])
+  useKeyboardShortcut({
+    id: 'toggle-palette-picker',
+    keys: ['p'],
+    label: 'Open palette picker',
+    handler: () => setShowPalettePicker((prev) => !prev),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-show-population',
+    keys: ['s'],
+    label: 'Toggle target percentages',
+    handler: () => onShowPopulationChange(!showPopulation),
+  })
+
+  // Only active while the picker is open, so the second Escape press (once
+  // this is unregistered) falls through to KeyboardControls' default blur —
+  // which is what actually closes the panel, via the focus-out rule below.
+  useKeyboardShortcut({
+    id: 'close-palette-picker',
+    keys: ['Escape'],
+    label: 'Close palette picker',
+    enabled: showPalettePicker,
+    handler: () => setShowPalettePicker(false),
+  })
+
+  // Keyboard-driven panel visibility: focus entering the panel opens it and
+  // holds it open (see the idle-hide guard below); focus leaving it — via
+  // Escape's blur fallback, or Tabbing past the last control — closes it
+  // immediately rather than waiting on the mouse-idle timer, since a
+  // keyboard user isn't moving the mouse at all.
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+
+    const handleFocusIn = () => goTo('open')
+
+    const handleFocusOut = (e) => {
+      const next = e.relatedTarget
+      if (next instanceof Node && panel.contains(next)) return
+      goTo('hidden')
+    }
+
+    panel.addEventListener('focusin', handleFocusIn)
+    panel.addEventListener('focusout', handleFocusOut)
+    return () => {
+      panel.removeEventListener('focusin', handleFocusIn)
+      panel.removeEventListener('focusout', handleFocusOut)
+    }
+  }, [panelRef, goTo])
+
+  // Tab with nothing focused document-wide enters the panel (which then
+  // opens it via the focus-in rule above) instead of doing nothing, since
+  // the panel is otherwise the only focusable content on the page.
+  useEffect(() => {
+    const handleTabIn = (e) => {
+      if (e.key !== 'Tab') return
+      const active = document.activeElement
+      const nothingFocused =
+        !active ||
+        active === document.body ||
+        active === document.documentElement
+      if (!nothingFocused) return
+
+      const focusable = panelRef.current?.querySelector(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable instanceof HTMLElement) {
+        e.preventDefault()
+        focusable.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleTabIn)
+    return () => document.removeEventListener('keydown', handleTabIn)
+  }, [panelRef])
 
   // Hide the system cursor while the panel is fully hidden; restore it as
   // soon as the panel peeks or opens.
@@ -144,7 +225,12 @@ export default function ControlPanel({
 
     const scheduleIdleHide = () => {
       clearIdleTimer()
-      idleTimerRef.current = setTimeout(() => goTo('hidden'), IDLE_HIDE_DELAY)
+      idleTimerRef.current = setTimeout(() => {
+        // A keyboard user tabbing through the panel isn't moving the mouse —
+        // don't let this ambient timer yank focus out from under them.
+        if (panelRef.current?.contains(document.activeElement)) return
+        goTo('hidden')
+      }, IDLE_HIDE_DELAY)
     }
 
     const handleMouseMove = (e) => {
@@ -249,8 +335,6 @@ export default function ControlPanel({
                     fps={fps}
                     onClarityChange={onClarityChange}
                     onFpsChange={onFpsChange}
-                    monochrome={monochrome}
-                    onMonochromeChange={onMonochromeChange}
                   />
                 </div>
               </div>
@@ -267,16 +351,6 @@ export default function ControlPanel({
           </NavStack>
         </div>
       </div>
-
-      <KeyboardControls
-        showPalettePicker={showPalettePicker}
-        setShowPalettePicker={setShowPalettePicker}
-        isHidden={panelState !== 'open'}
-        showPanel={revealPanel}
-        hidePanel={hidePanel}
-        showPopulation={showPopulation}
-        onShowPopulationChange={onShowPopulationChange}
-      />
     </div>
   )
 }

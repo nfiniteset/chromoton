@@ -2,12 +2,15 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import Chromoton from '../Chromoton'
 import CinemaControlPanel from './CinemaControlPanel'
 import Scrubber from './Scrubber'
+import KeyboardControls from '../components/KeyboardControls'
+import CommandMenu from '../components/CommandMenu'
 import { useVideoImageMode } from './useVideoImageMode'
 import { PALETTES, getRandomPaletteName } from '../palettes'
 import { getColorSuccessCounts } from '../utils/colorUtils'
 import { useColorModel } from '../hooks/useColorModel'
 import { useColorRandomizer } from '../hooks/useColorRandomizer'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
 import { createStrategyById } from '../strategies'
 import { ThemeProvider } from '../contexts/ThemeContext'
 
@@ -337,26 +340,28 @@ function CinemaApp() {
     if (primaryVideoRef.current) primaryVideoRef.current.currentTime = time
   }
 
-  // Space toggles play/pause; Left/Right nudge one frame, Shift+Left/Right
-  // nudge 30. Skipped while a form control has focus (matching the rest of
-  // the app's shortcut convention) so it doesn't fight the native
-  // arrow-key nudging every other slider already gets for free — including
-  // this one, when the scrubber input itself is focused. A focused button
-  // (e.g. the Scrubber's own play/pause button) already toggles on space
-  // natively, so space is skipped there too rather than double-firing.
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      const targetTag = e.target.tagName
-      if (targetTag === 'INPUT' || targetTag === 'TEXTAREA') return
-
-      if (e.key === ' ') {
-        if (targetTag === 'BUTTON') return
-        e.preventDefault()
-        setPlaying((p) => !p)
+  // Space toggles play/pause. A focused button (e.g. the Scrubber's own
+  // play/pause button) already toggles on space natively, so it's skipped
+  // here rather than double-firing.
+  useKeyboardShortcut({
+    id: 'cinema-toggle-play',
+    keys: [' '],
+    label: 'Play / pause',
+    handler: (e) => {
+      if (e.target instanceof HTMLElement && e.target.tagName === 'BUTTON') {
         return
       }
+      e.preventDefault()
+      setPlaying((p) => !p)
+    },
+  })
 
-      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+  // Left/Right nudge one frame, Shift+Left/Right nudge 30.
+  useKeyboardShortcut({
+    id: 'cinema-frame-step',
+    keys: ['ArrowLeft', 'ArrowRight'],
+    label: 'Step frame (Shift = 30 frames)',
+    handler: (e) => {
       const video = primaryVideoRef.current
       if (!video || !duration) return
 
@@ -368,11 +373,8 @@ function CinemaApp() {
         Math.max(0, video.currentTime + frames * FRAME_DURATION * direction)
       )
       video.currentTime = next
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [duration])
+    },
+  })
 
   const handleScrubPointerDown = (e) => {
     setIsDragging(true)
@@ -429,7 +431,14 @@ function CinemaApp() {
 
   return (
     <ThemeProvider>
-      <Chromoton width={clarity} autoStart={true} />
+      <KeyboardControls />
+      <CommandMenu />
+
+      <Chromoton
+        width={clarity}
+        autoStart={true}
+        onToggleMonochrome={() => setMonochrome(!monochrome)}
+      />
 
       <video
         ref={primaryVideoRef}
@@ -501,8 +510,6 @@ function CinemaApp() {
         fps={fps}
         onFpsChange={setFps}
         onShowPopulationChange={setShowPopulation}
-        monochrome={monochrome}
-        onMonochromeChange={setMonochrome}
         videoFound={videoFound}
         soundEnabled={soundEnabled}
         onSoundChange={setSoundEnabled}

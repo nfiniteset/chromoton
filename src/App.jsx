@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import Chromoton from './Chromoton'
 import ControlPanel from './components/ControlPanel'
 import FpsCounter from './components/FpsCounter'
+import KeyboardControls from './components/KeyboardControls'
+import CommandMenu from './components/CommandMenu'
 import { PALETTES, getRandomPaletteName } from './palettes'
 import { getUniqueRandomColorsFromPalette } from './utils/colorUtils'
 import { getColorSuccessCounts } from './utils/colorUtils'
@@ -183,6 +185,9 @@ function App() {
 
   return (
     <ThemeProvider>
+      <KeyboardControls />
+      <CommandMenu />
+
       <Chromoton
         width={clarity}
         autoStart={true}
@@ -211,8 +216,6 @@ function App() {
         fps={fps}
         onFpsChange={setFps}
         onShowPopulationChange={setShowPopulation}
-        monochrome={monochrome}
-        onMonochromeChange={setMonochrome}
       />
     </ThemeProvider>
   )

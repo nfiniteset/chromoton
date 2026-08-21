@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import '../chromoton.js'
+import { useKeyboardShortcut } from './hooks/useKeyboardShortcut'
 
 /**
  * React wrapper component for the chromoton.js simulation
@@ -102,22 +103,26 @@ export default function Chromoton({
   // Hidden shortcuts: '`' toggles monochrome rendering (mirrors the
   // Monochrome checkbox in the control panel), 'm' toggles image mode,
   // 'f' toggles the fps readout
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return
-      }
-      if (e.key === '`') {
-        onToggleMonochrome?.()
-      } else if (e.key === 'm' || e.key === 'M') {
-        onToggleImageMode?.()
-      } else if (e.key === 'f' || e.key === 'F') {
-        onToggleFps?.()
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onToggleMonochrome, onToggleImageMode, onToggleFps])
+  useKeyboardShortcut({
+    id: 'toggle-monochrome',
+    keys: ['`'],
+    label: 'Toggle monochrome',
+    handler: () => onToggleMonochrome?.(),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-image-mode',
+    keys: ['m'],
+    label: 'Toggle image mode',
+    handler: () => onToggleImageMode?.(),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-fps',
+    keys: ['f'],
+    label: 'Toggle FPS readout',
+    handler: () => onToggleFps?.(),
+  })
 
   return (
     <div

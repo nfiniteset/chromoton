@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import PalettePicker from '../components/PalettePicker'
 import ColorList from '../components/ColorList'
 import AdvancedControls from '../components/AdvancedControls'
-import KeyboardControls from '../components/KeyboardControls'
+import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
 
 import SubtleButton from '../components/primitives/Button'
 import Typography from '../components/primitives/Typography'
@@ -65,8 +65,6 @@ export default function CinemaControlPanel({
   fps,
   onFpsChange,
   onShowPopulationChange,
-  monochrome,
-  onMonochromeChange,
   videoFound,
   soundEnabled,
   onSoundChange,
@@ -91,19 +89,28 @@ export default function CinemaControlPanel({
   const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const prevShowPalettePickerRef = useRef(false)
 
-  const goTo = useCallback((nextState) => {
-    if (nextState === panelStateRef.current) return
-    const opening = OPENNESS[nextState] > OPENNESS[panelStateRef.current]
-    panelStateRef.current = nextState
-    if (
-      nextState === 'hidden' &&
-      document.activeElement instanceof HTMLElement
-    ) {
-      document.activeElement.blur()
-    }
-    setIsClosing(!opening)
-    setPanelState(nextState)
-  }, [])
+  const goTo = useCallback(
+    (nextState) => {
+      if (nextState === panelStateRef.current) return
+      const opening = OPENNESS[nextState] > OPENNESS[panelStateRef.current]
+      panelStateRef.current = nextState
+      // Only blur if the panel still actually owns focus — e.g. focus moved
+      // out to open the command menu, this same transition to 'hidden' is
+      // already underway (via the focus-out handler below) to reflect that,
+      // and blurring unconditionally here would yank focus right back out of
+      // wherever it just legitimately went.
+      if (
+        nextState === 'hidden' &&
+        document.activeElement instanceof HTMLElement &&
+        panelRef.current?.contains(document.activeElement)
+      ) {
+        document.activeElement.blur()
+      }
+      setIsClosing(!opening)
+      setPanelState(nextState)
+    },
+    [panelRef]
+  )
 
   const revealPanel = useCallback(() => {
     goTo('open')
@@ -111,6 +118,82 @@ export default function CinemaControlPanel({
   }, [goTo])
 
   const hidePanel = useCallback(() => goTo('hidden'), [goTo])
+
+  useKeyboardShortcut({
+    id: 'toggle-palette-picker',
+    keys: ['p'],
+    label: 'Open palette picker',
+    handler: () => setShowPalettePicker((prev) => !prev),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-show-population',
+    keys: ['s'],
+    label: 'Toggle target percentages',
+    handler: () => onShowPopulationChange(!showPopulation),
+  })
+
+  // Only active while the picker is open, so the second Escape press (once
+  // this is unregistered) falls through to KeyboardControls' default blur —
+  // which is what actually closes the panel, via the focus-out rule below.
+  useKeyboardShortcut({
+    id: 'close-palette-picker',
+    keys: ['Escape'],
+    label: 'Close palette picker',
+    enabled: showPalettePicker,
+    handler: () => setShowPalettePicker(false),
+  })
+
+  // Keyboard-driven panel visibility: focus entering the panel opens it and
+  // holds it open (see the idle-hide guard below); focus leaving it — via
+  // Escape's blur fallback, or Tabbing past the last control — closes it
+  // immediately rather than waiting on the mouse-idle timer, since a
+  // keyboard user isn't moving the mouse at all.
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+
+    const handleFocusIn = () => goTo('open')
+
+    const handleFocusOut = (e) => {
+      const next = e.relatedTarget
+      if (next instanceof Node && panel.contains(next)) return
+      goTo('hidden')
+    }
+
+    panel.addEventListener('focusin', handleFocusIn)
+    panel.addEventListener('focusout', handleFocusOut)
+    return () => {
+      panel.removeEventListener('focusin', handleFocusIn)
+      panel.removeEventListener('focusout', handleFocusOut)
+    }
+  }, [panelRef, goTo])
+
+  // Tab with nothing focused document-wide enters the panel (which then
+  // opens it via the focus-in rule above) instead of doing nothing, since
+  // the panel is otherwise the only focusable content on the page.
+  useEffect(() => {
+    const handleTabIn = (e) => {
+      if (e.key !== 'Tab') return
+      const active = document.activeElement
+      const nothingFocused =
+        !active ||
+        active === document.body ||
+        active === document.documentElement
+      if (!nothingFocused) return
+
+      const focusable = panelRef.current?.querySelector(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusable instanceof HTMLElement) {
+        e.preventDefault()
+        focusable.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleTabIn)
+    return () => document.removeEventListener('keydown', handleTabIn)
+  }, [panelRef])
 
   useEffect(() => {
     document.body.style.cursor = panelState === 'hidden' ? 'none' : ''
@@ -167,7 +250,12 @@ export default function CinemaControlPanel({
 
     const scheduleIdleHide = () => {
       clearIdleTimer()
-      idleTimerRef.current = setTimeout(() => goTo('hidden'), IDLE_HIDE_DELAY)
+      idleTimerRef.current = setTimeout(() => {
+        // A keyboard user tabbing through the panel isn't moving the mouse —
+        // don't let this ambient timer yank focus out from under them.
+        if (panelRef.current?.contains(document.activeElement)) return
+        goTo('hidden')
+      }, IDLE_HIDE_DELAY)
     }
 
     // Any movement reveals the panel. While the cursor is over the panel
@@ -275,8 +363,6 @@ export default function CinemaControlPanel({
                     fps={fps}
                     onClarityChange={onClarityChange}
                     onFpsChange={onFpsChange}
-                    monochrome={monochrome}
-                    onMonochromeChange={onMonochromeChange}
                   />
                 </div>
 
@@ -340,16 +426,6 @@ export default function CinemaControlPanel({
           </NavStack>
         </div>
       </div>
-
-      <KeyboardControls
-        showPalettePicker={showPalettePicker}
-        setShowPalettePicker={setShowPalettePicker}
-        isHidden={panelState !== 'open'}
-        showPanel={revealPanel}
-        hidePanel={hidePanel}
-        showPopulation={showPopulation}
-        onShowPopulationChange={onShowPopulationChange}
-      />
     </div>
   )
 }
