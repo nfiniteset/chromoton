@@ -42,10 +42,7 @@ export default function ControlPanel({
   const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const prevShowPalettePickerRef = useRef(false)
 
-  const { panelState, isClosing } = usePanelVisibility({
-    panelRef,
-    initialFocusRef: paletteLinkRef,
-  })
+  const { panelState, isClosing } = usePanelVisibility({ panelRef })
 
   useKeyboardShortcut({
     id: 'toggle-palette-picker',

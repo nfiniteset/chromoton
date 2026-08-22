@@ -21,9 +21,6 @@ import {
  * @param {(state: 'open' | 'peek' | 'hidden') => void} [options.onStateChange] -
  *   Reports state changes up, for sibling UI that needs to stay in sync
  *   (e.g. cinema's Scrubber fading with the panel).
- * @param {import('react').RefObject<HTMLElement | null>} [options.initialFocusRef] -
- *   Specific control to focus when the panel is explicitly revealed;
- *   defaults to the panel's first focusable element.
  * @param {string} [options.uiSelector] - CSS selector matching sibling
  *   elements (outside the panel) that should count as part of the same UI:
  *   hovering or focusing them won't hide the panel, and they're included in
@@ -33,7 +30,6 @@ export function usePanelVisibility({
   panelRef,
   pinned = false,
   onStateChange,
-  initialFocusRef,
   uiSelector,
 }) {
   const [panelState, setPanelState] = useState(
@@ -98,19 +94,38 @@ export function usePanelVisibility({
     )
   }, [panelRef, uiSelector])
 
-  // Explicit reveal (click-outside, keypress) — fully opens and focuses in,
-  // unlike the ambient hover reveal which only opens without stealing focus.
-  const revealPanel = useCallback(() => {
-    goTo('open')
-    requestAnimationFrame(() => {
-      const focusable =
-        initialFocusRef?.current ??
-        panelRef.current?.querySelector(FOCUSABLE_SELECTOR)
-      if (focusable instanceof HTMLElement) focusable.focus()
-    })
-  }, [goTo, panelRef, initialFocusRef])
+  // Explicit reveal (click-outside) — doesn't steal focus, same as the
+  // ambient hover reveal. Only genuine keyboard entry (Tab, see handleTabIn
+  // below) focuses a control, so idle-hide's "focus inside = keyboard user,
+  // don't yank it away" guard only ever applies to an actual keyboard user —
+  // a mouse click can't leave the panel permanently pinned open by grabbing
+  // focus it was never asked for.
+  const revealPanel = useCallback(() => goTo('open'), [goTo])
 
   const hidePanel = useCallback(() => goTo('hidden'), [goTo])
+
+  const clearIdleTimer = useCallback(() => {
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current)
+      idleTimerRef.current = null
+    }
+  }, [])
+
+  // Starts (or restarts) the idle-hide countdown, as if a mousemove had just
+  // happened at a point outside the panel/UI. Used both by the mousemove
+  // handler below and by the click-outside handler — a click that reveals
+  // the panel counts as "activity" too, so the panel doesn't stay open
+  // forever if the mouse never moves again after the click.
+  const scheduleIdleHide = useCallback(() => {
+    clearIdleTimer()
+    idleTimerRef.current = setTimeout(() => {
+      // A keyboard user tabbing through the panel or a uiSelector sibling
+      // isn't moving the mouse — don't let this ambient timer yank focus
+      // out from under them.
+      if (isOwned(document.activeElement)) return
+      goTo('hidden')
+    }, IDLE_HIDE_DELAY)
+  }, [clearIdleTimer, isOwned, goTo])
 
   // Turning pinned on should make the panel visible right away, not just
   // block the next hide — otherwise pinning while already hidden would
@@ -228,35 +243,24 @@ export function usePanelVisibility({
         hidePanel()
       } else {
         revealPanel()
+        // The click itself is outside the panel/UI by construction (the
+        // guards above already ruled that out), so it counts as the same
+        // "activity outside the panel" a mousemove there would — otherwise
+        // a click-reveal followed by a perfectly still mouse would leave
+        // the panel open forever, with no future mousemove left to ever
+        // schedule the idle-hide countdown.
+        scheduleIdleHide()
       }
     }
     document.addEventListener('mousedown', handlePointerDown)
     return () => document.removeEventListener('mousedown', handlePointerDown)
-  }, [panelRef, uiSelector, hidePanel, revealPanel])
+  }, [panelRef, uiSelector, hidePanel, revealPanel, scheduleIdleHide])
 
   // Ambient hover behavior: idle (mouse off panel/UI, still for 3s) hides
   // the panel; any movement while hidden peeks it onscreen; moving into the
   // right hot zone, or hovering the panel or a uiSelector-matched sibling,
   // opens it fully.
   useEffect(() => {
-    const clearIdleTimer = () => {
-      if (idleTimerRef.current) {
-        clearTimeout(idleTimerRef.current)
-        idleTimerRef.current = null
-      }
-    }
-
-    const scheduleIdleHide = () => {
-      clearIdleTimer()
-      idleTimerRef.current = setTimeout(() => {
-        // A keyboard user tabbing through the panel or a uiSelector sibling
-        // isn't moving the mouse — don't let this ambient timer yank focus
-        // out from under them.
-        if (isOwned(document.activeElement)) return
-        goTo('hidden')
-      }, IDLE_HIDE_DELAY)
-    }
-
     const handleMouseMove = (e) => {
       const overPanel = panelRef.current?.contains(e.target)
       const overUI = isOwned(e.target)
@@ -281,7 +285,7 @@ export function usePanelVisibility({
       document.removeEventListener('mousemove', handleMouseMove)
       clearIdleTimer()
     }
-  }, [panelRef, goTo, isOwned])
+  }, [panelRef, goTo, isOwned, clearIdleTimer, scheduleIdleHide])
 
   return { panelState, isClosing, revealPanel, hidePanel }
 }
