@@ -17,6 +17,14 @@ This file tracks active and upcoming work on this project. Update it as tasks ar
 
   "Auto dim target" was confusing — same word ("target") as auto-threshold's setpoint-style slider, but opposite semantics (a ceiling that triggers max correction, not a goal being aimed for). Renamed to "Dim ceiling" and, more importantly, gave it a live readout ("Currently N% white on screen") right under the slider — `chromoton.js` now tracks `lastAutoDimCoverage` from each `measureAutoDim` tick (`getAutoDimCoverage()`), polled every 250ms in `CinemaApp.jsx` while Auto dim is on. Makes the cause/effect visible instead of set-and-forget.
 
+  Target colors' default is now 95% black / 95% white (`{13,13,13}` / `{242,242,242}`) instead of pure 0/255 — cinema-specific, main app unchanged. All of `CinemaApp.jsx`'s persisted-setting defaults were pulled into named `DEFAULT_*` constants (previously inlined in each `useLocalStorage()` call) so a "Reset" button (originally "Reset to defaults", shortened) — full-width, bottom of the panel, below Simulation — can restore every setting (and the two target colors) to the exact same values a fresh session starts with, with no risk of the two drifting apart. Defaults tuned: playback speed 25%, Auto threshold on (White % 20), Auto dim on (Dim ceiling 80%).
+
+  Added "Toggle keep panel visible" — command-palette-only (no checkbox, no keybinding), per request. When on, `goTo('hidden')` in `CinemaControlPanel.jsx` becomes a no-op — a single choke point that covers all three hide triggers (idle timeout, click-on-sim, focus loss) without guarding each call site. Turning it on also opens the panel immediately if it happened to be hidden. Persisted, included in Reset.
+
+  Sections standardized to `p-5`/`gap-5` (20px, was `px-5 py-7`/`gap-7`). Simulation no longer matched the others structurally — it rendered a single nested `<AdvancedControls>` wrapper div (its own `gap-7 pb-7`) as one child, while every other section renders its controls as flat direct children. Gave `AdvancedControls` a `bare` prop (returns its content as a Fragment, no wrapper div) so cinema's Simulation section renders Frame rate/Resolution flush alongside the header, same as the other three; main app's usage (no `bare`) is unaffected.
+
+  Follow-up polish: Dim ceiling's live readout shortened to "Currently N%". "Show thumbnail" checkbox removed from the panel entirely — kept command-palette-only, relabeled "Keep thumbnail visible" (same underlying `showThumbnailOverlay` state/handler). Playback speed moved above Sound in the top section. B/W Threshold and Simulation sections given `pb-7` (28px, vs. the standard 20px) — Target color and the top section stay at the standard padding.
+
 ## Up Next
 
 _(none)_

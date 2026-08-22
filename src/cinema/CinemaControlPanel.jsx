@@ -11,6 +11,7 @@ import SteppedSlider from '../components/primitives/Slider'
 import Notice from '../components/primitives/Notice'
 import SectionHeader from '../components/primitives/SectionHeader'
 import Typography from '../components/primitives/Typography'
+import SubtleButton from '../components/primitives/Button'
 
 // Shell (panel open/hidden state, idle-hide, focus trap) duplicated from
 // ../components/ControlPanel.jsx rather than shared, since that component
@@ -68,6 +69,9 @@ export default function CinemaControlPanel({
   onAgitateTargetChange,
   showThumbnailOverlay,
   onShowThumbnailOverlayChange,
+  keepPanelVisible,
+  onKeepPanelVisibleChange,
+  onReset,
   onPanelStateChange,
   thumbnail,
   className = '',
@@ -85,6 +89,10 @@ export default function CinemaControlPanel({
   const goTo = useCallback(
     (nextState) => {
       if (nextState === panelStateRef.current) return
+      // Single choke point for every hide trigger (idle timeout, click on
+      // the sim, focus loss) — refusing here covers all of them at once
+      // rather than guarding each call site individually.
+      if (nextState === 'hidden' && keepPanelVisible) return
       const opening = OPENNESS[nextState] > OPENNESS[panelStateRef.current]
       panelStateRef.current = nextState
       // Only blur if the panel still actually owns focus — e.g. focus moved
@@ -102,7 +110,7 @@ export default function CinemaControlPanel({
       setIsClosing(!opening)
       setPanelState(nextState)
     },
-    [panelRef]
+    [panelRef, keepPanelVisible]
   )
 
   // Command-palette-only entries (no keybinding — `keys: []` never matches
@@ -132,8 +140,15 @@ export default function CinemaControlPanel({
   useKeyboardShortcut({
     id: 'toggle-thumbnail-overlay',
     keys: [],
-    label: 'Toggle thumbnail overlay',
+    label: 'Keep thumbnail visible',
     handler: () => onShowThumbnailOverlayChange(!showThumbnailOverlay),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-keep-panel-visible',
+    keys: [],
+    label: 'Toggle keep panel visible',
+    handler: () => onKeepPanelVisibleChange(!keepPanelVisible),
   })
 
   const revealPanel = useCallback(() => {
@@ -145,6 +160,13 @@ export default function CinemaControlPanel({
   }, [goTo, panelRef])
 
   const hidePanel = useCallback(() => goTo('hidden'), [goTo])
+
+  // Turning this on should make the panel visible right away, not just
+  // block the next hide — otherwise enabling it while already hidden would
+  // silently do nothing until some other trigger happened to reveal it.
+  useEffect(() => {
+    if (keepPanelVisible) goTo('open')
+  }, [keepPanelVisible, goTo])
 
   // Keyboard-driven panel visibility: focus entering the panel opens it and
   // holds it open (see the idle-hide guard below); focus leaving it — via
@@ -319,16 +341,9 @@ export default function CinemaControlPanel({
           <div className="flex flex-col">
             {videoFound && <div className="px-5 pt-5">{thumbnail}</div>}
 
-            <div className="flex flex-col gap-7 px-5 py-7">
+            <div className="flex flex-col gap-5 p-5">
               {videoFound ? (
                 <>
-                  <Checkbox
-                    label="Sound"
-                    checked={soundEnabled}
-                    onChange={onSoundChange}
-                    className=""
-                  />
-
                   <SteppedSlider
                     label="Playback speed"
                     value={playbackStepIndex}
@@ -342,9 +357,10 @@ export default function CinemaControlPanel({
                   />
 
                   <Checkbox
-                    label="Show thumbnail"
-                    checked={showThumbnailOverlay}
-                    onChange={onShowThumbnailOverlayChange}
+                    label="Sound"
+                    checked={soundEnabled}
+                    onChange={onSoundChange}
+                    className=""
                   />
                 </>
               ) : (
@@ -359,7 +375,7 @@ export default function CinemaControlPanel({
               <>
                 <Divider className="" />
 
-                <div className="flex flex-col gap-7 px-5 py-7">
+                <div className="flex flex-col gap-5 p-5 pb-7">
                   <SectionHeader>B/W Threshold</SectionHeader>
 
                   <Checkbox
@@ -398,7 +414,7 @@ export default function CinemaControlPanel({
 
                 <Divider className="" />
 
-                <div className="flex flex-col gap-7 px-5 py-7">
+                <div className="flex flex-col gap-5 p-5">
                   <SectionHeader>Target color</SectionHeader>
 
                   <Checkbox
@@ -431,7 +447,7 @@ export default function CinemaControlPanel({
                         intent="weak"
                         className="text-[11px] tabular-nums"
                       >
-                        Currently {autoDimCoveragePercent}% white on screen
+                        Currently {autoDimCoveragePercent}%
                       </Typography>
                     </div>
                   )}
@@ -441,10 +457,11 @@ export default function CinemaControlPanel({
 
             <Divider className="" />
 
-            <div className="flex flex-col gap-7 px-5 py-7">
+            <div className="flex flex-col gap-5 p-5 pb-7">
               <SectionHeader>Simulation</SectionHeader>
 
               <AdvancedControls
+                bare
                 hideStrategy
                 clarity={clarity}
                 fps={fps}
@@ -452,6 +469,15 @@ export default function CinemaControlPanel({
                 onFpsChange={onFpsChange}
               />
             </div>
+
+            <Divider className="" />
+
+            <SubtleButton
+              className="justify-center px-5 py-4"
+              onClick={onReset}
+            >
+              Reset
+            </SubtleButton>
           </div>
         </div>
       </div>

@@ -30,8 +30,34 @@ const ASSUMED_FRAME_RATE = 24
 const FRAME_DURATION = 1 / ASSUMED_FRAME_RATE
 const FAST_STEP_FRAMES = 30
 
+// Single source of truth for every persisted setting's default, shared
+// between each useLocalStorage() call below and the panel's Reset button —
+// so "reset to defaults" can never drift from what a fresh session actually
+// starts with.
+const DEFAULT_CLARITY = 320
+const DEFAULT_FPS = 15
+const DEFAULT_MONOCHROME = false
+const DEFAULT_SOUND_ENABLED = false
+const DEFAULT_PLAYBACK_RATE = 0.25
+const DEFAULT_THRESHOLD = 35
+const DEFAULT_AUTO_THRESHOLD = true
+const DEFAULT_AUTO_THRESHOLD_TARGET_PERCENT = 20
+const DEFAULT_AUTO_DIM_WHITE = true
+const DEFAULT_AUTO_DIM_TARGET_PERCENT = 80
+const DEFAULT_AGITATE_TARGET = false
+const DEFAULT_SHOW_THUMBNAIL_OVERLAY = false
+const DEFAULT_KEEP_PANEL_VISIBLE = false
+// 95% black / 95% white rather than pure 0/255.
+const DEFAULT_COLORS = [
+  { r: 13, g: 13, b: 13 },
+  { r: 242, g: 242, b: 242 },
+]
+
 function CinemaApp() {
-  const [clarity, setClarity] = useLocalStorage('chromoton-cinema-clarity', 320)
+  const [clarity, setClarity] = useLocalStorage(
+    'chromoton-cinema-clarity',
+    DEFAULT_CLARITY
+  )
   // No UI to change this in cinema anymore (Spiciness/StrategySelector is
   // hidden here), but it still drives useColorRandomizer below with
   // whatever was last persisted — only the setter goes unused.
@@ -39,46 +65,53 @@ function CinemaApp() {
     'chromoton-cinema-strategyType',
     'none'
   )
-  const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', 15)
+  const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', DEFAULT_FPS)
   const [monochrome, setMonochrome] = useLocalStorage(
     'chromoton-cinema-monochrome',
-    false
+    DEFAULT_MONOCHROME
   )
   const [soundEnabled, setSoundEnabled] = useLocalStorage(
     'chromoton-cinema-soundEnabled',
-    false
+    DEFAULT_SOUND_ENABLED
   )
   const [playbackRate, setPlaybackRate] = useLocalStorage(
     'chromoton-cinema-playbackRate',
-    0.5
+    DEFAULT_PLAYBACK_RATE
   )
   const [threshold, setThreshold] = useLocalStorage(
     'chromoton-cinema-threshold',
-    35
+    DEFAULT_THRESHOLD
   )
   const [autoThreshold, setAutoThreshold] = useLocalStorage(
     'chromoton-cinema-autoThreshold',
-    false
+    DEFAULT_AUTO_THRESHOLD
   )
   // Percent (0-100), matching chromoton.js's default autoThresholdTargetFraction.
   const [autoThresholdTargetPercent, setAutoThresholdTargetPercent] =
-    useLocalStorage('chromoton-cinema-autoThresholdTargetPercent', 20)
+    useLocalStorage(
+      'chromoton-cinema-autoThresholdTargetPercent',
+      DEFAULT_AUTO_THRESHOLD_TARGET_PERCENT
+    )
   const [autoDimWhite, setAutoDimWhite] = useLocalStorage(
     'chromoton-cinema-autoDimWhite',
-    false
+    DEFAULT_AUTO_DIM_WHITE
   )
   // Percent (0-100), matching chromoton.js's default autoDimCoverageMax.
   const [autoDimTargetPercent, setAutoDimTargetPercent] = useLocalStorage(
     'chromoton-cinema-autoDimTargetPercent',
-    40
+    DEFAULT_AUTO_DIM_TARGET_PERCENT
   )
   const [agitateTarget, setAgitateTarget] = useLocalStorage(
     'chromoton-cinema-agitateTarget',
-    false
+    DEFAULT_AGITATE_TARGET
   )
   const [showThumbnailOverlay, setShowThumbnailOverlay] = useLocalStorage(
     'chromoton-cinema-showThumbnailOverlay',
-    false
+    DEFAULT_SHOW_THUMBNAIL_OVERLAY
+  )
+  const [keepPanelVisible, setKeepPanelVisible] = useLocalStorage(
+    'chromoton-cinema-keepPanelVisible',
+    DEFAULT_KEEP_PANEL_VISIBLE
   )
   const [effectiveThreshold, setEffectiveThreshold] = useState(threshold)
   const [autoDimCoveragePercent, setAutoDimCoveragePercent] = useState(0)
@@ -126,17 +159,9 @@ function CinemaApp() {
   const initialColors = useMemo(() => {
     try {
       const stored = window.localStorage.getItem('chromoton-cinema-colors')
-      return stored
-        ? JSON.parse(stored)
-        : [
-            { r: 0, g: 0, b: 0 },
-            { r: 255, g: 255, b: 255 },
-          ]
+      return stored ? JSON.parse(stored) : DEFAULT_COLORS
     } catch {
-      return [
-        { r: 0, g: 0, b: 0 },
-        { r: 255, g: 255, b: 255 },
-      ]
+      return DEFAULT_COLORS
     }
   }, [])
 
@@ -478,6 +503,27 @@ function CinemaApp() {
     seekPreview(time)
   }
 
+  // Restores every persisted setting to the DEFAULT_* values above. Doesn't
+  // touch playback state (currentTime, playing, etc.) — those are live
+  // session state, not settings someone would want "reset".
+  const handleReset = () => {
+    setClarity(DEFAULT_CLARITY)
+    setFps(DEFAULT_FPS)
+    setMonochrome(DEFAULT_MONOCHROME)
+    setSoundEnabled(DEFAULT_SOUND_ENABLED)
+    setPlaybackRate(DEFAULT_PLAYBACK_RATE)
+    setThreshold(DEFAULT_THRESHOLD)
+    setAutoThreshold(DEFAULT_AUTO_THRESHOLD)
+    setAutoThresholdTargetPercent(DEFAULT_AUTO_THRESHOLD_TARGET_PERCENT)
+    setAutoDimWhite(DEFAULT_AUTO_DIM_WHITE)
+    setAutoDimTargetPercent(DEFAULT_AUTO_DIM_TARGET_PERCENT)
+    setAgitateTarget(DEFAULT_AGITATE_TARGET)
+    setShowThumbnailOverlay(DEFAULT_SHOW_THUMBNAIL_OVERLAY)
+    setKeepPanelVisible(DEFAULT_KEEP_PANEL_VISIBLE)
+    colorModel.changeColor(0, DEFAULT_COLORS[0])
+    colorModel.changeColor(1, DEFAULT_COLORS[1])
+  }
+
   const scrubValue = isDragging ? dragTime : currentTime
 
   // Always rendered — mirrors the primary video's current frame at all
@@ -602,6 +648,9 @@ function CinemaApp() {
         onAgitateTargetChange={setAgitateTarget}
         showThumbnailOverlay={showThumbnailOverlay}
         onShowThumbnailOverlayChange={setShowThumbnailOverlay}
+        keepPanelVisible={keepPanelVisible}
+        onKeepPanelVisibleChange={setKeepPanelVisible}
+        onReset={handleReset}
       />
     </ThemeProvider>
   )
