@@ -81,6 +81,7 @@ function CinemaApp() {
     false
   )
   const [effectiveThreshold, setEffectiveThreshold] = useState(threshold)
+  const [autoDimCoveragePercent, setAutoDimCoveragePercent] = useState(0)
 
   const [playing, setPlaying] = useState(true)
   const [videoFound, setVideoFound] = useState(true)
@@ -224,6 +225,23 @@ function CinemaApp() {
   useEffect(() => {
     window.chromoton?.setAutoDimCoverageMax(autoDimTargetPercent / 100)
   }, [autoDimTargetPercent])
+
+  // Like the auto-threshold poll above, but for auto-dim's measured white
+  // coverage — the slider alone gives no sense of whether it's actually
+  // doing anything on the current frame, so surface the live reading.
+  useEffect(() => {
+    if (!autoDimWhite) return
+
+    const poll = () => {
+      const value = window.chromoton?.getAutoDimCoverage()
+      if (value !== undefined)
+        setAutoDimCoveragePercent(Math.round(value * 100))
+    }
+
+    poll()
+    const interval = setInterval(poll, 250)
+    return () => clearInterval(interval)
+  }, [autoDimWhite])
 
   useEffect(() => {
     window.chromoton?.setAgitateTarget(agitateTarget)
@@ -579,6 +597,7 @@ function CinemaApp() {
         onAutoDimWhiteChange={setAutoDimWhite}
         autoDimTargetPercent={autoDimTargetPercent}
         onAutoDimTargetPercentChange={setAutoDimTargetPercent}
+        autoDimCoveragePercent={autoDimCoveragePercent}
         agitateTarget={agitateTarget}
         onAgitateTargetChange={setAgitateTarget}
         showThumbnailOverlay={showThumbnailOverlay}

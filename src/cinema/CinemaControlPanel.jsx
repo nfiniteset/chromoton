@@ -10,6 +10,7 @@ import Checkbox from '../components/primitives/Checkbox'
 import SteppedSlider from '../components/primitives/Slider'
 import Notice from '../components/primitives/Notice'
 import SectionHeader from '../components/primitives/SectionHeader'
+import Typography from '../components/primitives/Typography'
 
 // Shell (panel open/hidden state, idle-hide, focus trap) duplicated from
 // ../components/ControlPanel.jsx rather than shared, since that component
@@ -62,6 +63,7 @@ export default function CinemaControlPanel({
   onAutoDimWhiteChange,
   autoDimTargetPercent,
   onAutoDimTargetPercentChange,
+  autoDimCoveragePercent,
   agitateTarget,
   onAgitateTargetChange,
   showThumbnailOverlay,
@@ -381,7 +383,7 @@ export default function CinemaControlPanel({
 
                   {autoThreshold && (
                     <SteppedSlider
-                      label="Auto target"
+                      label="White %"
                       value={autoThresholdTargetStepIndex}
                       displayValue={`${PERCENT_STEPS[autoThresholdTargetStepIndex]}%`}
                       steps={PERCENT_STEPS}
@@ -412,17 +414,26 @@ export default function CinemaControlPanel({
                   />
 
                   {autoDimWhite && (
-                    <SteppedSlider
-                      label="Auto dim target"
-                      value={autoDimTargetStepIndex}
-                      displayValue={`${PERCENT_STEPS[autoDimTargetStepIndex]}%`}
-                      steps={PERCENT_STEPS}
-                      onChange={(e) =>
-                        onAutoDimTargetPercentChange(
-                          PERCENT_STEPS[parseInt(e.target.value)]
-                        )
-                      }
-                    />
+                    <div className="flex flex-col gap-2">
+                      <SteppedSlider
+                        label="Dim ceiling"
+                        value={autoDimTargetStepIndex}
+                        displayValue={`${PERCENT_STEPS[autoDimTargetStepIndex]}%`}
+                        steps={PERCENT_STEPS}
+                        onChange={(e) =>
+                          onAutoDimTargetPercentChange(
+                            PERCENT_STEPS[parseInt(e.target.value)]
+                          )
+                        }
+                      />
+                      <Typography
+                        as="p"
+                        intent="weak"
+                        className="text-[11px] tabular-nums"
+                      >
+                        Currently {autoDimCoveragePercent}% white on screen
+                      </Typography>
+                    </div>
                   )}
                 </div>
               </>

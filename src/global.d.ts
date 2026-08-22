@@ -35,6 +35,7 @@ interface ChromotonAPI {
   isAutoDimEnabled(): boolean
   setAutoDimCoverageMax(value: number): void
   getAutoDimCoverageMax(): number
+  getAutoDimCoverage(): number
   setAgitateTarget(enabled: boolean): void
   isAgitateTargetEnabled(): boolean
   getFps(): number

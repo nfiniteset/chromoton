@@ -57,6 +57,7 @@ window.chromoton = (function () {
   var AUTO_DIM_MIN_INTENSITY = 0.15
   var AUTO_DIM_MEASURE_INTERVAL_MS = 500
   var lastAutoDimMeasure = 0
+  var lastAutoDimCoverage = 0 // most recent measured coverage (0..1), for UI feedback
 
   // Dynamic contrast, approach C ("agitate"): originally approach B was a
   // feedback loop off the population's *matched* share, but that share only
@@ -66,14 +67,17 @@ window.chromoton = (function () {
   // out to be a nice effect in its own right (keeps white "cloudy" instead
   // of flattening to pure color), so it's kept on purpose, simplified down
   // to what it actually amounts to: periodically nudging the white target's
-  // brightness up or down by a small random step, with no measurement of
-  // the population involved at all.
+  // brightness off its true base value, with no measurement of the
+  // population involved at all. Each tick is independent of the last (not a
+  // random walk) — it always nudges off 1 (unchanged), never off wherever
+  // the previous tick happened to land — so it can't wander down and sit
+  // there for a stretch; a run of dim ticks is chance, not drift.
   var agitateEnabled = false
-  var agitateIntensity = 1 // 0..1 multiplier applied to the white target's RGB
-  var AGITATE_MIN_INTENSITY = 0.15
-  var AGITATE_STEP = 0.08 // max random nudge per tick, either direction
-  var AGITATE_INTERVAL_MS = 400
-  var lastAgitateTick = 0
+  var agitateIntensity = 1 // multiplier applied to the white target's RGB
+  var AGITATE_STEP = 0.1 // fixed nudge size, up or down, off the true base color
+  var AGITATE_INTERVAL_MS = 400 // base tick interval
+  var AGITATE_INTERVAL_JITTER_MS = 200 // +/- randomness added to the interval
+  var nextAgitateTick = 0
 
   // Fast inline PRNG (xorshift32) for the breeding crossover mask. Math.random()
   // was measured to cost ~25% of total step time at large grid sizes because
@@ -537,11 +541,14 @@ window.chromoton = (function () {
     return 0
   }
 
+  // intensity is normally 0..1 (dimming), but agitate can push it slightly
+  // above 1 (brightening), so clamp each channel rather than assume dimming
+  // alone can't overflow 255.
   function dimColor(c, intensity) {
     return {
-      red: (c.red * intensity) | 0,
-      green: (c.green * intensity) | 0,
-      blue: (c.blue * intensity) | 0,
+      red: Math.min(255, (c.red * intensity) | 0),
+      green: Math.min(255, (c.green * intensity) | 0),
+      blue: Math.min(255, (c.blue * intensity) | 0),
     }
   }
 
@@ -678,6 +685,13 @@ window.chromoton = (function () {
     return autoDimCoverageMax
   }
 
+  // The most recently measured white-mask coverage (0..1) — lets the UI
+  // show how close the current frame is to autoDimCoverageMax, since the
+  // slider alone gives no feedback on what it's actually doing right now.
+  function getAutoDimCoverage() {
+    return lastAutoDimCoverage
+  }
+
   // Feedback step for approach B: measure what fraction of the whole grid
   // the mask currently assigns to white — how much of the frame *wants* to
   // be white, independent of whether the population has caught up to it —
@@ -697,6 +711,7 @@ window.chromoton = (function () {
       if (lastImageMask[idx]) whiteCount++
     }
     var coverage = size > 0 ? whiteCount / size : 0
+    lastAutoDimCoverage = coverage
 
     var span = autoDimCoverageMax - AUTO_DIM_COVERAGE_MIN
     var t = span > 0 ? (coverage - AUTO_DIM_COVERAGE_MIN) / span : 0
@@ -717,21 +732,25 @@ window.chromoton = (function () {
     return agitateEnabled
   }
 
-  // Nudge agitateIntensity by a small random step, up or down, so the white
-  // target never sits still long enough for the population to fully settle
-  // on it. No measurement of the population involved — purely a periodic
-  // random walk clamped to [AGITATE_MIN_INTENSITY, 1]. Called from step()
-  // after each generation's population swap.
+  // Pick a fresh intensity every tick — one step dimmer than base, one step
+  // brighter, or unchanged — so the white target never sits still long
+  // enough for the population to fully settle on it. Always relative to the
+  // true base color (1), never to the previous tick's result, so it can't
+  // drift down and linger there. The interval itself is jittered so the
+  // nudges don't land on a mechanically regular beat. No measurement of the
+  // population involved. Called from step() after each generation's
+  // population swap.
   function agitateTargetColor(timestamp) {
     if (!agitateEnabled || !imageModeEnabled) return
-    if (timestamp - lastAgitateTick < AGITATE_INTERVAL_MS) return
-    lastAgitateTick = timestamp
+    if (timestamp < nextAgitateTick) return
+    nextAgitateTick =
+      timestamp +
+      AGITATE_INTERVAL_MS +
+      (Math.random() * 2 - 1) * AGITATE_INTERVAL_JITTER_MS
 
-    var delta = (Math.random() * 2 - 1) * AGITATE_STEP
-    agitateIntensity = Math.max(
-      AGITATE_MIN_INTENSITY,
-      Math.min(1, agitateIntensity + delta)
-    )
+    var pick = (Math.random() * 3) | 0 // 0 = dimmer, 1 = unchanged, 2 = brighter
+    agitateIntensity =
+      pick === 0 ? 1 - AGITATE_STEP : pick === 2 ? 1 + AGITATE_STEP : 1
     applyImageTargetsToPopulation()
   }
 
@@ -801,6 +820,7 @@ window.chromoton = (function () {
     isAutoDimEnabled: isAutoDimEnabled,
     setAutoDimCoverageMax: setAutoDimCoverageMax,
     getAutoDimCoverageMax: getAutoDimCoverageMax,
+    getAutoDimCoverage: getAutoDimCoverage,
     setAgitateTarget: setAgitateTarget,
     isAgitateTargetEnabled: isAgitateTargetEnabled,
     getFps: getFps,
