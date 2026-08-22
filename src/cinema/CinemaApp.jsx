@@ -5,8 +5,7 @@ import Scrubber from './Scrubber'
 import KeyboardControls from '../components/KeyboardControls'
 import CommandMenu from '../components/CommandMenu'
 import { useVideoImageMode } from './useVideoImageMode'
-import { PALETTES, getRandomPaletteName } from '../palettes'
-import { getColorSuccessCounts } from '../utils/colorUtils'
+import { getRandomPaletteName } from '../palettes'
 import { useColorModel } from '../hooks/useColorModel'
 import { useColorRandomizer } from '../hooks/useColorRandomizer'
 import { useLocalStorage } from '../hooks/useLocalStorage'
@@ -33,13 +32,12 @@ const FAST_STEP_FRAMES = 30
 
 function CinemaApp() {
   const [clarity, setClarity] = useLocalStorage('chromoton-cinema-clarity', 320)
-  const [strategyType, setStrategyType] = useLocalStorage(
+  // No UI to change this in cinema anymore (Spiciness/StrategySelector is
+  // hidden here), but it still drives useColorRandomizer below with
+  // whatever was last persisted — only the setter goes unused.
+  const [strategyType] = useLocalStorage(
     'chromoton-cinema-strategyType',
     'none'
-  )
-  const [showPopulation, setShowPopulation] = useLocalStorage(
-    'chromoton-cinema-showPopulation',
-    false
   )
   const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', 15)
   const [monochrome, setMonochrome] = useLocalStorage(
@@ -58,9 +56,31 @@ function CinemaApp() {
     'chromoton-cinema-threshold',
     35
   )
-  const [populationPercentages, setPopulationPercentages] = useState(
-    /** @type {number[]} */ ([])
+  const [autoThreshold, setAutoThreshold] = useLocalStorage(
+    'chromoton-cinema-autoThreshold',
+    false
   )
+  // Percent (0-100), matching chromoton.js's default autoThresholdTargetFraction.
+  const [autoThresholdTargetPercent, setAutoThresholdTargetPercent] =
+    useLocalStorage('chromoton-cinema-autoThresholdTargetPercent', 20)
+  const [autoDimWhite, setAutoDimWhite] = useLocalStorage(
+    'chromoton-cinema-autoDimWhite',
+    false
+  )
+  // Percent (0-100), matching chromoton.js's default autoDimCoverageMax.
+  const [autoDimTargetPercent, setAutoDimTargetPercent] = useLocalStorage(
+    'chromoton-cinema-autoDimTargetPercent',
+    40
+  )
+  const [agitateTarget, setAgitateTarget] = useLocalStorage(
+    'chromoton-cinema-agitateTarget',
+    false
+  )
+  const [showThumbnailOverlay, setShowThumbnailOverlay] = useLocalStorage(
+    'chromoton-cinema-showThumbnailOverlay',
+    false
+  )
+  const [effectiveThreshold, setEffectiveThreshold] = useState(threshold)
 
   const [playing, setPlaying] = useState(true)
   const [videoFound, setVideoFound] = useState(true)
@@ -78,6 +98,11 @@ function CinemaApp() {
   // Always-visible panel thumbnail (mirrors the primary video — whatever
   // frame is currently driving the sim, playing or paused).
   const panelThumbnailRef = useRef(
+    /** @type {HTMLCanvasElement | null} */ (null)
+  )
+  // Same frame, mirrored into a second canvas for the standalone top-right
+  // overlay shown when the panel is closed (see showThumbnailOverlay).
+  const overlayThumbnailRef = useRef(
     /** @type {HTMLCanvasElement | null} */ (null)
   )
   // Floating thumbnail shown above the scrubber thumb while dragging
@@ -166,36 +191,43 @@ function CinemaApp() {
   }, [threshold])
 
   useEffect(() => {
-    if (!showPopulation) return
+    window.chromoton?.setAutoThreshold(autoThreshold)
+  }, [autoThreshold])
 
-    const calculatePercentages = () => {
-      if (window.chromoton && window.chromoton.getPopulation) {
-        const { population, xDim, yDim } = window.chromoton.getPopulation()
-        const counts = getColorSuccessCounts(
-          population,
-          colorModel.colors,
-          xDim,
-          yDim,
-          20
-        )
-        const totalCells = xDim * yDim
+  useEffect(() => {
+    window.chromoton?.setAutoThresholdTargetFraction(
+      autoThresholdTargetPercent / 100
+    )
+  }, [autoThresholdTargetPercent])
 
-        const percentages = counts.map((count) =>
-          totalCells > 0 ? (count / totalCells) * 100 : 0
-        )
+  // While auto threshold is on, the effective cutoff is computed fresh per
+  // video frame (up to ~10/sec — see useVideoImageMode's throttle) rather
+  // than being the `threshold` state itself, so poll it to keep the slider
+  // reflecting what's actually in effect.
+  useEffect(() => {
+    if (!autoThreshold) return
 
-        setPopulationPercentages(percentages)
-      }
+    const poll = () => {
+      const value = window.chromoton?.getEffectiveThreshold()
+      if (value !== undefined) setEffectiveThreshold(value)
     }
 
-    calculatePercentages()
-    const interval = setInterval(calculatePercentages, 500)
+    poll()
+    const interval = setInterval(poll, 150)
+    return () => clearInterval(interval)
+  }, [autoThreshold])
 
-    return () => {
-      clearInterval(interval)
-      setPopulationPercentages([])
-    }
-  }, [showPopulation, colorModel.colors])
+  useEffect(() => {
+    window.chromoton?.setAutoDim(autoDimWhite)
+  }, [autoDimWhite])
+
+  useEffect(() => {
+    window.chromoton?.setAutoDimCoverageMax(autoDimTargetPercent / 100)
+  }, [autoDimTargetPercent])
+
+  useEffect(() => {
+    window.chromoton?.setAgitateTarget(agitateTarget)
+  }, [agitateTarget])
 
   useColorRandomizer(
     true,
@@ -276,11 +308,15 @@ function CinemaApp() {
     const video = primaryVideoRef.current
     if (!video) return
 
-    const draw = () => {
-      const canvas = panelThumbnailRef.current
+    const drawInto = (canvas) => {
       if (!canvas || !video.videoWidth) return
       const ctx = canvas.getContext('2d')
       ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    }
+
+    const draw = () => {
+      drawInto(panelThumbnailRef.current)
+      drawInto(overlayThumbnailRef.current)
     }
 
     video.addEventListener('timeupdate', draw)
@@ -294,6 +330,18 @@ function CinemaApp() {
       video.removeEventListener('loadeddata', draw)
     }
   }, [])
+
+  // The overlay canvas only exists in the DOM while it's actually shown, so
+  // it misses whatever frame the draw effect above last pushed — paint it
+  // immediately on mount instead of waiting for the video's next event.
+  useEffect(() => {
+    if (!showThumbnailOverlay || panelState !== 'hidden') return
+    const video = primaryVideoRef.current
+    const canvas = overlayThumbnailRef.current
+    if (!video || !canvas || !video.videoWidth) return
+    const ctx = canvas.getContext('2d')
+    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+  }, [showThumbnailOverlay, panelState])
 
   // Drag-thumbnail: seeking the (silent, never-played) preview video is
   // async, so only draw once its 'seeked' event confirms the new frame is
@@ -403,6 +451,15 @@ function CinemaApp() {
     setIsDragging(false)
   }
 
+  // Hover-scrub: preview a frame under the pointer without touching the
+  // primary video. Scrubber already suppresses this while a real drag is in
+  // progress, but guard here too since a drag's pointerup can land outside
+  // the track and leave a trailing mousemove.
+  const handleTrackHover = (time) => {
+    if (isDragging) return
+    seekPreview(time)
+  }
+
   const scrubValue = isDragging ? dragTime : currentTime
 
   // Always rendered — mirrors the primary video's current frame at all
@@ -417,17 +474,12 @@ function CinemaApp() {
     />
   )
 
-  const handleColorChange = (index, r, g, b) => {
-    if (
-      index === undefined ||
-      r === undefined ||
-      g === undefined ||
-      b === undefined
-    ) {
-      return
-    }
-    colorModel.changeColor(index, { r, g, b })
-  }
+  // Standalone top-right overlay: shows the same thumbnail on its own,
+  // outside the settings panel's themed subtree (hence a plain static
+  // border rather than the panel's contrast-adaptive --ct-border), so a
+  // frame stays visible even with the panel hidden — e.g. for screen
+  // capture or a live performance.
+  const showOverlay = showThumbnailOverlay && panelState === 'hidden'
 
   return (
     <ThemeProvider>
@@ -473,6 +525,20 @@ function CinemaApp() {
         className="hidden"
       />
 
+      {videoFound && showOverlay && (
+        <div
+          data-cinema-ui="thumbnail-overlay"
+          className="pointer-events-none fixed top-5 right-5 z-[100] w-[180px] rounded-2xl bg-white/8 p-2 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%]"
+        >
+          <canvas
+            ref={overlayThumbnailRef}
+            width={PANEL_THUMB_WIDTH}
+            height={PANEL_THUMB_HEIGHT}
+            className="h-auto w-full rounded-md border border-white/15"
+          />
+        </div>
+      )}
+
       {videoFound && (
         <Scrubber
           value={scrubValue}
@@ -482,6 +548,7 @@ function CinemaApp() {
           onPointerDown={handleScrubPointerDown}
           onInput={handleScrubInput}
           onPointerUp={handleScrubPointerUp}
+          onTrackHover={handleTrackHover}
           hidden={panelState === 'hidden'}
           isDragging={isDragging}
           dragThumbnailRef={dragThumbnailRef}
@@ -493,30 +560,29 @@ function CinemaApp() {
       <CinemaControlPanel
         onPanelStateChange={setPanelState}
         thumbnail={panelThumbnail}
-        palettes={Object.keys(PALETTES)}
-        currentPalette={colorModel.currentPalette}
-        colors={colorModel.colors}
-        strategyType={strategyType}
         clarity={clarity}
-        showPopulation={showPopulation}
-        populationPercentages={populationPercentages}
-        onPaletteChange={colorModel.setPalette}
-        onStrategyChange={setStrategyType}
-        onColorChange={handleColorChange}
-        onRemoveColor={colorModel.removeColor}
-        onSwapColor={colorModel.swapColor}
-        onAddColor={colorModel.addColor}
         onClarityChange={setClarity}
         fps={fps}
         onFpsChange={setFps}
-        onShowPopulationChange={setShowPopulation}
         videoFound={videoFound}
         soundEnabled={soundEnabled}
         onSoundChange={setSoundEnabled}
         playbackRate={playbackRate}
         onPlaybackRateChange={setPlaybackRate}
-        threshold={threshold}
+        threshold={autoThreshold ? effectiveThreshold : threshold}
         onThresholdChange={setThreshold}
+        autoThreshold={autoThreshold}
+        onAutoThresholdChange={setAutoThreshold}
+        autoThresholdTargetPercent={autoThresholdTargetPercent}
+        onAutoThresholdTargetPercentChange={setAutoThresholdTargetPercent}
+        autoDimWhite={autoDimWhite}
+        onAutoDimWhiteChange={setAutoDimWhite}
+        autoDimTargetPercent={autoDimTargetPercent}
+        onAutoDimTargetPercentChange={setAutoDimTargetPercent}
+        agitateTarget={agitateTarget}
+        onAgitateTargetChange={setAgitateTarget}
+        showThumbnailOverlay={showThumbnailOverlay}
+        onShowThumbnailOverlayChange={setShowThumbnailOverlay}
       />
     </ThemeProvider>
   )

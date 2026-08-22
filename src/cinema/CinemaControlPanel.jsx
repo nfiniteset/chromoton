@@ -2,23 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { cn } from '../lib/utils'
 import { useTheme } from '../contexts/ThemeContext'
 
-import PalettePicker from '../components/PalettePicker'
-import ColorList from '../components/ColorList'
 import AdvancedControls from '../components/AdvancedControls'
 import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
 
-import SubtleButton from '../components/primitives/Button'
-import Typography from '../components/primitives/Typography'
 import Divider from '../components/primitives/Divider'
 import Checkbox from '../components/primitives/Checkbox'
 import SteppedSlider from '../components/primitives/Slider'
 import Notice from '../components/primitives/Notice'
-import NavStack from '../components/NavStack/NavStack'
-import NavStackView from '../components/NavStack/NavStackView'
-
-import { PALETTE_DISPLAY_NAMES } from '../palettes'
-
-import { FaChevronRight } from 'react-icons/fa6'
+import SectionHeader from '../components/primitives/SectionHeader'
 
 // Shell (panel open/hidden state, idle-hide, focus trap) duplicated from
 // ../components/ControlPanel.jsx rather than shared, since that component
@@ -31,8 +22,12 @@ const TRANSFORM = {
 }
 const IDLE_HIDE_DELAY = 3000
 
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
 const PLAYBACK_RATE_STEPS = [0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]
 const THRESHOLD_STEPS = Array.from({ length: 256 }, (_, i) => i)
+const PERCENT_STEPS = Array.from({ length: 101 }, (_, i) => i)
 
 function closestStepIndex(steps, value) {
   let bestIndex = 0
@@ -48,23 +43,10 @@ function closestStepIndex(steps, value) {
 }
 
 export default function CinemaControlPanel({
-  palettes,
-  currentPalette,
-  colors,
-  strategyType,
   clarity,
-  showPopulation,
-  populationPercentages,
-  onPaletteChange,
-  onStrategyChange,
-  onColorChange,
-  onRemoveColor,
-  onSwapColor,
-  onAddColor,
   onClarityChange,
   fps,
   onFpsChange,
-  onShowPopulationChange,
   videoFound,
   soundEnabled,
   onSoundChange,
@@ -72,12 +54,23 @@ export default function CinemaControlPanel({
   onPlaybackRateChange,
   threshold,
   onThresholdChange,
+  autoThreshold,
+  onAutoThresholdChange,
+  autoThresholdTargetPercent,
+  onAutoThresholdTargetPercentChange,
+  autoDimWhite,
+  onAutoDimWhiteChange,
+  autoDimTargetPercent,
+  onAutoDimTargetPercentChange,
+  agitateTarget,
+  onAgitateTargetChange,
+  showThumbnailOverlay,
+  onShowThumbnailOverlayChange,
   onPanelStateChange,
   thumbnail,
   className = '',
 }) {
   const { panelRef } = useTheme()
-  const [showPalettePicker, setShowPalettePicker] = useState(false)
   const [panelState, setPanelState] = useState(
     /** @type {'open' | 'hidden'} */ ('open')
   )
@@ -86,8 +79,6 @@ export default function CinemaControlPanel({
   const idleTimerRef = useRef(
     /** @type {ReturnType<typeof setTimeout> | null} */ (null)
   )
-  const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
-  const prevShowPalettePickerRef = useRef(false)
 
   const goTo = useCallback(
     (nextState) => {
@@ -112,37 +103,46 @@ export default function CinemaControlPanel({
     [panelRef]
   )
 
+  // Command-palette-only entries (no keybinding — `keys: []` never matches
+  // a keydown) for the checkboxes below, so they're searchable/runnable from
+  // ⌘K without needing to open the panel first.
+  useKeyboardShortcut({
+    id: 'toggle-auto-threshold',
+    keys: [],
+    label: 'Toggle auto threshold',
+    handler: () => onAutoThresholdChange(!autoThreshold),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-auto-dim-white',
+    keys: [],
+    label: 'Toggle auto dim white',
+    handler: () => onAutoDimWhiteChange(!autoDimWhite),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-agitate-target',
+    keys: [],
+    label: 'Toggle agitate target color',
+    handler: () => onAgitateTargetChange(!agitateTarget),
+  })
+
+  useKeyboardShortcut({
+    id: 'toggle-thumbnail-overlay',
+    keys: [],
+    label: 'Toggle thumbnail overlay',
+    handler: () => onShowThumbnailOverlayChange(!showThumbnailOverlay),
+  })
+
   const revealPanel = useCallback(() => {
     goTo('open')
-    requestAnimationFrame(() => paletteLinkRef.current?.focus())
-  }, [goTo])
+    requestAnimationFrame(() => {
+      const focusable = panelRef.current?.querySelector(FOCUSABLE_SELECTOR)
+      if (focusable instanceof HTMLElement) focusable.focus()
+    })
+  }, [goTo, panelRef])
 
   const hidePanel = useCallback(() => goTo('hidden'), [goTo])
-
-  useKeyboardShortcut({
-    id: 'toggle-palette-picker',
-    keys: ['p'],
-    label: 'Open palette picker',
-    handler: () => setShowPalettePicker((prev) => !prev),
-  })
-
-  useKeyboardShortcut({
-    id: 'toggle-show-population',
-    keys: ['s'],
-    label: 'Toggle target percentages',
-    handler: () => onShowPopulationChange(!showPopulation),
-  })
-
-  // Only active while the picker is open, so the second Escape press (once
-  // this is unregistered) falls through to KeyboardControls' default blur —
-  // which is what actually closes the panel, via the focus-out rule below.
-  useKeyboardShortcut({
-    id: 'close-palette-picker',
-    keys: ['Escape'],
-    label: 'Close palette picker',
-    enabled: showPalettePicker,
-    handler: () => setShowPalettePicker(false),
-  })
 
   // Keyboard-driven panel visibility: focus entering the panel opens it and
   // holds it open (see the idle-hide guard below); focus leaving it — via
@@ -182,9 +182,7 @@ export default function CinemaControlPanel({
         active === document.documentElement
       if (!nothingFocused) return
 
-      const focusable = panelRef.current?.querySelector(
-        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      )
+      const focusable = panelRef.current?.querySelector(FOCUSABLE_SELECTOR)
       if (focusable instanceof HTMLElement) {
         e.preventDefault()
         focusable.focus()
@@ -207,20 +205,6 @@ export default function CinemaControlPanel({
   useEffect(() => {
     onPanelStateChange?.(panelState)
   }, [panelState, onPanelStateChange])
-
-  useEffect(() => {
-    if (showPalettePicker && !prevShowPalettePickerRef.current) {
-      requestAnimationFrame(() => {
-        const checked = panelRef.current?.querySelector(
-          'input[type="radio"]:checked'
-        )
-        if (checked instanceof HTMLElement) checked.focus()
-      })
-    } else if (!showPalettePicker && prevShowPalettePickerRef.current) {
-      requestAnimationFrame(() => paletteLinkRef.current?.focus())
-    }
-    prevShowPalettePickerRef.current = showPalettePicker
-  }, [showPalettePicker, panelRef])
 
   // Clicking the sim toggles the panel (and, since the Scrubber's
   // visibility follows this same panelState, the Scrubber along with it).
@@ -283,17 +267,11 @@ export default function CinemaControlPanel({
     }
   }, [panelRef, goTo])
 
-  function handlePalettePickerLink() {
-    setShowPalettePicker(true)
-  }
-
   const handlePanelKeyDown = (e) => {
     if (e.key !== 'Tab' || panelState !== 'open') return
     const container = e.currentTarget
     const focusable = Array.from(
-      container.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      )
+      container.querySelectorAll(FOCUSABLE_SELECTOR)
     ).filter((el) => !el.closest('[inert]'))
     if (focusable.length < 2) return
     const first = focusable[0]
@@ -309,6 +287,14 @@ export default function CinemaControlPanel({
 
   const playbackStepIndex = closestStepIndex(PLAYBACK_RATE_STEPS, playbackRate)
   const thresholdStepIndex = closestStepIndex(THRESHOLD_STEPS, threshold)
+  const autoThresholdTargetStepIndex = closestStepIndex(
+    PERCENT_STEPS,
+    autoThresholdTargetPercent
+  )
+  const autoDimTargetStepIndex = closestStepIndex(
+    PERCENT_STEPS,
+    autoDimTargetPercent
+  )
 
   return (
     <div
@@ -328,102 +314,134 @@ export default function CinemaControlPanel({
         }}
       >
         <div className="relative z-[1] overflow-x-hidden overflow-y-auto">
-          <NavStack activeView={showPalettePicker ? 'palette-picker' : 'main'}>
-            <NavStackView id="main">
-              <div className="flex flex-col">
-                <div className="flex flex-col">
-                  <SubtleButton
-                    ref={paletteLinkRef}
-                    onClick={handlePalettePickerLink}
-                  >
-                    <div className="gap-0 text-left">
-                      <Typography as="p">Color palette</Typography>
-                      <Typography intent="weak" as="p">
-                        {PALETTE_DISPLAY_NAMES[currentPalette]}
-                      </Typography>
-                    </div>
-                    <FaChevronRight size="1.5em" />
-                  </SubtleButton>
-                  <ColorList
-                    colors={colors}
-                    onColorChange={onColorChange}
-                    onRemoveColor={onRemoveColor}
-                    onSwapColor={onSwapColor}
-                    onAddColor={onAddColor}
-                    showPopulation={showPopulation}
-                    populationPercentages={populationPercentages}
-                  />
-                </div>
+          <div className="flex flex-col">
+            {videoFound && <div className="px-5 pt-5">{thumbnail}</div>}
 
-                <div className="px-5 pt-7">
-                  <AdvancedControls
-                    currentStrategy={strategyType}
-                    onStrategyChange={onStrategyChange}
-                    clarity={clarity}
-                    fps={fps}
-                    onClarityChange={onClarityChange}
-                    onFpsChange={onFpsChange}
+            <div className="flex flex-col gap-7 px-5 py-7">
+              {videoFound ? (
+                <>
+                  <Checkbox
+                    label="Sound"
+                    checked={soundEnabled}
+                    onChange={onSoundChange}
+                    className=""
                   />
+
+                  <SteppedSlider
+                    label="Playback speed"
+                    value={playbackStepIndex}
+                    displayValue={`${PLAYBACK_RATE_STEPS[playbackStepIndex]}x`}
+                    steps={PLAYBACK_RATE_STEPS}
+                    onChange={(e) =>
+                      onPlaybackRateChange(
+                        PLAYBACK_RATE_STEPS[parseInt(e.target.value)]
+                      )
+                    }
+                  />
+
+                  <Checkbox
+                    label="Show thumbnail"
+                    checked={showThumbnailOverlay}
+                    onChange={onShowThumbnailOverlayChange}
+                  />
+                </>
+              ) : (
+                <Notice title="Movie not found">
+                  Place a video at{' '}
+                  <code>public/cinema/media/metropolis.mp4</code> and reload.
+                </Notice>
+              )}
+            </div>
+
+            {videoFound && (
+              <>
+                <Divider className="" />
+
+                <div className="flex flex-col gap-7 px-5 py-7">
+                  <SectionHeader>B/W Threshold</SectionHeader>
+
+                  <Checkbox
+                    label="Auto"
+                    checked={autoThreshold}
+                    onChange={onAutoThresholdChange}
+                  />
+
+                  <SteppedSlider
+                    label="Threshold"
+                    value={thresholdStepIndex}
+                    displayValue={THRESHOLD_STEPS[thresholdStepIndex]}
+                    steps={THRESHOLD_STEPS}
+                    disabled={autoThreshold}
+                    onChange={(e) =>
+                      onThresholdChange(
+                        THRESHOLD_STEPS[parseInt(e.target.value)]
+                      )
+                    }
+                  />
+
+                  {autoThreshold && (
+                    <SteppedSlider
+                      label="Auto target"
+                      value={autoThresholdTargetStepIndex}
+                      displayValue={`${PERCENT_STEPS[autoThresholdTargetStepIndex]}%`}
+                      steps={PERCENT_STEPS}
+                      onChange={(e) =>
+                        onAutoThresholdTargetPercentChange(
+                          PERCENT_STEPS[parseInt(e.target.value)]
+                        )
+                      }
+                    />
+                  )}
                 </div>
 
                 <Divider className="" />
 
                 <div className="flex flex-col gap-7 px-5 py-7">
-                  {videoFound ? (
-                    <>
-                      <Checkbox
-                        label="Sound"
-                        checked={soundEnabled}
-                        onChange={onSoundChange}
-                        className=""
-                      />
+                  <SectionHeader>Target color</SectionHeader>
 
-                      <SteppedSlider
-                        label="Playback speed"
-                        value={playbackStepIndex}
-                        displayValue={`${PLAYBACK_RATE_STEPS[playbackStepIndex]}x`}
-                        steps={PLAYBACK_RATE_STEPS}
-                        onChange={(e) =>
-                          onPlaybackRateChange(
-                            PLAYBACK_RATE_STEPS[parseInt(e.target.value)]
-                          )
-                        }
-                      />
+                  <Checkbox
+                    label="Agitate"
+                    checked={agitateTarget}
+                    onChange={onAgitateTargetChange}
+                  />
 
-                      <SteppedSlider
-                        label="Contrast"
-                        value={thresholdStepIndex}
-                        displayValue={THRESHOLD_STEPS[thresholdStepIndex]}
-                        steps={THRESHOLD_STEPS}
-                        onChange={(e) =>
-                          onThresholdChange(
-                            THRESHOLD_STEPS[parseInt(e.target.value)]
-                          )
-                        }
-                      />
+                  <Checkbox
+                    label="Auto dim"
+                    checked={autoDimWhite}
+                    onChange={onAutoDimWhiteChange}
+                  />
 
-                      {thumbnail}
-                    </>
-                  ) : (
-                    <Notice title="Movie not found">
-                      Place a video at{' '}
-                      <code>public/cinema/media/metropolis.mp4</code> and
-                      reload.
-                    </Notice>
+                  {autoDimWhite && (
+                    <SteppedSlider
+                      label="Auto dim target"
+                      value={autoDimTargetStepIndex}
+                      displayValue={`${PERCENT_STEPS[autoDimTargetStepIndex]}%`}
+                      steps={PERCENT_STEPS}
+                      onChange={(e) =>
+                        onAutoDimTargetPercentChange(
+                          PERCENT_STEPS[parseInt(e.target.value)]
+                        )
+                      }
+                    />
                   )}
                 </div>
-              </div>
-            </NavStackView>
+              </>
+            )}
 
-            <NavStackView id="palette-picker">
-              <PalettePicker
-                palettes={palettes}
-                currentPalette={currentPalette}
-                onPaletteChange={onPaletteChange}
-                onBack={() => setShowPalettePicker(false)}
+            <Divider className="" />
+
+            <div className="flex flex-col gap-7 px-5 py-7">
+              <SectionHeader>Simulation</SectionHeader>
+
+              <AdvancedControls
+                hideStrategy
+                clarity={clarity}
+                fps={fps}
+                onClarityChange={onClarityChange}
+                onFpsChange={onFpsChange}
               />
-            </NavStackView>
-          </NavStack>
+            </div>
+          </div>
         </div>
       </div>
     </div>

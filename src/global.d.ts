@@ -26,6 +26,17 @@ interface ChromotonAPI {
   isImageModeEnabled(): boolean
   setImageThreshold(value: number): void
   getImageThreshold(): number
+  setAutoThreshold(enabled: boolean): void
+  isAutoThresholdEnabled(): boolean
+  setAutoThresholdTargetFraction(value: number): void
+  getAutoThresholdTargetFraction(): number
+  getEffectiveThreshold(): number
+  setAutoDim(enabled: boolean): void
+  isAutoDimEnabled(): boolean
+  setAutoDimCoverageMax(value: number): void
+  getAutoDimCoverageMax(): number
+  setAgitateTarget(enabled: boolean): void
+  isAgitateTargetEnabled(): boolean
   getFps(): number
 }
 

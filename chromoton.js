@@ -31,6 +31,49 @@ window.chromoton = (function () {
   var imageSourceData = null // last ImageData-like {width, height, data} applied
   var imageColors = null // { black: {red,green,blue}, white: {red,green,blue} }
   var imageThreshold = 128 // luma cutoff separating "black" from "white" pixels
+  var lastImageMask = null // most recent 0/1 mask from sampleImageMask, kept for auto-dim measurement
+
+  // Dynamic contrast, approach A: instead of a fixed luma cutoff, pick
+  // whatever cutoff makes ~autoThresholdTargetFraction of the source
+  // image's in-bounds pixels count as "white" each time the mask is
+  // resampled. Mutually exclusive in effect with the manual imageThreshold
+  // (this ignores it while enabled), but doesn't touch it so turning this
+  // off reverts to whatever the slider was left at.
+  var autoThresholdEnabled = false
+  var autoThresholdTargetFraction = 0.2
+  var lastAutoThreshold = imageThreshold // most recent cutoff resolveAutoThreshold picked
+
+  // Dynamic contrast, approach B: dim the white target's RGB so the
+  // population doesn't visually blow out to pure white, driven by
+  // autoDimCoverageMax — what fraction of the grid is currently *assigned*
+  // white by the mask (not how well cells have converged to it). That
+  // signal comes straight from the mask, so it's immediate and doesn't
+  // depend on the sim catching up, and it isn't affected by the dimming
+  // itself, so it's stable rather than feeding back on its own output.
+  var autoDimEnabled = false
+  var autoDimIntensity = 1 // 0..1 multiplier applied to the white target's RGB
+  var AUTO_DIM_COVERAGE_MIN = 0 // white-mask coverage at/below this maps to full brightness
+  var autoDimCoverageMax = 0.4 // coverage at/above this maps to AUTO_DIM_MIN_INTENSITY
+  var AUTO_DIM_MIN_INTENSITY = 0.15
+  var AUTO_DIM_MEASURE_INTERVAL_MS = 500
+  var lastAutoDimMeasure = 0
+
+  // Dynamic contrast, approach C ("agitate"): originally approach B was a
+  // feedback loop off the population's *matched* share, but that share only
+  // ever rises by the cells getting closer to white, which immediately
+  // triggers more dimming, which drops them back out of match range — a
+  // self-destabilizing loop that never lets the target settle. That turned
+  // out to be a nice effect in its own right (keeps white "cloudy" instead
+  // of flattening to pure color), so it's kept on purpose, simplified down
+  // to what it actually amounts to: periodically nudging the white target's
+  // brightness up or down by a small random step, with no measurement of
+  // the population involved at all.
+  var agitateEnabled = false
+  var agitateIntensity = 1 // 0..1 multiplier applied to the white target's RGB
+  var AGITATE_MIN_INTENSITY = 0.15
+  var AGITATE_STEP = 0.08 // max random nudge per tick, either direction
+  var AGITATE_INTERVAL_MS = 400
+  var lastAgitateTick = 0
 
   // Fast inline PRNG (xorshift32) for the breeding crossover mask. Math.random()
   // was measured to cost ~25% of total step time at large grid sizes because
@@ -217,7 +260,7 @@ window.chromoton = (function () {
   // rAF automatically pauses when the tab is hidden, saving CPU.
   function loop(timestamp) {
     if (timestamp - lastStepTime >= stepInterval) {
-      step()
+      step(timestamp)
       lastStepTime = timestamp
       recordFpsSample(timestamp)
     }
@@ -236,7 +279,7 @@ window.chromoton = (function () {
     cancelAnimationFrame(rafId)
   }
 
-  function step() {
+  function step(timestamp) {
     var size = xDim * yDim // dimensions of array
     var index = 0 // index of current chromoton
     var subIndex = 0 // index moded into range of array (== flat cell index)
@@ -320,6 +363,8 @@ window.chromoton = (function () {
     population = nxt
     populationNext = cur
 
+    measureAutoDim(timestamp)
+    agitateTargetColor(timestamp)
     render(population)
   }
 
@@ -435,22 +480,69 @@ window.chromoton = (function () {
     var offsetX = (cols - scaledW) / 2
     var offsetY = (rows - scaledH) / 2
 
+    // Auto-threshold needs every in-bounds pixel's luma before it can pick a
+    // cutoff, so it can't threshold inline like the manual-cutoff path does —
+    // buffer luma + a histogram on this pass, then threshold in a second pass.
+    var lumaBuf = autoThresholdEnabled ? new Uint8Array(cols * rows) : null
+    var inBounds = autoThresholdEnabled ? new Uint8Array(cols * rows) : null
+    var hist = autoThresholdEnabled ? new Uint32Array(256) : null
+    var totalInBounds = 0
+
     for (var y = 0; y < rows; y++) {
       var sy = (y - offsetY) / scale
       var rowInBounds = sy >= 0 && sy < srcH
       var syIdx = rowInBounds ? sy | 0 : 0
       for (var x = 0; x < cols; x++) {
+        var idx = y * cols + x
         var sx = (x - offsetX) / scale
         if (!rowInBounds || sx < 0 || sx >= srcW) {
-          mask[y * cols + x] = 0
+          mask[idx] = 0
           continue
         }
         var i = (syIdx * srcW + (sx | 0)) * 4
         var luma = (data[i] * 77 + data[i + 1] * 150 + data[i + 2] * 29) >> 8
-        mask[y * cols + x] = luma >= imageThreshold ? 1 : 0
+        if (autoThresholdEnabled) {
+          lumaBuf[idx] = luma
+          inBounds[idx] = 1
+          hist[luma]++
+          totalInBounds++
+        } else {
+          mask[idx] = luma >= imageThreshold ? 1 : 0
+        }
       }
     }
+
+    if (autoThresholdEnabled) {
+      var cutoff = resolveAutoThreshold(hist, totalInBounds)
+      lastAutoThreshold = cutoff
+      for (var idx2 = 0; idx2 < cols * rows; idx2++) {
+        if (inBounds[idx2]) mask[idx2] = lumaBuf[idx2] >= cutoff ? 1 : 0
+      }
+    }
+
     return mask
+  }
+
+  // Pick the luma cutoff that puts ~autoThresholdTargetFraction of the
+  // in-bounds pixels at or above it, by walking the histogram from the
+  // bright end down until enough pixels have been accounted for.
+  function resolveAutoThreshold(hist, total) {
+    if (total === 0) return imageThreshold
+    var targetCount = Math.round(total * autoThresholdTargetFraction)
+    var cumulative = 0
+    for (var luma = 255; luma >= 0; luma--) {
+      cumulative += hist[luma]
+      if (cumulative >= targetCount) return luma
+    }
+    return 0
+  }
+
+  function dimColor(c, intensity) {
+    return {
+      red: (c.red * intensity) | 0,
+      green: (c.green * intensity) | 0,
+      blue: (c.blue * intensity) | 0,
+    }
   }
 
   // Re-sample the stored image against the current grid and assign each
@@ -460,8 +552,15 @@ window.chromoton = (function () {
   function applyImageTargetsToPopulation() {
     if (!imageSourceData || !imageColors) return
     var mask = sampleImageMask(imageSourceData, xDim, yDim)
+    lastImageMask = mask
     var black = imageColors.black
-    var white = imageColors.white
+    var whiteIntensity = 1
+    if (autoDimEnabled) whiteIntensity *= autoDimIntensity
+    if (agitateEnabled) whiteIntensity *= agitateIntensity
+    var white =
+      whiteIntensity < 1
+        ? dimColor(imageColors.white, whiteIntensity)
+        : imageColors.white
     var size = xDim * yDim
     for (var idx = 0; idx < size; idx++) {
       var target = mask[idx] ? white : black
@@ -499,6 +598,7 @@ window.chromoton = (function () {
     imageModeEnabled = false
     imageSourceData = null
     imageColors = null
+    lastImageMask = null
     var size = xDim * yDim
     for (var idx = 0; idx < size; idx++) {
       population.targetActive[idx] = 0
@@ -522,6 +622,117 @@ window.chromoton = (function () {
 
   function getImageThreshold() {
     return imageThreshold
+  }
+
+  // Dynamic contrast, approach A (see autoThresholdEnabled above).
+  function setAutoThreshold(enabled) {
+    autoThresholdEnabled = !!enabled
+    if (imageModeEnabled) applyImageTargetsToPopulation()
+  }
+
+  function isAutoThresholdEnabled() {
+    return autoThresholdEnabled
+  }
+
+  // The fraction of in-bounds pixels resolveAutoThreshold tries to keep
+  // classified white (0..1). Re-applies immediately if image mode is
+  // active, same as setImageThreshold.
+  function setAutoThresholdTargetFraction(value) {
+    autoThresholdTargetFraction = Math.max(0, Math.min(1, value))
+    if (imageModeEnabled) applyImageTargetsToPopulation()
+  }
+
+  function getAutoThresholdTargetFraction() {
+    return autoThresholdTargetFraction
+  }
+
+  // The cutoff actually in effect right now — the manual imageThreshold, or
+  // (while auto threshold is on) whatever resolveAutoThreshold last picked.
+  // Lets the UI reflect the live auto-computed value on the slider.
+  function getEffectiveThreshold() {
+    return autoThresholdEnabled ? lastAutoThreshold : imageThreshold
+  }
+
+  // Dynamic contrast, approach B (see autoDimEnabled above). Resets to full
+  // brightness on toggle so re-enabling always starts from a known state.
+  function setAutoDim(enabled) {
+    autoDimEnabled = !!enabled
+    autoDimIntensity = 1
+    if (imageModeEnabled) applyImageTargetsToPopulation()
+  }
+
+  function isAutoDimEnabled() {
+    return autoDimEnabled
+  }
+
+  // The coverage level (0..1) at which dimming bottoms out at
+  // AUTO_DIM_MIN_INTENSITY — lower values make it dim more aggressively for
+  // a given amount of white on screen. Re-applies immediately like the
+  // other live setters.
+  function setAutoDimCoverageMax(value) {
+    autoDimCoverageMax = Math.max(0, Math.min(1, value))
+    if (imageModeEnabled) applyImageTargetsToPopulation()
+  }
+
+  function getAutoDimCoverageMax() {
+    return autoDimCoverageMax
+  }
+
+  // Feedback step for approach B: measure what fraction of the whole grid
+  // the mask currently assigns to white — how much of the frame *wants* to
+  // be white, independent of whether the population has caught up to it —
+  // and map that coverage smoothly across [AUTO_DIM_COVERAGE_MIN,
+  // autoDimCoverageMax] onto an intensity between 1 and
+  // AUTO_DIM_MIN_INTENSITY. Throttled independently of stepInterval since
+  // it only needs to track the source image, not the sim's per-step state.
+  // Called from step() after each generation's population swap.
+  function measureAutoDim(timestamp) {
+    if (!autoDimEnabled || !imageModeEnabled || !lastImageMask) return
+    if (timestamp - lastAutoDimMeasure < AUTO_DIM_MEASURE_INTERVAL_MS) return
+    lastAutoDimMeasure = timestamp
+
+    var size = xDim * yDim
+    var whiteCount = 0
+    for (var idx = 0; idx < size; idx++) {
+      if (lastImageMask[idx]) whiteCount++
+    }
+    var coverage = size > 0 ? whiteCount / size : 0
+
+    var span = autoDimCoverageMax - AUTO_DIM_COVERAGE_MIN
+    var t = span > 0 ? (coverage - AUTO_DIM_COVERAGE_MIN) / span : 0
+    t = t < 0 ? 0 : t > 1 ? 1 : t
+    autoDimIntensity = 1 - t * (1 - AUTO_DIM_MIN_INTENSITY)
+    applyImageTargetsToPopulation()
+  }
+
+  // Dynamic contrast, approach C ("agitate" — see agitateEnabled above).
+  // Resets to full brightness on toggle for the same reason as setAutoDim.
+  function setAgitateTarget(enabled) {
+    agitateEnabled = !!enabled
+    agitateIntensity = 1
+    if (imageModeEnabled) applyImageTargetsToPopulation()
+  }
+
+  function isAgitateTargetEnabled() {
+    return agitateEnabled
+  }
+
+  // Nudge agitateIntensity by a small random step, up or down, so the white
+  // target never sits still long enough for the population to fully settle
+  // on it. No measurement of the population involved — purely a periodic
+  // random walk clamped to [AGITATE_MIN_INTENSITY, 1]. Called from step()
+  // after each generation's population swap.
+  function agitateTargetColor(timestamp) {
+    if (!agitateEnabled || !imageModeEnabled) return
+    if (timestamp - lastAgitateTick < AGITATE_INTERVAL_MS) return
+    lastAgitateTick = timestamp
+
+    var delta = (Math.random() * 2 - 1) * AGITATE_STEP
+    agitateIntensity = Math.max(
+      AGITATE_MIN_INTENSITY,
+      Math.min(1, agitateIntensity + delta)
+    )
+    applyImageTargetsToPopulation()
   }
 
   // Reconstructs the pre-SoA per-object population shape for external
@@ -581,6 +792,17 @@ window.chromoton = (function () {
     isImageModeEnabled: isImageModeEnabled,
     setImageThreshold: setImageThreshold,
     getImageThreshold: getImageThreshold,
+    setAutoThreshold: setAutoThreshold,
+    isAutoThresholdEnabled: isAutoThresholdEnabled,
+    setAutoThresholdTargetFraction: setAutoThresholdTargetFraction,
+    getAutoThresholdTargetFraction: getAutoThresholdTargetFraction,
+    getEffectiveThreshold: getEffectiveThreshold,
+    setAutoDim: setAutoDim,
+    isAutoDimEnabled: isAutoDimEnabled,
+    setAutoDimCoverageMax: setAutoDimCoverageMax,
+    getAutoDimCoverageMax: getAutoDimCoverageMax,
+    setAgitateTarget: setAgitateTarget,
+    isAgitateTargetEnabled: isAgitateTargetEnabled,
     getFps: getFps,
   }
 })()

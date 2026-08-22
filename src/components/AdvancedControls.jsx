@@ -11,6 +11,7 @@ export default function AdvancedControls({
   fps,
   onClarityChange,
   onFpsChange,
+  hideStrategy = false,
   className = '',
 }) {
   const resolutionSteps = [160, 240, 320, 480, 640]
@@ -23,15 +24,17 @@ export default function AdvancedControls({
 
   return (
     <div className={cn('flex flex-col gap-7 pb-7', className)}>
-      <div className="flex flex-col gap-2">
-        <StrategySelector
-          currentStrategy={currentStrategy}
-          onStrategyChange={onStrategyChange}
-        />
-      </div>
+      {!hideStrategy && (
+        <div className="flex flex-col gap-2">
+          <StrategySelector
+            currentStrategy={currentStrategy}
+            onStrategyChange={onStrategyChange}
+          />
+        </div>
+      )}
 
       <SteppedSlider
-        label="Speed"
+        label="Frame rate"
         value={fpsStepIndex}
         displayValue={`${fps} fps`}
         steps={FPS_STEPS}

@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { cn } from '../lib/utils'
 import { useCanvasContrast } from '../hooks/useCanvasContrast'
 import IconButton from '../components/primitives/IconButton'
@@ -7,9 +7,11 @@ import { FaPlay, FaPause } from 'react-icons/fa6'
 /**
  * Bottom-docked playback bar: play/pause + a seek range bound to the
  * primary video's currentTime/duration, plus a floating thumbnail above the
- * thumb while dragging. Purely presentational — drag state and the actual
- * thumbnail canvases are owned by the parent (CinemaApp); this just
- * positions the floating one using `value`/`duration`.
+ * thumb while dragging or hovering the track. Purely presentational — drag
+ * state and the actual thumbnail canvas are owned by the parent (CinemaApp);
+ * this just positions the floating one, using `value`/`duration` while
+ * dragging (the committed position) or the pointer's own offset over the
+ * track while merely hovering (a preview, not yet committed).
  *
  * Sits at the bottom of the screen, a different region of the sim canvas
  * than the settings panel (top-right) — so it samples its own contrast
@@ -29,6 +31,7 @@ export default function Scrubber({
   onPointerDown,
   onInput,
   onPointerUp,
+  onTrackHover,
   hidden = false,
   isDragging = false,
   dragThumbnailRef,
@@ -37,8 +40,31 @@ export default function Scrubber({
   className = '',
 }) {
   const barRef = useRef(/** @type {HTMLDivElement | null} */ (null))
+  const trackRef = useRef(/** @type {HTMLDivElement | null} */ (null))
+  const [hoverFraction, setHoverFraction] = useState(
+    /** @type {number | null} */ (null)
+  )
   const contrastColors = useCanvasContrast(barRef)
   const fraction = duration > 0 ? value / duration : 0
+
+  // Hover-scrub: while merely hovering (not dragging), follow the pointer
+  // instead of `value` so the floating thumbnail previews whatever the
+  // pointer is over without touching the committed playback position.
+  const handleTrackMouseMove = (e) => {
+    if (isDragging || !duration) return
+    const rect = trackRef.current?.getBoundingClientRect()
+    if (!rect || rect.width === 0) return
+    const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
+    setHoverFraction(frac)
+    onTrackHover?.(frac * duration)
+  }
+
+  const handleTrackMouseLeave = () => {
+    setHoverFraction(null)
+  }
+
+  const showThumbnail = isDragging || hoverFraction !== null
+  const thumbnailFraction = isDragging ? fraction : (hoverFraction ?? 0)
 
   return (
     <div
@@ -55,7 +81,7 @@ export default function Scrubber({
     >
       <div
         ref={barRef}
-        className="flex items-center gap-3 rounded-2xl bg-white/8 px-4 py-3 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%]"
+        className="flex items-center gap-2 rounded-2xl bg-white/8 p-1 pr-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%]"
         style={{
           '--ct-text': contrastColors.text,
           '--ct-text-weak': contrastColors.textWeak,
@@ -70,19 +96,27 @@ export default function Scrubber({
           '--ct-bg-active-hover': contrastColors.backgroundActiveHover,
         }}
       >
-        <IconButton onClick={onTogglePlay} className="h-8 w-8 flex-none">
+        <IconButton
+          onClick={onTogglePlay}
+          className="h-8 w-8 flex-none rounded-xl"
+        >
           {playing ? <FaPause size="1em" /> : <FaPlay size="1em" />}
         </IconButton>
 
-        <div className="relative min-w-0 flex-1">
-          {isDragging && (
+        <div
+          ref={trackRef}
+          className="relative flex min-w-0 flex-1 items-center"
+          onMouseMove={handleTrackMouseMove}
+          onMouseLeave={handleTrackMouseLeave}
+        >
+          {showThumbnail && (
             <canvas
               ref={dragThumbnailRef}
               width={dragThumbWidth}
               height={dragThumbHeight}
               className="pointer-events-none absolute bottom-full mb-2 rounded-md border shadow-lg"
               style={{
-                left: `${fraction * 100}%`,
+                left: `${thumbnailFraction * 100}%`,
                 transform: 'translateX(-50%)',
                 borderColor: 'var(--ct-border)',
               }}
