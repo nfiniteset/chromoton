@@ -210,8 +210,18 @@ export function usePanelVisibility({
 
   // Click anywhere outside the panel (and outside any uiSelector-matched
   // sibling) toggles it: closes it while open, reveals it otherwise.
+  //
+  // Listens on mousedown rather than click. If a panel control currently
+  // has focus, clicking outside the panel blurs it as the browser's own
+  // mousedown default action — which fires the focus-out handler above and
+  // hides the panel *before* a 'click' listener would ever run. A 'click'
+  // handler would then read the already-hidden panelStateRef and reveal
+  // instead of hide, producing a hide-then-immediately-reopen wiggle
+  // instead of closing. Acting on mousedown runs first, so this handler's
+  // own hidePanel() gets to blur the control (and settle the state) itself.
   useEffect(() => {
-    const handleClick = (e) => {
+    const handlePointerDown = (e) => {
+      if (e.button !== 0) return
       if (panelRef.current?.contains(e.target)) return
       if (uiSelector && e.target.closest(uiSelector)) return
       if (panelStateRef.current === 'open') {
@@ -220,8 +230,8 @@ export function usePanelVisibility({
         revealPanel()
       }
     }
-    document.addEventListener('click', handleClick)
-    return () => document.removeEventListener('click', handleClick)
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
   }, [panelRef, uiSelector, hidePanel, revealPanel])
 
   // Ambient hover behavior: idle (mouse off panel/UI, still for 3s) hides
