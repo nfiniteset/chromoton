@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import Chromoton from '../../Chromoton'
 import CinemaControlPanel from './CinemaControlPanel'
 import Scrubber from '../../components/Scrubber'
+import VariantNav from '../../components/VariantNav'
 import KeyboardControls from '../../components/KeyboardControls'
 import CommandMenu from '../../components/CommandMenu'
 import { useVideoImageMode } from './useVideoImageMode'
@@ -12,6 +13,10 @@ import { useLocalStorage } from '../../hooks/useLocalStorage'
 import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut'
 import { createStrategyById } from '../../strategies'
 import { ThemeProvider } from '../../contexts/ThemeContext'
+
+// Matches this folder's name — used to identify this variation in the
+// VariantNav menu (see src/cinema/variants.js).
+const VARIANT_ID = '2026-08-forsythe'
 
 // Same-directory-relative to cinema/index.html, so it resolves correctly
 // whether served from dev root or nested under a deployed base path.
@@ -518,6 +523,7 @@ function CinemaApp() {
     <ThemeProvider>
       <KeyboardControls />
       <CommandMenu />
+      <VariantNav current={VARIANT_ID} hidden={panelState === 'hidden'} />
 
       <Chromoton
         width={clarity}

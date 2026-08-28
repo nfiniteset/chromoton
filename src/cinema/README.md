@@ -23,6 +23,11 @@ variations keep working unmodified):
 - [components/primitives](../components/primitives),
   [components/panel](../components/panel),
   [components/Scrubber.jsx](../components/Scrubber.jsx) — shared UI kit.
+- [components/VariantNav.jsx](../components/VariantNav.jsx) — top-left title
+  button + menu for jumping between variations, reading from
+  [variants.js](variants.js). Each variation renders it with its own id
+  (`<VariantNav current="<name>" .../>`); the menu contents themselves are
+  shared, driven entirely by `variants.js`.
 
 Forked (copy the previous month's folder and diverge freely): `CinemaApp.jsx`
 (video source, tuning defaults, which strategies are wired up),
@@ -46,3 +51,6 @@ its own image-sampling behavior.
    in `cinema/index.html` to `./<name>/`. That's the stable URL — it always
    points at whichever month is current, so it doesn't need to be shared
    again each month.
+6. Register it in [variants.js](variants.js) (adds it to every variation's
+   nav menu, including past ones) and add `<VariantNav current="<name>" .../>`
+   to the copied `CinemaApp.jsx` if it isn't already there.
