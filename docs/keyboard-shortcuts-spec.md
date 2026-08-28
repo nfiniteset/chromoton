@@ -8,7 +8,7 @@ Shortcuts are handled by three independent `keydown` listeners with three differ
 
 - [`KeyboardControls.jsx`](../src/components/KeyboardControls.jsx) — `Escape`, `p`, `s`. Swallows the first keypress while the panel is hidden to just reveal the panel, instead of performing the action.
 - [`Chromoton.jsx`](../src/Chromoton.jsx) — `` ` ``, `m`, `f`. No panel-hidden guard at all — these always fire.
-- [`CinemaApp.jsx`](../src/cinema/CinemaApp.jsx) — `Space`, `ArrowLeft`/`ArrowRight`. Own copy of the input-focus guard.
+- [`CinemaApp.jsx`](../src/cinema/2026-08-forsythe/CinemaApp.jsx) — `Space`, `ArrowLeft`/`ArrowRight`. Own copy of the input-focus guard. Each monthly cinema variation (see [src/cinema/README.md](../src/cinema/README.md)) keeps its own copy.
 
 Result: inconsistent behavior depending on which key you press and whether the panel happens to be hidden, three copies of the same input-focus guard logic to keep in sync, and no single place that knows "everything this app can do" — which is also why there's no command menu today.
 

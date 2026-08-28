@@ -3,10 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Points at whichever month's variation is current — update this
+         (both the meta refresh and the script/link below) as the last step
+         of starting a new month, per src/cinema/README.md. -->
+    <meta http-equiv="refresh" content="0; url=./2026-08-forsythe/" />
     <title>Chromoton Cinema</title>
+    <script>
+      location.replace('./2026-08-forsythe/')
+    </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/cinema/main.jsx"></script>
+    <p><a href="./2026-08-forsythe/">Chromoton Cinema</a></p>
   </body>
 </html>

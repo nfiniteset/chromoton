@@ -1,17 +1,17 @@
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 
-import AdvancedControls from '../components/AdvancedControls'
-import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
-import { usePanelVisibility } from '../components/panel/usePanelVisibility'
-import PanelShell from '../components/panel/PanelShell'
+import AdvancedControls from '../../components/AdvancedControls'
+import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut'
+import { usePanelVisibility } from '../../components/panel/usePanelVisibility'
+import PanelShell from '../../components/panel/PanelShell'
 
-import Divider from '../components/primitives/Divider'
-import Checkbox from '../components/primitives/Checkbox'
-import SteppedSlider from '../components/primitives/Slider'
-import Notice from '../components/primitives/Notice'
-import SectionHeader from '../components/primitives/SectionHeader'
-import Typography from '../components/primitives/Typography'
-import SubtleButton from '../components/primitives/Button'
+import Divider from '../../components/primitives/Divider'
+import Checkbox from '../../components/primitives/Checkbox'
+import SteppedSlider from '../../components/primitives/Slider'
+import Notice from '../../components/primitives/Notice'
+import SectionHeader from '../../components/primitives/SectionHeader'
+import Typography from '../../components/primitives/Typography'
+import SubtleButton from '../../components/primitives/Button'
 
 // Marks non-panel UI (currently just the Scrubber) that should be treated as
 // part of the same focus/hover/hide-prevention region as the panel itself.
@@ -158,7 +158,10 @@ export default function CinemaControlPanel({
             </>
           ) : (
             <Notice title="Movie not found">
-              Place a video at <code>public/cinema/media/metropolis.mp4</code>{' '}
+              Place a video at{' '}
+              <code>
+                public/cinema/2026-08-forsythe/media/forsythe_one_flat_thing_reproduced.mp4
+              </code>{' '}
               and reload.
             </Notice>
           )}

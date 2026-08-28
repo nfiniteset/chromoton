@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react'
-import { fromVideoElement } from '../utils/imageSource'
-import type { Color } from '../models/colorModel'
+import { fromVideoElement } from '../../utils/imageSource'
+import type { Color } from '../../models/colorModel'
 
 export interface VideoImageColors {
   black: Color

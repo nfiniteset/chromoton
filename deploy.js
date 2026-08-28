@@ -150,16 +150,17 @@ async function clearBucket() {
   }
 }
 
-// Paths (relative to DIST_DIR, forward-slash) to skip during upload. The
-// Cinema page's local video is large and has no CDN/caching strategy worked
-// out yet, so it's deliberately excluded from deploys for now — Cinema will
-// work in local dev but show its "not found" message once deployed.
-const EXCLUDED_PATH_PREFIXES = ['cinema/media/']
+// Each cinema variation's media dir (relative to DIST_DIR, forward-slash) is
+// skipped during upload by default. Cinema videos are large and have no
+// CDN/caching strategy worked out yet, so a variation deploys with its
+// "not found" message until explicitly whitelisted below — cinema still
+// works in local dev regardless.
+const EXCLUDED_PATH_PATTERNS = [/^cinema\/[^/]+\/media\//]
 
 // Individual files (relative to DIST_DIR, forward-slash) that upload despite
-// matching an excluded prefix above.
+// matching an excluded pattern above.
 const WHITELISTED_PATHS = [
-  'cinema/media/forsythe_one_flat_thing_reproduced.mp4',
+  'cinema/2026-08-forsythe/media/forsythe_one_flat_thing_reproduced.mp4',
 ]
 
 // Upload files to S3
@@ -168,9 +169,7 @@ async function uploadFiles() {
   const files = allFiles.filter((file) => {
     const relativePath = path.relative(DIST_DIR, file).replace(/\\/g, '/')
     if (WHITELISTED_PATHS.includes(relativePath)) return true
-    return !EXCLUDED_PATH_PREFIXES.some((prefix) =>
-      relativePath.startsWith(prefix)
-    )
+    return !EXCLUDED_PATH_PATTERNS.some((pattern) => pattern.test(relativePath))
   })
   const skipped = allFiles.length - files.length
   if (skipped > 0) {

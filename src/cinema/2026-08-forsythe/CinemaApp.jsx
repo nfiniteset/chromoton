@@ -1,17 +1,17 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import Chromoton from '../Chromoton'
+import Chromoton from '../../Chromoton'
 import CinemaControlPanel from './CinemaControlPanel'
-import Scrubber from './Scrubber'
-import KeyboardControls from '../components/KeyboardControls'
-import CommandMenu from '../components/CommandMenu'
+import Scrubber from '../../components/Scrubber'
+import KeyboardControls from '../../components/KeyboardControls'
+import CommandMenu from '../../components/CommandMenu'
 import { useVideoImageMode } from './useVideoImageMode'
-import { getRandomPaletteName } from '../palettes'
-import { useColorModel } from '../hooks/useColorModel'
-import { useColorRandomizer } from '../hooks/useColorRandomizer'
-import { useLocalStorage } from '../hooks/useLocalStorage'
-import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'
-import { createStrategyById } from '../strategies'
-import { ThemeProvider } from '../contexts/ThemeContext'
+import { getRandomPaletteName } from '../../palettes'
+import { useColorModel } from '../../hooks/useColorModel'
+import { useColorRandomizer } from '../../hooks/useColorRandomizer'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut'
+import { createStrategyById } from '../../strategies'
+import { ThemeProvider } from '../../contexts/ThemeContext'
 
 // Same-directory-relative to cinema/index.html, so it resolves correctly
 // whether served from dev root or nested under a deployed base path.
@@ -59,12 +59,9 @@ function CinemaApp() {
     DEFAULT_CLARITY
   )
   // No UI to change this in cinema anymore (Spiciness/StrategySelector is
-  // hidden here), but it still drives useColorRandomizer below with
-  // whatever was last persisted — only the setter goes unused.
-  const [strategyType] = useLocalStorage(
-    'chromoton-cinema-strategyType',
-    'none'
-  )
+  // hidden here) — always 'none', never persisted, so a value saved by an
+  // older build with that UI can't leak in on load.
+  const strategyType = 'none'
   const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', DEFAULT_FPS)
   const [monochrome, setMonochrome] = useLocalStorage(
     'chromoton-cinema-monochrome',
@@ -147,39 +144,11 @@ function CinemaApp() {
   const seekInFlightRef = useRef(false)
   const pendingSeekRef = useRef(/** @type {number | null} */ (null))
 
-  const initialPaletteName = useMemo(() => {
-    try {
-      const stored = window.localStorage.getItem('chromoton-cinema-palette')
-      return stored ? JSON.parse(stored) : getRandomPaletteName()
-    } catch {
-      return getRandomPaletteName()
-    }
-  }, [])
+  // Target colors always start at the defaults, never from localStorage —
+  // there's no UI to change them in cinema, so nothing should ever persist.
+  const initialPaletteName = useMemo(() => getRandomPaletteName(), [])
 
-  const initialColors = useMemo(() => {
-    try {
-      const stored = window.localStorage.getItem('chromoton-cinema-colors')
-      return stored ? JSON.parse(stored) : DEFAULT_COLORS
-    } catch {
-      return DEFAULT_COLORS
-    }
-  }, [])
-
-  const colorModel = useColorModel(initialPaletteName, initialColors)
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      'chromoton-cinema-palette',
-      JSON.stringify(colorModel.currentPalette)
-    )
-  }, [colorModel.currentPalette])
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      'chromoton-cinema-colors',
-      JSON.stringify(colorModel.colors)
-    )
-  }, [colorModel.colors])
+  const colorModel = useColorModel(initialPaletteName, DEFAULT_COLORS)
 
   const randomizationStrategy = useMemo(() => {
     return createStrategyById(strategyType)

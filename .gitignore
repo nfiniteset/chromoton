@@ -34,5 +34,5 @@ npm-debug.log*
 # macOS
 .DS_Store
 
-# Cinema page's local video source — large binary, never checked in
-public/cinema/media/
+# Cinema variations' local video sources — large binaries, never checked in
+public/cinema/*/media/

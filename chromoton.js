@@ -1,3 +1,8 @@
+// Shared across every cinema variation (see src/cinema/README.md) as well
+// as the main app — a single global instance. Extend it by adding new
+// methods/config keys with defaults that preserve existing behavior when
+// unset; don't repurpose or change the meaning of an existing one, or older
+// variations built against this file will silently change behavior.
 window.chromoton = (function () {
   var el
   var PRIME_INC = 457
