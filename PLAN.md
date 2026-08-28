@@ -4,12 +4,14 @@ This file tracks active and upcoming work on this project. Update it as tasks ar
 
 ## In Progress
 
+- **2026-09 cinema variation** — started from `src/cinema/2026-08-forsythe/` per [src/cinema/README.md](src/cinema/README.md): new folder `src/cinema/2026-09/` (+ `cinema/2026-09/`, `public/cinema/2026-09/media/`), registered in [variants.js](src/cinema/variants.js) and `deploy.js`'s whitelist, `/cinema` (the stable redirect) still points at August. Reusing August's video (`forsythe_one_flat_thing_reproduced.mp4`, copied into its own media folder) as a placeholder — swap it and retune `DEFAULT_*` once a real video/theme is picked, and flip `cinema/index.html`'s redirect + tag `cinema/2026-08-forsythe` when this one's ready to ship.
+
 - **Dynamic contrast in cinema** — three independent toggles in the cinema control panel, each stackable, so they can be A/B'd live:
   - **Auto threshold** — retunes the black/white luma cutoff each frame so ~20% of the source image classifies as white. Disables the manual Threshold slider while on and live-updates it to the resolved cutoff instead.
   - **Auto dim white** — dims the white target based on how much of the grid the mask currently assigns to white (coverage, not convergence), gradated across [0%, 40%] → [full brightness, dimmed floor]. Stable/non-oscillating since the signal isn't affected by the dimming itself.
   - **Agitate target color** — a happy accident kept on purpose: the _original_ auto-dim measured actual population convergence, which turned out to be self-destabilizing (dimming knocks matched cells back out of range, which un-dims, which lets them match again, forever) and never let white settle — it stays "cloudy"/colorful, which looked great. Reimplemented as what it actually amounted to: a periodic small random nudge to the white target's brightness, no population measurement involved. First cut was a random _walk_ (each tick nudged off the previous tick's value), which could wander down and sit near the floor for a stretch — read as sustained mud rather than a flicker. Reworked to be non-cumulative: each tick independently picks dimmer/unchanged/brighter relative to the true base color, never off the prior tick, and the tick interval itself is jittered so it doesn't land on a mechanical beat.
 
-  All three land in [chromoton.js](chromoton.js) (`setAutoThreshold`/`setAutoDim`/`setAgitateTarget`) and [CinemaControlPanel.jsx](src/cinema/CinemaControlPanel.jsx). Next: keep A/B'ing against the footage, retune the auto-dim coverage range and agitate's step/interval to taste.
+  All three land in [chromoton.js](chromoton.js) (`setAutoThreshold`/`setAutoDim`/`setAgitateTarget`) and [CinemaControlPanel.jsx](src/cinema/2026-09/CinemaControlPanel.jsx). Next: keep A/B'ing against the footage, retune the auto-dim coverage range and agitate's step/interval to taste.
 
 - **Cinema panel cleanup + thumbnail overlay** — stripped the cinema control panel down to playback-only controls: removed the color palette picker, target-color list, and "Spiciness" (strategy) slider (main app keeps all three; `AdvancedControls` gained a `hideStrategy` prop for this). Added a "Show thumbnail" toggle (checkbox + command palette entry) that, when on and the panel is closed, shows a small standalone thumbnail panel top-right — for screen capture / performance use without the full settings panel up. Scrubber bar: 4px padding (8px on the right, doubled per request — right padding now matches the button↔track gap), play/pause button radius nests concentrically with the bar's corner (12px against the bar's 16px), track is genuinely vertically centered (fixed a line-height/baseline quirk on the wrapper div), and hovering the track now previews a frame there (dragging still commits as before). All the dynamic-contrast toggles (auto threshold/dim/agitate) plus the thumbnail toggle are also registered as command-palette-only entries (empty `keys: []`) so they're runnable from ⌘K without opening the panel. Both auto-threshold and auto-dim also got their own "target" sliders (0–100%) exposing what were hardcoded constants (`autoThresholdTargetFraction`, `autoDimCoverageMax` in chromoton.js), so the balance points are tunable live instead of fixed at 20%/40%.
 
@@ -29,7 +31,7 @@ This file tracks active and upcoming work on this project. Update it as tasks ar
 
 ## Up Next
 
-- **Next month's cinema variation** — copy `src/cinema/2026-08-forsythe/` per [src/cinema/README.md](src/cinema/README.md) once it's time to start iterating past the frozen August build.
+_(none)_
 
 ## Done
 

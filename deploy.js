@@ -161,6 +161,7 @@ const EXCLUDED_PATH_PATTERNS = [/^cinema\/[^/]+\/media\//]
 // matching an excluded pattern above.
 const WHITELISTED_PATHS = [
   'cinema/2026-08-forsythe/media/forsythe_one_flat_thing_reproduced.mp4',
+  'cinema/2026-09/media/forsythe_one_flat_thing_reproduced.mp4',
 ]
 
 // Upload files to S3

@@ -4,4 +4,5 @@
 // a new variation needs to be registered for the nav to find it.
 export const CINEMA_VARIANTS = [
   { id: '2026-08-forsythe', label: '2026-08 — Forsythe' },
+  { id: '2026-09', label: '2026-09' },
 ]
