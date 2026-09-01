@@ -18,9 +18,13 @@ import { ThemeProvider } from '../../contexts/ThemeContext'
 // VariantNav menu (see src/cinema/variants.js).
 const VARIANT_ID = '2026-09'
 
+// Each variation gets its own localStorage namespace so changing a setting
+// in one never leaks into another — see PLAN.md.
+const STORAGE_PREFIX = `chromoton-cinema-${VARIANT_ID}`
+
 // Same-directory-relative to cinema/index.html, so it resolves correctly
 // whether served from dev root or nested under a deployed base path.
-const VIDEO_SRC = 'media/forsythe_one_flat_thing_reproduced.mp4'
+const VIDEO_SRC = 'media/forsythe_one_flat_thing_reproduced_motion.mp4'
 
 // Matches the video's native decoded resolution (see useVideoImageMode /
 // fromVideoElement) so thumbnails never distort.
@@ -45,9 +49,9 @@ const DEFAULT_MONOCHROME = false
 const DEFAULT_SOUND_ENABLED = false
 const DEFAULT_PLAYBACK_RATE = 0.25
 const DEFAULT_THRESHOLD = 35
-const DEFAULT_AUTO_THRESHOLD = true
+const DEFAULT_AUTO_THRESHOLD = false
 const DEFAULT_AUTO_THRESHOLD_TARGET_PERCENT = 20
-const DEFAULT_AUTO_DIM_WHITE = true
+const DEFAULT_AUTO_DIM_WHITE = false
 const DEFAULT_AUTO_DIM_TARGET_PERCENT = 80
 const DEFAULT_AGITATE_TARGET = false
 const DEFAULT_SHOW_THUMBNAIL_OVERLAY = false
@@ -60,59 +64,59 @@ const DEFAULT_COLORS = [
 
 function CinemaApp() {
   const [clarity, setClarity] = useLocalStorage(
-    'chromoton-cinema-clarity',
+    `${STORAGE_PREFIX}-clarity`,
     DEFAULT_CLARITY
   )
   // No UI to change this in cinema anymore (Spiciness/StrategySelector is
   // hidden here) — always 'none', never persisted, so a value saved by an
   // older build with that UI can't leak in on load.
   const strategyType = 'none'
-  const [fps, setFps] = useLocalStorage('chromoton-cinema-fps', DEFAULT_FPS)
+  const [fps, setFps] = useLocalStorage(`${STORAGE_PREFIX}-fps`, DEFAULT_FPS)
   const [monochrome, setMonochrome] = useLocalStorage(
-    'chromoton-cinema-monochrome',
+    `${STORAGE_PREFIX}-monochrome`,
     DEFAULT_MONOCHROME
   )
   const [soundEnabled, setSoundEnabled] = useLocalStorage(
-    'chromoton-cinema-soundEnabled',
+    `${STORAGE_PREFIX}-soundEnabled`,
     DEFAULT_SOUND_ENABLED
   )
   const [playbackRate, setPlaybackRate] = useLocalStorage(
-    'chromoton-cinema-playbackRate',
+    `${STORAGE_PREFIX}-playbackRate`,
     DEFAULT_PLAYBACK_RATE
   )
   const [threshold, setThreshold] = useLocalStorage(
-    'chromoton-cinema-threshold',
+    `${STORAGE_PREFIX}-threshold`,
     DEFAULT_THRESHOLD
   )
   const [autoThreshold, setAutoThreshold] = useLocalStorage(
-    'chromoton-cinema-autoThreshold',
+    `${STORAGE_PREFIX}-autoThreshold`,
     DEFAULT_AUTO_THRESHOLD
   )
   // Percent (0-100), matching chromoton.js's default autoThresholdTargetFraction.
   const [autoThresholdTargetPercent, setAutoThresholdTargetPercent] =
     useLocalStorage(
-      'chromoton-cinema-autoThresholdTargetPercent',
+      `${STORAGE_PREFIX}-autoThresholdTargetPercent`,
       DEFAULT_AUTO_THRESHOLD_TARGET_PERCENT
     )
   const [autoDimWhite, setAutoDimWhite] = useLocalStorage(
-    'chromoton-cinema-autoDimWhite',
+    `${STORAGE_PREFIX}-autoDimWhite`,
     DEFAULT_AUTO_DIM_WHITE
   )
   // Percent (0-100), matching chromoton.js's default autoDimCoverageMax.
   const [autoDimTargetPercent, setAutoDimTargetPercent] = useLocalStorage(
-    'chromoton-cinema-autoDimTargetPercent',
+    `${STORAGE_PREFIX}-autoDimTargetPercent`,
     DEFAULT_AUTO_DIM_TARGET_PERCENT
   )
   const [agitateTarget, setAgitateTarget] = useLocalStorage(
-    'chromoton-cinema-agitateTarget',
+    `${STORAGE_PREFIX}-agitateTarget`,
     DEFAULT_AGITATE_TARGET
   )
   const [showThumbnailOverlay, setShowThumbnailOverlay] = useLocalStorage(
-    'chromoton-cinema-showThumbnailOverlay',
+    `${STORAGE_PREFIX}-showThumbnailOverlay`,
     DEFAULT_SHOW_THUMBNAIL_OVERLAY
   )
   const [keepPanelVisible, setKeepPanelVisible] = useLocalStorage(
-    'chromoton-cinema-keepPanelVisible',
+    `${STORAGE_PREFIX}-keepPanelVisible`,
     DEFAULT_KEEP_PANEL_VISIBLE
   )
   const [effectiveThreshold, setEffectiveThreshold] = useState(threshold)
