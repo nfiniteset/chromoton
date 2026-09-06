@@ -22,6 +22,10 @@ interface ChromotonAPI {
     imageData: ImageData,
     colors: { black: Color; white: Color }
   ): void
+  setImageTargetsIndexed(imageData: ImageData, palette: Color[]): void
+  setImageDepthRange(far: number, near: number): void
+  getImageDepthRange(): { far: number; near: number }
+  isIndexedImageModeEnabled(): boolean
   clearImageTargets(): void
   isImageModeEnabled(): boolean
   setImageThreshold(value: number): void

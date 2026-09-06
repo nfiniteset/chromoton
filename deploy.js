@@ -162,6 +162,7 @@ const EXCLUDED_PATH_PATTERNS = [/^cinema\/[^/]+\/media\//]
 const WHITELISTED_PATHS = [
   'cinema/2026-08-forsythe/media/forsythe_one_flat_thing_reproduced.mp4',
   'cinema/2026-09/media/forsythe_one_flat_thing_reproduced_motion.mp4',
+  'cinema/depth-map/media/forsythe_one_flat_thing_reproduced_depth.mp4',
 ]
 
 // Upload files to S3

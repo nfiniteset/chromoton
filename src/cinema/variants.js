@@ -5,4 +5,5 @@
 export const CINEMA_VARIANTS = [
   { id: '2026-08-forsythe', label: '2026-08 — Forsythe' },
   { id: '2026-09', label: '2026-09' },
+  { id: 'depth-map', label: 'Depth map' },
 ]

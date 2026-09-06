@@ -38,6 +38,20 @@ window.chromoton = (function () {
   var imageThreshold = 128 // luma cutoff separating "black" from "white" pixels
   var lastImageMask = null // most recent 0/1 mask from sampleImageMask, kept for auto-dim measurement
 
+  // Indexed image mode: the black/white path above is a single luma cutoff,
+  // so a source can only ever say "target A" or "target B". Indexed mode
+  // instead quantizes luma into N bands and gives each band its own target
+  // color, which is what lets a depth-map source drive color by distance
+  // rather than by brightness alone. Set via setImageTargetsIndexed; null
+  // means the ordinary two-color path is in effect, so existing variations
+  // are unaffected.
+  var imagePalette = null // array of {red,green,blue}, one per band, when active
+  // The luma window mapped across the palette, so a source that only
+  // occupies part of the 0-255 range can still use every band. far maps to
+  // band 0, near to the last band; values outside the window clamp.
+  var imageDepthFar = 0
+  var imageDepthNear = 255
+
   // Dynamic contrast, approach A: instead of a fixed luma cutoff, pick
   // whatever cutoff makes ~autoThresholdTargetFraction of the source
   // image's in-bounds pixels count as "white" each time the mask is
@@ -562,7 +576,12 @@ window.chromoton = (function () {
   // double-buffered cells at a grid position share the same target since
   // the target belongs to the position, not the chromosome.
   function applyImageTargetsToPopulation() {
-    if (!imageSourceData || !imageColors) return
+    if (!imageSourceData) return
+    if (imagePalette) {
+      applyIndexedImageTargets()
+      return
+    }
+    if (!imageColors) return
     var mask = sampleImageMask(imageSourceData, xDim, yDim)
     lastImageMask = mask
     var black = imageColors.black
@@ -589,6 +608,78 @@ window.chromoton = (function () {
     }
   }
 
+  // Indexed counterpart to sampleImageMask: same contain-fit downsample and
+  // luma formula, but instead of one threshold comparison each cell's luma
+  // is rescaled across [imageDepthFar, imageDepthNear] and quantized into
+  // `bands` equal steps. Cells outside the scaled image bounds get band 0,
+  // matching the black/white path's "outside is black" convention.
+  function sampleImageIndices(imgData, cols, rows, bands) {
+    var indices = new Uint8Array(cols * rows)
+    var srcW = imgData.width
+    var srcH = imgData.height
+    var data = imgData.data
+
+    var scale = Math.min(cols / srcW, rows / srcH)
+    var offsetX = (cols - srcW * scale) / 2
+    var offsetY = (rows - srcH * scale) / 2
+    var span = imageDepthNear - imageDepthFar
+
+    for (var y = 0; y < rows; y++) {
+      var sy = (y - offsetY) / scale
+      var rowInBounds = sy >= 0 && sy < srcH
+      var syIdx = rowInBounds ? sy | 0 : 0
+      for (var x = 0; x < cols; x++) {
+        var idx = y * cols + x
+        var sx = (x - offsetX) / scale
+        if (!rowInBounds || sx < 0 || sx >= srcW) {
+          indices[idx] = 0
+          continue
+        }
+        var i = (syIdx * srcW + (sx | 0)) * 4
+        var luma = (data[i] * 77 + data[i + 1] * 150 + data[i + 2] * 29) >> 8
+        var t = span > 0 ? (luma - imageDepthFar) / span : 0
+        t = t < 0 ? 0 : t > 1 ? 1 : t
+        var band = (t * bands) | 0
+        indices[idx] = band >= bands ? bands - 1 : band
+      }
+    }
+
+    return indices
+  }
+
+  // Indexed counterpart to applyImageTargetsToPopulation. Agitate still
+  // applies, uniformly across every band so the whole ramp breathes
+  // together rather than one band drifting off the others. Auto-threshold
+  // and auto-dim don't: both are defined in terms of a single "white"
+  // against a single "black" and have no meaning across N bands.
+  function applyIndexedImageTargets() {
+    var bandCount = imagePalette.length
+    var indices = sampleImageIndices(imageSourceData, xDim, yDim, bandCount)
+    lastImageMask = indices
+
+    var intensity = agitateEnabled ? agitateIntensity : 1
+    var bands = new Array(bandCount)
+    for (var b = 0; b < bandCount; b++) {
+      bands[b] =
+        intensity !== 1 ? dimColor(imagePalette[b], intensity) : imagePalette[b]
+    }
+
+    var size = xDim * yDim
+    for (var idx = 0; idx < size; idx++) {
+      var target = bands[indices[idx]]
+      population.targetActive[idx] = 1
+      population.targetR[idx] = target.red
+      population.targetG[idx] = target.green
+      population.targetB[idx] = target.blue
+      populationNext.targetActive[idx] = 1
+      populationNext.targetR[idx] = target.red
+      populationNext.targetG[idx] = target.green
+      populationNext.targetB[idx] = target.blue
+      applyChromosomeAt(population, idx)
+      applyChromosomeAt(populationNext, idx)
+    }
+  }
+
   // Enable image mode: imgData is any {width, height, data} RGBA source
   // (e.g. an ImageData from a file, URL, or another canvas). colors is
   // { black: Color, white: Color } drawn from the current palette.
@@ -597,6 +688,7 @@ window.chromoton = (function () {
     if (!colors || !colors.black || !colors.white) return
 
     imageSourceData = imgData
+    imagePalette = null
     imageColors = {
       black: normalizeColor(colors.black),
       white: normalizeColor(colors.white),
@@ -605,11 +697,47 @@ window.chromoton = (function () {
     applyImageTargetsToPopulation()
   }
 
+  // Enable indexed image mode: the source's luma is quantized into one band
+  // per palette entry, and each cell takes its band's color as its target.
+  // palette is an ordered array of colors, darkest source luma first — for a
+  // depth map that's farthest-to-nearest. Passing a two-entry palette is
+  // *not* the same as setImageTargets: this quantizes evenly across the
+  // depth range rather than thresholding, and ignores auto-threshold.
+  function setImageTargetsIndexed(imgData, palette) {
+    if (!imgData || !imgData.data || !imgData.width || !imgData.height) return
+    if (!palette || !palette.length) return
+
+    imageSourceData = imgData
+    imagePalette = palette.map(normalizeColor)
+    imageColors = null
+    imageModeEnabled = true
+    applyImageTargetsToPopulation()
+  }
+
+  // The source luma window spread across the palette (0-255 each). Narrowing
+  // it concentrates every band on the range the subject actually occupies,
+  // instead of wasting bands on empty headroom. Re-applies immediately if
+  // indexed image mode is active, like the other live setters.
+  function setImageDepthRange(far, near) {
+    imageDepthFar = Math.max(0, Math.min(255, far | 0))
+    imageDepthNear = Math.max(0, Math.min(255, near | 0))
+    if (imageModeEnabled && imagePalette) applyImageTargetsToPopulation()
+  }
+
+  function getImageDepthRange() {
+    return { far: imageDepthFar, near: imageDepthNear }
+  }
+
+  function isIndexedImageModeEnabled() {
+    return imageModeEnabled && imagePalette !== null
+  }
+
   // Disable image mode and fall back to the global targetColors list.
   function clearImageTargets() {
     imageModeEnabled = false
     imageSourceData = null
     imageColors = null
+    imagePalette = null
     lastImageMask = null
     var size = xDim * yDim
     for (var idx = 0; idx < size; idx++) {
@@ -707,6 +835,7 @@ window.chromoton = (function () {
   // Called from step() after each generation's population swap.
   function measureAutoDim(timestamp) {
     if (!autoDimEnabled || !imageModeEnabled || !lastImageMask) return
+    if (imagePalette) return
     if (timestamp - lastAutoDimMeasure < AUTO_DIM_MEASURE_INTERVAL_MS) return
     lastAutoDimMeasure = timestamp
 
@@ -812,6 +941,10 @@ window.chromoton = (function () {
     getTargetColors: getTargetColors,
     getPopulation: getPopulation,
     setImageTargets: setImageTargets,
+    setImageTargetsIndexed: setImageTargetsIndexed,
+    setImageDepthRange: setImageDepthRange,
+    getImageDepthRange: getImageDepthRange,
+    isIndexedImageModeEnabled: isIndexedImageModeEnabled,
     clearImageTargets: clearImageTargets,
     isImageModeEnabled: isImageModeEnabled,
     setImageThreshold: setImageThreshold,

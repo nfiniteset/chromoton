@@ -8,6 +8,12 @@ root and `public/cinema/<name>/media/` for its video. Vite picks up any
 `cinema/<name>/index.html` automatically ([vite.config.js](../../vite.config.js)) —
 no build config changes needed for a new variation.
 
+Most variations are named for the month they're built for, but nothing
+requires it — a variation exploring a technique rather than serving a
+specific event can take a descriptive name instead (`depth-map/`). Same
+structure either way; only the "starting a new month" checklist below is
+month-specific.
+
 ## What's shared vs. forked
 
 Shared (lives once, outside this folder, changes should be additive so old
