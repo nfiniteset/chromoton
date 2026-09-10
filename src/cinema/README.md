@@ -47,6 +47,12 @@ month, so it's a full copy rather than one component threaded with
 ever-more config), `main.jsx`, `useVideoImageMode.ts` if a variation needs
 its own image-sampling behavior.
 
+Not every variation has a video. `lidar/` takes its frames from a WebSocket
+instead — so it has no `public/cinema/<name>/media/` folder, nothing in
+`deploy.js`'s whitelist, and a `useSocketImageMode.ts` in place of the video
+hook. Its `mock-server.py` stands in for the phone; see
+[docs/live-lidar-input.md](../../docs/live-lidar-input.md).
+
 ## Starting a new month
 
 1. Once the current month's variation has shipped for its event, freeze it:

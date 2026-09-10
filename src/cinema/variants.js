@@ -19,4 +19,5 @@ export const VARIANTS = [
   { id: 'depth-map', label: 'Depth map', path: 'cinema/depth-map/' },
   { id: 'segments', label: 'Segments', path: 'cinema/segments/' },
   { id: 'hybrid', label: 'Hybrid', path: 'cinema/hybrid/' },
+  { id: 'lidar', label: 'LiDAR (live)', path: 'cinema/lidar/' },
 ]

@@ -22,10 +22,18 @@ interface ChromotonAPI {
     imageData: ImageData,
     colors: { black: Color; white: Color }
   ): void
-  setImageTargetsIndexed(imageData: ImageData, palette: Color[]): void
+  setImageTargetsIndexed(
+    imageData: ImageData,
+    palette: Color[],
+    // Optional second source carrying one distinguished class that wins
+    // wherever it is set — people, in the variations that use it. Omitted
+    // by every variation that doesn't. `threshold` defaults to 128.
+    overlay?: { data: ImageData; color: Color; threshold?: number }
+  ): void
   setImageDepthRange(far: number, near: number): void
   getImageDepthRange(): { far: number; near: number }
   isIndexedImageModeEnabled(): boolean
+  isImageOverlayEnabled(): boolean
   clearImageTargets(): void
   isImageModeEnabled(): boolean
   setImageThreshold(value: number): void
