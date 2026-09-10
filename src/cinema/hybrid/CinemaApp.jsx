@@ -37,23 +37,17 @@ const STORAGE_PREFIX = `chromoton-cinema-${VARIANT_ID}`
 // They are kept as separate files rather than baked into one so each can be
 // re-rendered alone and neither constrains the other's resolution or frame
 // rate — see docs/hybrid-pipeline.md.
-// Depth is the real thing: the finished render from preprocess-depth.py,
-// DVD source at 1024x576 inference, area-averaged to 640x360, 25fps.
+// Both are the finished renders. Depth from preprocess-depth.py, people
+// from preprocess-people.py: DVD source at 1024x576 inference,
+// area-averaged to 640x360, 25fps, 31553 frames each.
 //
-// TEMPORARY — the person mask is still a placeholder while its render
-// finishes. Once preprocess-people.py has produced it, restore:
-//   const PEOPLE_SRC = 'media/forsythe_people.mp4'
-// and delete placeholder_people.mp4. deploy.js is whitelisted for the final
-// name, not this one, so this must be reverted before a deploy.
-//
-// The placeholder is the segments variation's asset, and stands in
-// imperfectly on purpose: DETR's mask (blobbed torsos, no outstretched
-// arms) rather than Mask2Former's, at 8.33fps against depth's 25. It shares
-// the source timeline and duration so time-based sync between the two
-// elements still holds, and segments' class centres (64/191) decode
-// correctly against the overlay's 128 threshold.
+// Same-directory-relative to cinema/index.html, so these resolve correctly
+// whether served from dev root or nested under a deployed base path. Kept
+// as two files rather than baked into one so each can be re-rendered alone
+// and neither constrains the other's resolution or frame rate — see
+// docs/hybrid-pipeline.md.
 const DEPTH_SRC = 'media/forsythe_depth.mp4'
-const PEOPLE_SRC = 'media/placeholder_people.mp4'
+const PEOPLE_SRC = 'media/forsythe_people.mp4'
 
 // Matches the video's native decoded resolution (see useVideoImageMode /
 // fromVideoElement) so thumbnails never distort.
