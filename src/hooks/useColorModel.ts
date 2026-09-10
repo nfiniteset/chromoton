@@ -10,6 +10,7 @@ export type ColorAction =
   | { type: 'CHANGE_COLOR'; index: number; color: Color }
   | { type: 'SWAP_COLOR'; index: number }
   | { type: 'APPLY_RANDOM_ACTION'; action: RandomAction }
+  | { type: 'RESET'; paletteName: PaletteName; colors: Color[] }
 
 interface ColorModelHook {
   // State
@@ -23,6 +24,7 @@ interface ColorModelHook {
   changeColor: (index: number, color: Color) => void
   swapColor: (index: number) => void
   applyRandomAction: (action: RandomAction) => void
+  reset: (paletteName: PaletteName, colors: Color[]) => void
 
   // Queries
   getColorsForSimulation: () => Color[]
@@ -46,6 +48,8 @@ function colorReducer(state: ColorState, action: ColorAction): ColorState {
       return ColorModel.swapColor(state, action.index)
     case 'APPLY_RANDOM_ACTION':
       return ColorModel.applyRandomAction(state, action.action)
+    case 'RESET':
+      return ColorModel.createColorState(action.paletteName, action.colors)
     default:
       return state
   }
@@ -87,6 +91,13 @@ export function useColorModel(
     dispatch({ type: 'APPLY_RANDOM_ACTION', action })
   }, [])
 
+  // Replaces palette and colors wholesale — the same call the initial state
+  // is built from, so a "reset to defaults" can't drift from what a fresh
+  // session starts with.
+  const reset = useCallback((paletteName: PaletteName, colors: Color[]) => {
+    dispatch({ type: 'RESET', paletteName, colors })
+  }, [])
+
   // Query functions - properly depend on state for correct React behavior
   const getColorsForSimulation = useCallback(() => {
     return ColorModel.getColorsForSimulation(state)
@@ -123,6 +134,7 @@ export function useColorModel(
     changeColor,
     swapColor,
     applyRandomAction,
+    reset,
 
     // Queries
     getColorsForSimulation,

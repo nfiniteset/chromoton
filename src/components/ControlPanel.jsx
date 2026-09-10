@@ -9,6 +9,7 @@ import { usePanelVisibility } from './panel/usePanelVisibility'
 import PanelShell from './panel/PanelShell'
 
 import SubtleButton from './primitives/Button'
+import Divider from './primitives/Divider'
 import Typography from './primitives/Typography'
 import NavStack from './NavStack/NavStack'
 import NavStackView from './NavStack/NavStackView'
@@ -16,6 +17,11 @@ import NavStackView from './NavStack/NavStackView'
 import { PALETTE_DISPLAY_NAMES } from '../palettes'
 
 import { FaChevronRight } from 'react-icons/fa6'
+
+// Marks floating UI outside the panel (currently just VariantNav) that
+// should count as part of the same focus/hover/hide-prevention region as
+// the panel itself — same attribute the cinema panels use.
+const UI_SELECTOR = '[data-cinema-ui]'
 
 export default function ControlPanel({
   palettes,
@@ -35,6 +41,8 @@ export default function ControlPanel({
   fps,
   onFpsChange,
   onShowPopulationChange,
+  onReset,
+  onPanelStateChange,
   className = '',
 }) {
   const { panelRef } = useTheme()
@@ -42,7 +50,11 @@ export default function ControlPanel({
   const paletteLinkRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const prevShowPalettePickerRef = useRef(false)
 
-  const { panelState, isClosing } = usePanelVisibility({ panelRef })
+  const { panelState, isClosing } = usePanelVisibility({
+    panelRef,
+    uiSelector: UI_SELECTOR,
+    onStateChange: onPanelStateChange,
+  })
 
   useKeyboardShortcut({
     id: 'toggle-palette-picker',
@@ -133,6 +145,15 @@ export default function ControlPanel({
                 onFpsChange={onFpsChange}
               />
             </div>
+
+            <Divider className="" />
+
+            <SubtleButton
+              className="justify-center px-5 py-4"
+              onClick={onReset}
+            >
+              Reset
+            </SubtleButton>
           </div>
         </NavStackView>
 

@@ -33,7 +33,12 @@ variations keep working unmodified):
   button + menu for jumping between variations, reading from
   [variants.js](variants.js). Each variation renders it with its own id
   (`<VariantNav current="<name>" .../>`); the menu contents themselves are
-  shared, driven entirely by `variants.js`.
+  shared, driven entirely by `variants.js`. The main app (`src/App.jsx`)
+  renders it too, as the `main` entry — so the menu lists every sim, cinema
+  or not, and each one can reach the others. Since the two sit at different
+  depths (root vs. `cinema/<name>/`) and the build uses a relative base,
+  each entry carries a root-relative `path` that VariantNav re-resolves
+  against whichever page it's on; a new entry needs one.
 
 Forked (copy the previous month's folder and diverge freely): `CinemaApp.jsx`
 (video source, tuning defaults, which strategies are wired up),
@@ -57,6 +62,8 @@ its own image-sampling behavior.
    in `cinema/index.html` to `./<name>/`. That's the stable URL — it always
    points at whichever month is current, so it doesn't need to be shared
    again each month.
-6. Register it in [variants.js](variants.js) (adds it to every variation's
-   nav menu, including past ones) and add `<VariantNav current="<name>" .../>`
+6. Register it in [variants.js](variants.js) — `id`, `label`, and a
+   `path` of `cinema/<name>/` (adds it to every variation's nav menu,
+   including past ones and the main app) — and add
+   `<VariantNav current="<name>" .../>`
    to the copied `CinemaApp.jsx` if it isn't already there.

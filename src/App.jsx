@@ -4,6 +4,7 @@ import ControlPanel from './components/ControlPanel'
 import FpsCounter from './components/FpsCounter'
 import KeyboardControls from './components/KeyboardControls'
 import CommandMenu from './components/CommandMenu'
+import VariantNav from './components/VariantNav'
 import { PALETTES, getRandomPaletteName } from './palettes'
 import { getUniqueRandomColorsFromPalette } from './utils/colorUtils'
 import { getColorSuccessCounts } from './utils/colorUtils'
@@ -15,24 +16,46 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { generateCircleTestImage } from './utils/imageSource'
 import { applyImageMode, clearImageMode } from './utils/imageTargets'
 
+// Identifies the main app in the VariantNav menu (see src/cinema/variants.js).
+const VARIANT_ID = 'main'
+
+// Single source of truth for every persisted setting's default, shared
+// between each useLocalStorage() call below and the panel's Reset button —
+// so "reset to defaults" can never drift from what a fresh session actually
+// starts with. Palette and colors have no fixed default: a fresh session
+// picks them at random, so Reset re-randomizes rather than restoring a
+// constant (see handleReset).
+const DEFAULT_CLARITY = 240
+const DEFAULT_STRATEGY_TYPE = 'three-target'
+const DEFAULT_SHOW_POPULATION = false
+const DEFAULT_FPS = 10
+const DEFAULT_MONOCHROME = false
+const DEFAULT_COLOR_COUNT = 3
+
 function App() {
   // Persisted settings with defaults
-  const [clarity, setClarity] = useLocalStorage('chromoton-clarity', 240)
+  const [clarity, setClarity] = useLocalStorage(
+    'chromoton-clarity',
+    DEFAULT_CLARITY
+  )
   const [strategyType, setStrategyType] = useLocalStorage(
     'chromoton-strategyType',
-    'three-target'
+    DEFAULT_STRATEGY_TYPE
   )
   const [showPopulation, setShowPopulation] = useLocalStorage(
     'chromoton-showPopulation',
-    false
+    DEFAULT_SHOW_POPULATION
   )
-  const [fps, setFps] = useLocalStorage('chromoton-fps', 10)
+  const [fps, setFps] = useLocalStorage('chromoton-fps', DEFAULT_FPS)
   const [monochrome, setMonochrome] = useLocalStorage(
     'chromoton-monochrome',
-    false
+    DEFAULT_MONOCHROME
   )
   const [imageModeEnabled, setImageModeEnabled] = useState(false)
   const [showFps, setShowFps] = useState(false)
+  const [panelState, setPanelState] = useState(
+    /** @type {'open' | 'peek' | 'hidden'} */ ('open')
+  )
   const [populationPercentages, setPopulationPercentages] = useState(
     /** @type {number[]} */ ([])
   )
@@ -52,9 +75,15 @@ function App() {
       const stored = window.localStorage.getItem('chromoton-colors')
       return stored
         ? JSON.parse(stored)
-        : getUniqueRandomColorsFromPalette(initialPaletteName, 3)
+        : getUniqueRandomColorsFromPalette(
+            initialPaletteName,
+            DEFAULT_COLOR_COUNT
+          )
     } catch {
-      return getUniqueRandomColorsFromPalette(initialPaletteName, 3)
+      return getUniqueRandomColorsFromPalette(
+        initialPaletteName,
+        DEFAULT_COLOR_COUNT
+      )
     }
   }, [initialPaletteName])
 
@@ -183,10 +212,29 @@ function App() {
     colorModel.changeColor(index, { r, g, b })
   }
 
+  // Restores every persisted setting to the DEFAULT_* values above. Palette
+  // and colors are re-randomized rather than restored to a constant, since
+  // that's exactly what a fresh session with empty localStorage does.
+  // Session-only state (image mode, FPS counter) is left alone — it isn't a
+  // saved setting anyone would think of as needing a reset.
+  const handleReset = () => {
+    const paletteName = getRandomPaletteName()
+    setClarity(DEFAULT_CLARITY)
+    setStrategyType(DEFAULT_STRATEGY_TYPE)
+    setShowPopulation(DEFAULT_SHOW_POPULATION)
+    setFps(DEFAULT_FPS)
+    setMonochrome(DEFAULT_MONOCHROME)
+    colorModel.reset(
+      paletteName,
+      getUniqueRandomColorsFromPalette(paletteName, DEFAULT_COLOR_COUNT)
+    )
+  }
+
   return (
     <ThemeProvider>
       <KeyboardControls />
       <CommandMenu />
+      <VariantNav current={VARIANT_ID} hidden={panelState === 'hidden'} />
 
       <Chromoton
         width={clarity}
@@ -216,6 +264,8 @@ function App() {
         fps={fps}
         onFpsChange={setFps}
         onShowPopulationChange={setShowPopulation}
+        onReset={handleReset}
+        onPanelStateChange={setPanelState}
       />
     </ThemeProvider>
   )
