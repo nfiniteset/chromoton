@@ -52,6 +52,19 @@ window.chromoton = (function () {
   var imageDepthFar = 0
   var imageDepthNear = 255
 
+  // Overlay source: an optional *second* image sampled alongside the
+  // indexed one, carrying a single distinguished class that wins wherever
+  // it is set. The hybrid variation uses it for people — depth bands the
+  // environment, and this lifts the dancers out of that ramp into their own
+  // target color. It is deliberately not another band: bands are slices of
+  // one continuous quantity, and this is a separate signal from a separate
+  // video, so it cannot be expressed as a luma range of the first.
+  //
+  // Cells that hit the overlay get index `bandCount` — one past the last
+  // real band — so the whole indexed path stays a single array lookup.
+  // Null means no overlay, which is what every existing variation passes.
+  var imageOverlay = null // { data, color: {red,green,blue}, threshold }
+
   // Dynamic contrast, approach A: instead of a fixed luma cutoff, pick
   // whatever cutoff makes ~autoThresholdTargetFraction of the source
   // image's in-bounds pixels count as "white" each time the mask is
@@ -613,6 +626,11 @@ window.chromoton = (function () {
   // is rescaled across [imageDepthFar, imageDepthNear] and quantized into
   // `bands` equal steps. Cells outside the scaled image bounds get band 0,
   // matching the black/white path's "outside is black" convention.
+  //
+  // When an overlay is active it is sampled with its own contain-fit —
+  // the two sources are separate videos and need not share dimensions —
+  // and wins wherever it is at or above its threshold, taking index
+  // `bands` rather than any real band.
   function sampleImageIndices(imgData, cols, rows, bands) {
     var indices = new Uint8Array(cols * rows)
     var srcW = imgData.width
@@ -623,6 +641,23 @@ window.chromoton = (function () {
     var offsetX = (cols - srcW * scale) / 2
     var offsetY = (rows - srcH * scale) / 2
     var span = imageDepthNear - imageDepthFar
+
+    var ovData = null
+    var ovW = 0
+    var ovH = 0
+    var ovScale = 0
+    var ovOffsetX = 0
+    var ovOffsetY = 0
+    var ovThreshold = 0
+    if (imageOverlay && imageOverlay.data) {
+      ovData = imageOverlay.data.data
+      ovW = imageOverlay.data.width
+      ovH = imageOverlay.data.height
+      ovScale = Math.min(cols / ovW, rows / ovH)
+      ovOffsetX = (cols - ovW * ovScale) / 2
+      ovOffsetY = (rows - ovH * ovScale) / 2
+      ovThreshold = imageOverlay.threshold
+    }
 
     for (var y = 0; y < rows; y++) {
       var sy = (y - offsetY) / scale
@@ -644,24 +679,55 @@ window.chromoton = (function () {
       }
     }
 
+    if (ovData) {
+      for (var oy = 0; oy < rows; oy++) {
+        var osy = (oy - ovOffsetY) / ovScale
+        if (osy < 0 || osy >= ovH) continue
+        var osyIdx = osy | 0
+        for (var ox = 0; ox < cols; ox++) {
+          var osx = (ox - ovOffsetX) / ovScale
+          if (osx < 0 || osx >= ovW) continue
+          var oi = (osyIdx * ovW + (osx | 0)) * 4
+          // Same luma formula as above, so an overlay authored as a plain
+          // black/white mask thresholds exactly where you would expect.
+          var ovLuma =
+            (ovData[oi] * 77 + ovData[oi + 1] * 150 + ovData[oi + 2] * 29) >> 8
+          if (ovLuma >= ovThreshold) indices[oy * cols + ox] = bands
+        }
+      }
+    }
+
     return indices
   }
 
   // Indexed counterpart to applyImageTargetsToPopulation. Agitate still
   // applies, uniformly across every band so the whole ramp breathes
-  // together rather than one band drifting off the others. Auto-threshold
-  // and auto-dim don't: both are defined in terms of a single "white"
-  // against a single "black" and have no meaning across N bands.
+  // together rather than one band drifting off the others, and across the
+  // overlay too. Auto-threshold doesn't: it is defined in terms of a single
+  // "white" against a single "black" and has no meaning across N bands.
+  //
+  // Auto-dim does apply, but only to the overlay color — that reasoning
+  // ("no single white to dim") holds for a ramp and not for the overlay,
+  // which is exactly one distinguished color. With no overlay, auto-dim
+  // stays inert here, as it was before.
   function applyIndexedImageTargets() {
     var bandCount = imagePalette.length
     var indices = sampleImageIndices(imageSourceData, xDim, yDim, bandCount)
     lastImageMask = indices
 
     var intensity = agitateEnabled ? agitateIntensity : 1
-    var bands = new Array(bandCount)
+    var bands = new Array(bandCount + (imageOverlay ? 1 : 0))
     for (var b = 0; b < bandCount; b++) {
       bands[b] =
         intensity !== 1 ? dimColor(imagePalette[b], intensity) : imagePalette[b]
+    }
+    if (imageOverlay) {
+      var overlayIntensity = intensity
+      if (autoDimEnabled) overlayIntensity *= autoDimIntensity
+      bands[bandCount] =
+        overlayIntensity !== 1
+          ? dimColor(imageOverlay.color, overlayIntensity)
+          : imageOverlay.color
     }
 
     var size = xDim * yDim
@@ -703,15 +769,40 @@ window.chromoton = (function () {
   // depth map that's farthest-to-nearest. Passing a two-entry palette is
   // *not* the same as setImageTargets: this quantizes evenly across the
   // depth range rather than thresholding, and ignores auto-threshold.
-  function setImageTargetsIndexed(imgData, palette) {
+  //
+  // overlay is optional: { data, color, threshold }, where data is a second
+  // ImageData whose luma at or above threshold (default 128) makes a cell
+  // take `color` instead of its band. Omit it and behavior is exactly what
+  // it was before the argument existed, which is what the depth-map and
+  // segments variations rely on.
+  function setImageTargetsIndexed(imgData, palette, overlay) {
     if (!imgData || !imgData.data || !imgData.width || !imgData.height) return
     if (!palette || !palette.length) return
 
     imageSourceData = imgData
     imagePalette = palette.map(normalizeColor)
     imageColors = null
+    // An overlay missing its data or color is dropped rather than
+    // half-applied — a caller whose second video hasn't decoded a frame yet
+    // should render as plain bands, not throw.
+    imageOverlay =
+      overlay && overlay.data && overlay.data.data && overlay.color
+        ? {
+            data: overlay.data,
+            color: normalizeColor(overlay.color),
+            threshold:
+              overlay.threshold === undefined
+                ? 128
+                : Math.max(0, Math.min(255, overlay.threshold | 0)),
+          }
+        : null
     imageModeEnabled = true
     applyImageTargetsToPopulation()
+  }
+
+  // True when indexed image mode is running with an overlay source.
+  function isImageOverlayEnabled() {
+    return imageModeEnabled && imagePalette !== null && imageOverlay !== null
   }
 
   // The source luma window spread across the palette (0-255 each). Narrowing
@@ -738,6 +829,7 @@ window.chromoton = (function () {
     imageSourceData = null
     imageColors = null
     imagePalette = null
+    imageOverlay = null
     lastImageMask = null
     var size = xDim * yDim
     for (var idx = 0; idx < size; idx++) {
@@ -835,14 +927,24 @@ window.chromoton = (function () {
   // Called from step() after each generation's population swap.
   function measureAutoDim(timestamp) {
     if (!autoDimEnabled || !imageModeEnabled || !lastImageMask) return
-    if (imagePalette) return
+    // Indexed mode without an overlay has no single "white" to dim, so it
+    // still bails. With one, the overlay *is* that single color, and
+    // lastImageMask holds band indices — cells on the overlay carry the
+    // index one past the last band.
+    if (imagePalette && !imageOverlay) return
     if (timestamp - lastAutoDimMeasure < AUTO_DIM_MEASURE_INTERVAL_MS) return
     lastAutoDimMeasure = timestamp
 
+    var overlayIndex = imagePalette ? imagePalette.length : -1
     var size = xDim * yDim
     var whiteCount = 0
     for (var idx = 0; idx < size; idx++) {
-      if (lastImageMask[idx]) whiteCount++
+      if (
+        overlayIndex >= 0
+          ? lastImageMask[idx] === overlayIndex
+          : lastImageMask[idx]
+      )
+        whiteCount++
     }
     var coverage = size > 0 ? whiteCount / size : 0
     lastAutoDimCoverage = coverage
@@ -945,6 +1047,7 @@ window.chromoton = (function () {
     setImageDepthRange: setImageDepthRange,
     getImageDepthRange: getImageDepthRange,
     isIndexedImageModeEnabled: isIndexedImageModeEnabled,
+    isImageOverlayEnabled: isImageOverlayEnabled,
     clearImageTargets: clearImageTargets,
     isImageModeEnabled: isImageModeEnabled,
     setImageThreshold: setImageThreshold,

@@ -18,4 +18,5 @@ export const VARIANTS = [
   { id: '2026-09', label: '2026-09', path: 'cinema/2026-09/' },
   { id: 'depth-map', label: 'Depth map', path: 'cinema/depth-map/' },
   { id: 'segments', label: 'Segments', path: 'cinema/segments/' },
+  { id: 'hybrid', label: 'Hybrid', path: 'cinema/hybrid/' },
 ]

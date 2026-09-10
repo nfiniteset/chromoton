@@ -1,0 +1,719 @@
+import { useState, useEffect, useMemo, useRef } from 'react'
+import Chromoton from '../../Chromoton'
+import CinemaControlPanel from './CinemaControlPanel'
+import Scrubber from '../../components/Scrubber'
+import VariantNav from '../../components/VariantNav'
+import KeyboardControls from '../../components/KeyboardControls'
+import CommandMenu from '../../components/CommandMenu'
+import { useVideoImageMode } from './useVideoImageMode'
+import {
+  DEFAULT_ENVIRONMENT_FAR,
+  DEFAULT_ENVIRONMENT_NEAR,
+  DEFAULT_PERSON_COLOR,
+  buildEnvironmentPalette,
+} from './environmentPalette'
+import { getRandomPaletteName } from '../../palettes'
+import { useColorModel } from '../../hooks/useColorModel'
+import { useColorRandomizer } from '../../hooks/useColorRandomizer'
+import { useLocalStorage } from '../../hooks/useLocalStorage'
+import { useKeyboardShortcut } from '../../hooks/useKeyboardShortcut'
+import { createStrategyById } from '../../strategies'
+import { ThemeProvider } from '../../contexts/ThemeContext'
+
+// Matches this folder's name — used to identify this variation in the
+// VariantNav menu (see src/cinema/variants.js).
+const VARIANT_ID = 'hybrid'
+
+// Each variation gets its own localStorage namespace so changing a setting
+// in one never leaks into another — see PLAN.md.
+const STORAGE_PREFIX = `chromoton-cinema-${VARIANT_ID}`
+
+// Same-directory-relative to cinema/index.html, so these resolve correctly
+// whether served from dev root or nested under a deployed base path.
+//
+// Two sources, not one. DEPTH_SRC is a depth map (brightness = distance
+// from camera, bright = near) driving the environment bands; PEOPLE_SRC is
+// a plain black/white person mask lifted over it as the engine's overlay.
+// They are kept as separate files rather than baked into one so each can be
+// re-rendered alone and neither constrains the other's resolution or frame
+// rate — see docs/hybrid-pipeline.md.
+// Depth is the real thing: the finished render from preprocess-depth.py,
+// DVD source at 1024x576 inference, area-averaged to 640x360, 25fps.
+//
+// TEMPORARY — the person mask is still a placeholder while its render
+// finishes. Once preprocess-people.py has produced it, restore:
+//   const PEOPLE_SRC = 'media/forsythe_people.mp4'
+// and delete placeholder_people.mp4. deploy.js is whitelisted for the final
+// name, not this one, so this must be reverted before a deploy.
+//
+// The placeholder is the segments variation's asset, and stands in
+// imperfectly on purpose: DETR's mask (blobbed torsos, no outstretched
+// arms) rather than Mask2Former's, at 8.33fps against depth's 25. It shares
+// the source timeline and duration so time-based sync between the two
+// elements still holds, and segments' class centres (64/191) decode
+// correctly against the overlay's 128 threshold.
+const DEPTH_SRC = 'media/forsythe_depth.mp4'
+const PEOPLE_SRC = 'media/placeholder_people.mp4'
+
+// Matches the video's native decoded resolution (see useVideoImageMode /
+// fromVideoElement) so thumbnails never distort.
+const PANEL_THUMB_WIDTH = 320
+const PANEL_THUMB_HEIGHT = 180
+const DRAG_THUMB_WIDTH = 120
+const DRAG_THUMB_HEIGHT = 68
+
+// The source video doesn't expose its true encoded frame rate through the
+// HTMLVideoElement API, so frame-stepping assumes a standard rate.
+const ASSUMED_FRAME_RATE = 24
+const FRAME_DURATION = 1 / ASSUMED_FRAME_RATE
+const FAST_STEP_FRAMES = 30
+
+// Single source of truth for every persisted setting's default, shared
+// between each useLocalStorage() call below and the panel's Reset button —
+// so "reset to defaults" can never drift from what a fresh session actually
+// starts with.
+const DEFAULT_CLARITY = 320
+const DEFAULT_FPS = 15
+const DEFAULT_MONOCHROME = false
+const DEFAULT_SOUND_ENABLED = false
+const DEFAULT_PLAYBACK_RATE = 0.25
+// How many depth bands the source's luma is quantized into — i.e. how many
+// distinct target colors are in play at once. 6 rather than 4 because at 4
+// the dancers fall into the same band as the corridor walls behind them;
+// 6 separates the figures from the floor they're on.
+const DEFAULT_BANDS = 6
+// The two ends of the environment ramp; every band between them is
+// interpolated. Unlike depth-map's fixed greyscale, both are configurable.
+const DEFAULT_ENV_FAR = DEFAULT_ENVIRONMENT_FAR
+const DEFAULT_ENV_NEAR = DEFAULT_ENVIRONMENT_NEAR
+// The overlay color — what a cell takes when the mask says "person" —
+// independent of the ramp behind it.
+const DEFAULT_PERSON = DEFAULT_PERSON_COLOR
+// Auto-dim pulls the person color down as dancers fill more of the frame.
+// Off by default: this variation's defaults are unturned until the full
+// render exists (step 5 in docs/hybrid-pipeline.md).
+const DEFAULT_AUTO_DIM_PERSON = false
+const DEFAULT_AUTO_DIM_CEILING_PERCENT = 40
+// The luma window (0-255) spread across those bands. Full range by default;
+// narrow it to spend every band on the depths the dancers actually occupy.
+const DEFAULT_DEPTH_FAR = 0
+const DEFAULT_DEPTH_NEAR = 255
+const DEFAULT_AGITATE_TARGET = false
+const DEFAULT_SHOW_THUMBNAIL_OVERLAY = false
+const DEFAULT_KEEP_PANEL_VISIBLE = false
+// 95% black / 95% white rather than pure 0/255.
+const DEFAULT_COLORS = [
+  { r: 13, g: 13, b: 13 },
+  { r: 242, g: 242, b: 242 },
+]
+
+function CinemaApp() {
+  const [clarity, setClarity] = useLocalStorage(
+    `${STORAGE_PREFIX}-clarity`,
+    DEFAULT_CLARITY
+  )
+  // No UI to change this in cinema anymore (Spiciness/StrategySelector is
+  // hidden here) — always 'none', never persisted, so a value saved by an
+  // older build with that UI can't leak in on load.
+  const strategyType = 'none'
+  const [fps, setFps] = useLocalStorage(`${STORAGE_PREFIX}-fps`, DEFAULT_FPS)
+  const [monochrome, setMonochrome] = useLocalStorage(
+    `${STORAGE_PREFIX}-monochrome`,
+    DEFAULT_MONOCHROME
+  )
+  const [soundEnabled, setSoundEnabled] = useLocalStorage(
+    `${STORAGE_PREFIX}-soundEnabled`,
+    DEFAULT_SOUND_ENABLED
+  )
+  const [playbackRate, setPlaybackRate] = useLocalStorage(
+    `${STORAGE_PREFIX}-playbackRate`,
+    DEFAULT_PLAYBACK_RATE
+  )
+  const [bands, setBands] = useLocalStorage(
+    `${STORAGE_PREFIX}-bands`,
+    DEFAULT_BANDS
+  )
+  const [depthFar, setDepthFar] = useLocalStorage(
+    `${STORAGE_PREFIX}-depthFar`,
+    DEFAULT_DEPTH_FAR
+  )
+  const [depthNear, setDepthNear] = useLocalStorage(
+    `${STORAGE_PREFIX}-depthNear`,
+    DEFAULT_DEPTH_NEAR
+  )
+  const [envFar, setEnvFar] = useLocalStorage(
+    `${STORAGE_PREFIX}-envFar`,
+    DEFAULT_ENV_FAR
+  )
+  const [envNear, setEnvNear] = useLocalStorage(
+    `${STORAGE_PREFIX}-envNear`,
+    DEFAULT_ENV_NEAR
+  )
+  const [personColor, setPersonColor] = useLocalStorage(
+    `${STORAGE_PREFIX}-personColor`,
+    DEFAULT_PERSON
+  )
+  const [autoDimPerson, setAutoDimPerson] = useLocalStorage(
+    `${STORAGE_PREFIX}-autoDimPerson`,
+    DEFAULT_AUTO_DIM_PERSON
+  )
+  const [autoDimCeilingPercent, setAutoDimCeilingPercent] = useLocalStorage(
+    `${STORAGE_PREFIX}-autoDimCeilingPercent`,
+    DEFAULT_AUTO_DIM_CEILING_PERCENT
+  )
+  const [personCoverage, setPersonCoverage] = useState(0)
+  const [agitateTarget, setAgitateTarget] = useLocalStorage(
+    `${STORAGE_PREFIX}-agitateTarget`,
+    DEFAULT_AGITATE_TARGET
+  )
+  const [showThumbnailOverlay, setShowThumbnailOverlay] = useLocalStorage(
+    `${STORAGE_PREFIX}-showThumbnailOverlay`,
+    DEFAULT_SHOW_THUMBNAIL_OVERLAY
+  )
+  const [keepPanelVisible, setKeepPanelVisible] = useLocalStorage(
+    `${STORAGE_PREFIX}-keepPanelVisible`,
+    DEFAULT_KEEP_PANEL_VISIBLE
+  )
+  const [playing, setPlaying] = useState(true)
+  const [videoFound, setVideoFound] = useState(true)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [panelState, setPanelState] = useState(
+    /** @type {'open' | 'hidden'} */ ('open')
+  )
+
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragTime, setDragTime] = useState(0)
+
+  const primaryVideoRef = useRef(/** @type {HTMLVideoElement | null} */ (null))
+  // The person mask, playing the same timeline alongside the depth video.
+  // Never seen; sampled each frame and handed to the engine as the overlay.
+  const maskVideoRef = useRef(/** @type {HTMLVideoElement | null} */ (null))
+  const previewVideoRef = useRef(/** @type {HTMLVideoElement | null} */ (null))
+  // Always-visible panel thumbnail (mirrors the primary video — whatever
+  // frame is currently driving the sim, playing or paused).
+  const panelThumbnailRef = useRef(
+    /** @type {HTMLCanvasElement | null} */ (null)
+  )
+  // Same frame, mirrored into a second canvas for the standalone top-right
+  // overlay shown when the panel is closed (see showThumbnailOverlay).
+  const overlayThumbnailRef = useRef(
+    /** @type {HTMLCanvasElement | null} */ (null)
+  )
+  // Floating thumbnail shown above the scrubber thumb while dragging
+  // (mirrors the silent preview video, seeked to the drag position).
+  const dragThumbnailRef = useRef(
+    /** @type {HTMLCanvasElement | null} */ (null)
+  )
+  const seekInFlightRef = useRef(false)
+  const pendingSeekRef = useRef(/** @type {number | null} */ (null))
+
+  // Target colors always start at the defaults, never from localStorage —
+  // there's no UI to change them in cinema, so nothing should ever persist.
+  const initialPaletteName = useMemo(() => getRandomPaletteName(), [])
+
+  const colorModel = useColorModel(initialPaletteName, DEFAULT_COLORS)
+
+  const randomizationStrategy = useMemo(() => {
+    return createStrategyById(strategyType)
+  }, [strategyType])
+
+  const colorState = useMemo(
+    () => ({
+      currentPalette: colorModel.currentPalette,
+      colors: colorModel.colors,
+    }),
+    [colorModel.currentPalette, colorModel.colors]
+  )
+
+  useEffect(() => {
+    if (window.chromoton) {
+      window.chromoton.setStepInterval(Math.round(1000 / fps))
+    }
+  }, [fps])
+
+  useEffect(() => {
+    if (window.chromoton) {
+      window.chromoton.setGrayscale(monochrome)
+    }
+  }, [monochrome])
+
+  useEffect(() => {
+    if (window.chromoton) {
+      const colorsForSim = colorModel.getColorsForSimulation()
+      window.chromoton.setTargetColors(colorsForSim)
+    }
+  }, [colorModel.colors, colorModel.getColorsForSimulation])
+
+  useEffect(() => {
+    window.chromoton?.setImageDepthRange(depthFar, depthNear)
+  }, [depthFar, depthNear])
+
+  useEffect(() => {
+    window.chromoton?.setAgitateTarget(agitateTarget)
+  }, [agitateTarget])
+
+  // Auto-dim is defined against a single distinguished color. In this
+  // variation that's the person overlay, not the ramp — the engine measures
+  // overlay coverage and dims the person color by it (see chromoton.js's
+  // measureAutoDim).
+  useEffect(() => {
+    window.chromoton?.setAutoDim(autoDimPerson)
+  }, [autoDimPerson])
+
+  useEffect(() => {
+    window.chromoton?.setAutoDimCoverageMax(autoDimCeilingPercent / 100)
+  }, [autoDimCeilingPercent])
+
+  // Live readout of how much of the grid the mask currently claims, so the
+  // Dim ceiling slider shows cause and effect instead of being set blind.
+  // Only polled while auto-dim is on, since that's the only time the engine
+  // is measuring at all.
+  useEffect(() => {
+    if (!autoDimPerson) return
+    const id = setInterval(() => {
+      setPersonCoverage(window.chromoton?.getAutoDimCoverage() ?? 0)
+    }, 250)
+    return () => clearInterval(id)
+  }, [autoDimPerson])
+
+  useColorRandomizer(
+    true,
+    randomizationStrategy,
+    colorState,
+    colorModel.applyRandomAction
+  )
+
+  // Video element wiring: playback rate, mute, play/pause, and
+  // duration/currentTime/error tracking for the Scrubber.
+  useEffect(() => {
+    const video = primaryVideoRef.current
+    if (video) video.playbackRate = playbackRate
+    // The mask has to run at the same rate or the two drift apart by
+    // construction rather than by jitter.
+    const mask = maskVideoRef.current
+    if (mask) mask.playbackRate = playbackRate
+  }, [playbackRate])
+
+  useEffect(() => {
+    const video = primaryVideoRef.current
+    if (video) video.muted = !soundEnabled
+  }, [soundEnabled])
+
+  useEffect(() => {
+    const video = primaryVideoRef.current
+    if (!video) return
+    const mask = maskVideoRef.current
+    if (playing) {
+      // Started/stopped together. The mask is always muted and never
+      // user-visible, so a rejected play() on it isn't worth surfacing —
+      // the depth video's own rejection already drives the UI state below.
+      mask?.play().catch(() => {})
+      video.play().catch((err) => {
+        // Autoplay can be rejected (e.g. an unfocused/backgrounded tab).
+        // Sync state back to reality so the Play/Pause button reflects
+        // what's actually happening instead of silently sitting stuck.
+        console.warn('Cinema: video.play() was rejected:', err)
+        setPlaying(false)
+      })
+    } else {
+      video.pause()
+      mask?.pause()
+    }
+  }, [playing])
+
+  useEffect(() => {
+    const video = primaryVideoRef.current
+    if (!video) return
+
+    const handleLoadedMetadata = () => setDuration(video.duration)
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime)
+    const handleError = () => setVideoFound(false)
+    // The browser can pause playback on its own (e.g. a power-saving
+    // suspension policy for backgrounded/unfocused tabs), not just in
+    // response to our own pause() calls — listen natively rather than
+    // only driving state one-way, so the Play/Pause button never goes
+    // stale relative to what's actually playing.
+    const handlePlay = () => setPlaying(true)
+    const handlePause = () => setPlaying(false)
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    video.addEventListener('timeupdate', handleTimeUpdate)
+    video.addEventListener('error', handleError)
+    video.addEventListener('play', handlePlay)
+    video.addEventListener('pause', handlePause)
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.removeEventListener('timeupdate', handleTimeUpdate)
+      video.removeEventListener('error', handleError)
+      video.removeEventListener('play', handlePlay)
+      video.removeEventListener('pause', handlePause)
+    }
+  }, [])
+
+  // The ramp resampled to whatever band count is in effect. Rebuilt when
+  // the count or either end changes, since useVideoImageMode hands this
+  // straight to the engine on every sampled frame.
+  const environmentPalette = useMemo(
+    () => buildEnvironmentPalette(envFar, envNear, bands),
+    [envFar, envNear, bands]
+  )
+
+  useVideoImageMode(
+    primaryVideoRef,
+    maskVideoRef,
+    environmentPalette,
+    personColor,
+    videoFound
+  )
+
+  // Always-on panel thumbnail: mirrors whatever frame the primary video is
+  // currently on — during playback (timeupdate), right after any seek
+  // (including a paused scrub commit), and once the first frame is ready.
+  useEffect(() => {
+    const video = primaryVideoRef.current
+    if (!video) return
+
+    const drawInto = (canvas) => {
+      if (!canvas || !video.videoWidth) return
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    }
+
+    const draw = () => {
+      drawInto(panelThumbnailRef.current)
+      drawInto(overlayThumbnailRef.current)
+    }
+
+    video.addEventListener('timeupdate', draw)
+    video.addEventListener('seeked', draw)
+    video.addEventListener('loadeddata', draw)
+    draw()
+
+    return () => {
+      video.removeEventListener('timeupdate', draw)
+      video.removeEventListener('seeked', draw)
+      video.removeEventListener('loadeddata', draw)
+    }
+  }, [])
+
+  // The overlay canvas only exists in the DOM while it's actually shown, so
+  // it misses whatever frame the draw effect above last pushed — paint it
+  // immediately on mount instead of waiting for the video's next event.
+  useEffect(() => {
+    if (!showThumbnailOverlay || panelState !== 'hidden') return
+    const video = primaryVideoRef.current
+    const canvas = overlayThumbnailRef.current
+    if (!video || !canvas || !video.videoWidth) return
+    const ctx = canvas.getContext('2d')
+    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+  }, [showThumbnailOverlay, panelState])
+
+  // Drag-thumbnail: seeking the (silent, never-played) preview video is
+  // async, so only draw once its 'seeked' event confirms the new frame is
+  // decoded. Queue at most one pending seek so fast pointer movement during
+  // a drag doesn't pile up a backlog of seeks.
+  useEffect(() => {
+    const video = previewVideoRef.current
+    if (!video) return
+
+    const drawThumbnail = () => {
+      const canvas = dragThumbnailRef.current
+      if (!canvas || !video.videoWidth) return
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+    }
+
+    const handleSeeked = () => {
+      drawThumbnail()
+      seekInFlightRef.current = false
+      if (pendingSeekRef.current !== null) {
+        const next = pendingSeekRef.current
+        pendingSeekRef.current = null
+        seekInFlightRef.current = true
+        video.currentTime = next
+      }
+    }
+
+    video.addEventListener('seeked', handleSeeked)
+    return () => video.removeEventListener('seeked', handleSeeked)
+  }, [])
+
+  const seekPreview = (time) => {
+    const video = previewVideoRef.current
+    if (!video) return
+    if (seekInFlightRef.current) {
+      pendingSeekRef.current = time
+      return
+    }
+    seekInFlightRef.current = true
+    video.currentTime = time
+  }
+
+  // Both videos are seeked, not just the depth one — a scrub that moved
+  // only the environment would leave the dancers behind at the old moment.
+  const commitSeek = (time) => {
+    if (primaryVideoRef.current) primaryVideoRef.current.currentTime = time
+    if (maskVideoRef.current) maskVideoRef.current.currentTime = time
+  }
+
+  // Space toggles play/pause. A focused button (e.g. the Scrubber's own
+  // play/pause button) already toggles on space natively, so it's skipped
+  // here rather than double-firing.
+  useKeyboardShortcut({
+    id: 'cinema-toggle-play',
+    keys: [' '],
+    label: 'Play / pause',
+    handler: (e) => {
+      if (e.target instanceof HTMLElement && e.target.tagName === 'BUTTON') {
+        return
+      }
+      e.preventDefault()
+      setPlaying((p) => !p)
+    },
+  })
+
+  // Left/Right nudge one frame, Shift+Left/Right nudge 30.
+  useKeyboardShortcut({
+    id: 'cinema-frame-step',
+    keys: ['ArrowLeft', 'ArrowRight'],
+    label: 'Step frame (Shift = 30 frames)',
+    handler: (e) => {
+      const video = primaryVideoRef.current
+      if (!video || !duration) return
+
+      e.preventDefault()
+      const frames = e.shiftKey ? FAST_STEP_FRAMES : 1
+      const direction = e.key === 'ArrowRight' ? 1 : -1
+      const next = Math.min(
+        duration,
+        Math.max(0, video.currentTime + frames * FRAME_DURATION * direction)
+      )
+      video.currentTime = next
+      if (maskVideoRef.current) maskVideoRef.current.currentTime = next
+    },
+  })
+
+  const handleScrubPointerDown = (e) => {
+    setIsDragging(true)
+    setDragTime(parseFloat(e.target.value))
+  }
+
+  // React's onChange for <input> actually listens to the native 'input'
+  // event (not 'change'), so it fires on every drag tick, not just on
+  // release — can't rely on it to detect "drag finished". While dragging,
+  // this only updates the live preview; the primary video is committed
+  // separately on pointerup. A keyboard-driven nudge (no preceding
+  // pointerdown) has no "drag" to speak of, so it commits immediately.
+  const handleScrubInput = (e) => {
+    const time = parseFloat(e.target.value)
+    if (isDragging) {
+      setDragTime(time)
+      seekPreview(time)
+    } else {
+      commitSeek(time)
+    }
+  }
+
+  const handleScrubPointerUp = (e) => {
+    if (!isDragging) return
+    commitSeek(parseFloat(e.target.value))
+    setIsDragging(false)
+  }
+
+  // Hover-scrub: preview a frame under the pointer without touching the
+  // primary video. Scrubber already suppresses this while a real drag is in
+  // progress, but guard here too since a drag's pointerup can land outside
+  // the track and leave a trailing mousemove.
+  const handleTrackHover = (time) => {
+    if (isDragging) return
+    seekPreview(time)
+  }
+
+  // Restores every persisted setting to the DEFAULT_* values above. Doesn't
+  // touch playback state (currentTime, playing, etc.) — those are live
+  // session state, not settings someone would want "reset".
+  const handleReset = () => {
+    setClarity(DEFAULT_CLARITY)
+    setFps(DEFAULT_FPS)
+    setMonochrome(DEFAULT_MONOCHROME)
+    setSoundEnabled(DEFAULT_SOUND_ENABLED)
+    setPlaybackRate(DEFAULT_PLAYBACK_RATE)
+    setBands(DEFAULT_BANDS)
+    setEnvFar(DEFAULT_ENV_FAR)
+    setEnvNear(DEFAULT_ENV_NEAR)
+    setPersonColor(DEFAULT_PERSON)
+    setAutoDimPerson(DEFAULT_AUTO_DIM_PERSON)
+    setAutoDimCeilingPercent(DEFAULT_AUTO_DIM_CEILING_PERCENT)
+    setDepthFar(DEFAULT_DEPTH_FAR)
+    setDepthNear(DEFAULT_DEPTH_NEAR)
+    setAgitateTarget(DEFAULT_AGITATE_TARGET)
+    setShowThumbnailOverlay(DEFAULT_SHOW_THUMBNAIL_OVERLAY)
+    setKeepPanelVisible(DEFAULT_KEEP_PANEL_VISIBLE)
+    colorModel.changeColor(0, DEFAULT_COLORS[0])
+    colorModel.changeColor(1, DEFAULT_COLORS[1])
+  }
+
+  const scrubValue = isDragging ? dragTime : currentTime
+
+  // Always rendered — mirrors the primary video's current frame at all
+  // times, whether playing, paused, or mid-drag.
+  const panelThumbnail = (
+    <canvas
+      ref={panelThumbnailRef}
+      width={PANEL_THUMB_WIDTH}
+      height={PANEL_THUMB_HEIGHT}
+      className="h-auto w-full rounded-md border"
+      style={{ borderColor: 'var(--ct-border)' }}
+    />
+  )
+
+  // Standalone top-right overlay: shows the same thumbnail on its own,
+  // outside the settings panel's themed subtree (hence a plain static
+  // border rather than the panel's contrast-adaptive --ct-border), so a
+  // frame stays visible even with the panel hidden — e.g. for screen
+  // capture or a live performance.
+  const showOverlay = showThumbnailOverlay && panelState === 'hidden'
+
+  return (
+    <ThemeProvider>
+      <KeyboardControls />
+      <CommandMenu />
+      <VariantNav current={VARIANT_ID} hidden={panelState === 'hidden'} />
+
+      <Chromoton
+        width={clarity}
+        autoStart={true}
+        onToggleMonochrome={() => setMonochrome(!monochrome)}
+      />
+
+      <video
+        ref={primaryVideoRef}
+        src={DEPTH_SRC}
+        loop
+        playsInline
+        muted={!soundEnabled}
+        style={{
+          // Full-viewport size and opacity:1 (not display:none/opacity:0/
+          // tiny) — Chrome's autoplay power-saver suspends <video> elements
+          // it considers invisible background content, which would
+          // silently stall the frame source driving the sim. It's still
+          // never actually seen: zIndex -1 tucks it fully behind the
+          // opaque Chromoton canvas.
+          position: 'fixed',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: -1,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* The person mask. Same treatment as the depth video above — kept
+          full-viewport and behind the canvas rather than hidden, since
+          Chrome suspends <video> elements it decides are invisible
+          background content, which would stall the overlay source. */}
+      <video
+        ref={maskVideoRef}
+        src={PEOPLE_SRC}
+        loop
+        playsInline
+        muted
+        style={{
+          position: 'fixed',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: -2,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Scrub-preview-only video — never played, never contributes frames
+          to the sim, purely seeked on drag to generate the floating
+          thumbnail shown above the scrubber thumb. Depth only: the
+          thumbnail is a navigation aid, not a preview of the composite. */}
+      <video
+        ref={previewVideoRef}
+        src={DEPTH_SRC}
+        muted
+        preload="auto"
+        className="hidden"
+      />
+
+      {videoFound && showOverlay && (
+        <div
+          data-cinema-ui="thumbnail-overlay"
+          className="pointer-events-none fixed top-5 right-5 z-[100] w-[180px] rounded-2xl bg-white/8 p-2 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl backdrop-saturate-[180%]"
+        >
+          <canvas
+            ref={overlayThumbnailRef}
+            width={PANEL_THUMB_WIDTH}
+            height={PANEL_THUMB_HEIGHT}
+            className="h-auto w-full rounded-md border border-white/15"
+          />
+        </div>
+      )}
+
+      {videoFound && (
+        <Scrubber
+          value={scrubValue}
+          duration={duration}
+          playing={playing}
+          onTogglePlay={() => setPlaying((p) => !p)}
+          onPointerDown={handleScrubPointerDown}
+          onInput={handleScrubInput}
+          onPointerUp={handleScrubPointerUp}
+          onTrackHover={handleTrackHover}
+          hidden={panelState === 'hidden'}
+          isDragging={isDragging}
+          dragThumbnailRef={dragThumbnailRef}
+          dragThumbWidth={DRAG_THUMB_WIDTH}
+          dragThumbHeight={DRAG_THUMB_HEIGHT}
+        />
+      )}
+
+      <CinemaControlPanel
+        onPanelStateChange={setPanelState}
+        thumbnail={panelThumbnail}
+        clarity={clarity}
+        onClarityChange={setClarity}
+        fps={fps}
+        onFpsChange={setFps}
+        videoFound={videoFound}
+        soundEnabled={soundEnabled}
+        onSoundChange={setSoundEnabled}
+        playbackRate={playbackRate}
+        onPlaybackRateChange={setPlaybackRate}
+        bands={bands}
+        onBandsChange={setBands}
+        depthFar={depthFar}
+        onDepthFarChange={setDepthFar}
+        depthNear={depthNear}
+        onDepthNearChange={setDepthNear}
+        environmentPalette={environmentPalette}
+        envFar={envFar}
+        onEnvFarChange={setEnvFar}
+        envNear={envNear}
+        onEnvNearChange={setEnvNear}
+        personColor={personColor}
+        onPersonColorChange={setPersonColor}
+        autoDimPerson={autoDimPerson}
+        onAutoDimPersonChange={setAutoDimPerson}
+        autoDimCeilingPercent={autoDimCeilingPercent}
+        onAutoDimCeilingPercentChange={setAutoDimCeilingPercent}
+        personCoverage={personCoverage}
+        agitateTarget={agitateTarget}
+        onAgitateTargetChange={setAgitateTarget}
+        showThumbnailOverlay={showThumbnailOverlay}
+        onShowThumbnailOverlayChange={setShowThumbnailOverlay}
+        keepPanelVisible={keepPanelVisible}
+        onKeepPanelVisibleChange={setKeepPanelVisible}
+        onReset={handleReset}
+      />
+    </ThemeProvider>
+  )
+}
+
+export default CinemaApp

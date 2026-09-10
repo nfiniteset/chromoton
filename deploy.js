@@ -164,6 +164,8 @@ const WHITELISTED_PATHS = [
   'cinema/2026-09/media/forsythe_one_flat_thing_reproduced_motion.mp4',
   'cinema/depth-map/media/forsythe_one_flat_thing_reproduced_depth.mp4',
   'cinema/segments/media/forsythe_one_flat_thing_reproduced_segments.mp4',
+  'cinema/hybrid/media/forsythe_depth.mp4',
+  'cinema/hybrid/media/forsythe_people.mp4',
 ]
 
 // Upload files to S3
